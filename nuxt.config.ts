@@ -15,7 +15,7 @@ export default defineNuxtConfig({
   typescript: {
     typeCheck: true,
   },
-  modules: ['@pinia/nuxt', 'nuxt-quasar-ui'],
+  modules: ['@pinia/nuxt', 'nuxt-quasar-ui', '@vueuse/nuxt'],
   quasar: {
     plugins: ['Notify', 'Dialog', 'Loading', 'LoadingBar'],
     extras: {

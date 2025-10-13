@@ -1,18 +1,50 @@
 <script setup lang="ts">
+import { useQuasar } from 'quasar';
 import { ref } from 'vue';
 import { validateEmail, validatePassword } from '~/utils/validateRules';
 import { visibilityStates, toggleVisibility } from '~/utils/toggleVisibility';
+import type { LoginRequest } from '~/types/auth';
 
-const email = ref<string>('');
-const password = ref<string>('');
+const $q = useQuasar();
+const { login } = useAuth();
 
-function onSubmit() {
-  // Сюда добавить отправку данных на сервер
+const isLoading = ref(false);
+
+const formData = ref<LoginRequest>({
+  email: '',
+  password: '',
+});
+
+async function onSubmit() {
+  isLoading.value = true;
+  try {
+    const user = await login(formData.value);
+
+    $q.notify({
+      color: 'green-4',
+      textColor: 'white',
+      icon: 'cloud_done',
+      message: `Добро пожаловать, ${user.name}!`,
+    });
+    await navigateTo('/profile');
+  } catch (error) {
+    console.error('Login error:', error);
+    $q.notify({
+      color: 'red-5',
+      textColor: 'white',
+      icon: 'error',
+      message: 'Ошибка входа. Проверьте email и пароль.',
+    });
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 function onReset() {
-  email.value = '';
-  password.value = '';
+  formData.value = {
+    email: '',
+    password: '',
+  };
 }
 </script>
 <template>
@@ -20,7 +52,7 @@ function onReset() {
     <q-form @submit="onSubmit" @reset="onReset" class="q-gutter-md">
       <q-input
         filled
-        v-model="email"
+        v-model="formData.email"
         label="Электронная почта *"
         hint="example@mail.ru"
         lazy-rules
@@ -29,7 +61,7 @@ function onReset() {
 
       <q-input
         filled
-        v-model="password"
+        v-model="formData.password"
         :type="visibilityStates.password ? 'text' : 'password'"
         label="Пароль *"
         hint="Минимум 3 символа"

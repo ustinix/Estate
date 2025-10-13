@@ -1,7 +1,28 @@
 <script setup lang="ts">
+import { useQuasar } from 'quasar';
 import NavMenu from './NavMenu.vue';
 import BurgerMenu from './BurgerMenu.vue';
 import { navLinks } from '~/constants/commonConstants';
+
+const $q = useQuasar();
+
+const { user, isAuthenticated, logout } = useAuth();
+
+const handleLogout = async () => {
+  try {
+    await logout();
+
+    $q.notify({
+      color: 'green-4',
+      textColor: 'white',
+      icon: 'cloud_done',
+      message: 'Выход выполнен успешно',
+    });
+    await navigateTo('/');
+  } catch (error) {
+    console.error('Ошибка при выходе:', error);
+  }
+};
 </script>
 
 <template>
@@ -22,12 +43,23 @@ import { navLinks } from '~/constants/commonConstants';
       </div>
 
       <div class="toolbar-right">
-        <NuxtLink to="/login">
-          <q-btn class="header-btn button" color="secondary" label="Войти" />
-        </NuxtLink>
-        <NuxtLink to="/register">
-          <q-btn class="header-btn button" color="secondary" label="Зарегистрироваться" />
-        </NuxtLink>
+        <template v-if="!isAuthenticated">
+          <NuxtLink to="/login">
+            <q-btn class="header-btn button" color="secondary" label="Войти" />
+          </NuxtLink>
+          <NuxtLink to="/register">
+            <q-btn class="header-btn button" color="secondary" label="Зарегистрироваться" />
+          </NuxtLink>
+        </template>
+        <template v-else>
+          <div class="user-menu">
+            <NuxtLink to="/profile" class="nav-link profile-link" title="Профиль">
+              <q-icon name="person" class="nav-icon" />
+              <span class="nav-text">{{ user?.name }}</span>
+            </NuxtLink>
+            <q-btn class="header-btn button" color="negative" label="Выйти" @click="handleLogout" />
+          </div>
+        </template>
       </div>
     </div>
   </header>
@@ -99,6 +131,53 @@ import { navLinks } from '~/constants/commonConstants';
 
 .toolbar-title .header-title:hover {
   color: var(--text-color);
+}
+
+.user-menu {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.profile-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  color: var(--text-color);
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+
+  &:hover {
+    background-color: var(--bg-color-hover);
+    color: var(--primary);
+    border-color: var(--primary);
+  }
+
+  &.router-link-active {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+}
+
+.nav-icon {
+  font-size: 1.2rem;
+  color: var(--text-color-light);
+  transition: color 0.3s ease;
+}
+
+.nav-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.logout-btn {
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+  min-height: 2rem;
 }
 
 :deep(.nav-menu) {
