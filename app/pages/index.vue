@@ -9,7 +9,7 @@ import { HOME_TEXT } from '~/constants/homePage';
         <h1>{{ HOME_TEXT.hero.title }}</h1>
         <p>{{ HOME_TEXT.hero.subtitle }}</p>
         <div class="actions">
-          <q-btn color="secondary" size="lg" :label="HOME_TEXT.hero.btn" />
+          <q-btn class="hero-btn button" color="secondary" :label="HOME_TEXT.hero.btn" />
         </div>
       </div>
     </section>
@@ -74,6 +74,11 @@ import { HOME_TEXT } from '~/constants/homePage';
     gap: 1rem;
     justify-content: center;
     flex-wrap: wrap;
+  }
+  .hero-btn {
+    font-size: 1rem;
+    padding: 0.6rem 1rem;
+    min-height: 2rem;
   }
 }
 
@@ -198,6 +203,11 @@ import { HOME_TEXT } from '~/constants/homePage';
     .actions {
       flex-direction: column;
       align-items: center;
+    }
+    .hero-btn {
+      font-size: 1rem;
+      padding: 0.6rem 1rem;
+      min-height: 2rem;
     }
   }
 

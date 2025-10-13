@@ -86,6 +86,10 @@ import { FOOTER_PAGE } from '~/constants/footer';
   line-height: 1.2;
 }
 
+.footer-title:hover {
+  color: var(--text-color);
+}
+
 .footer-subtitle {
   color: var(--text-color);
   font-size: clamp(0.9rem, 1vw, 1.1rem);

@@ -66,8 +66,8 @@ import { navLinks } from '~/constants/commonConstants';
 }
 
 .header-btn {
-  font-size: 1.1rem;
-  padding: 0.8rem 1.4rem;
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
   min-height: 2rem;
 }
 
@@ -97,6 +97,10 @@ import { navLinks } from '~/constants/commonConstants';
   font-weight: 500;
 }
 
+.toolbar-title .header-title:hover {
+  color: var(--text-color);
+}
+
 :deep(.nav-menu) {
   display: flex;
   flex-wrap: wrap;
@@ -104,11 +108,6 @@ import { navLinks } from '~/constants/commonConstants';
 }
 
 @media (max-width: 1300px) {
-  .header-btn {
-    font-size: 1rem;
-    padding: 0.6rem 1.1rem;
-    min-height: 2rem;
-  }
   .toolbar {
     padding: 0 1rem;
     gap: 0.5rem;
@@ -149,6 +148,11 @@ import { navLinks } from '~/constants/commonConstants';
 
   :deep(.nav-menu) {
     gap: 0.5rem;
+  }
+  .header-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.6rem;
+    min-height: 1.8rem;
   }
 }
 

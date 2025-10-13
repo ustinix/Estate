@@ -51,7 +51,7 @@ import { navLinks } from '~/constants/commonConstants';
 }
 
 .nav-text {
-  font-size: clamp(1rem, 1.5vw, 1.5rem);
+  font-size: clamp(1rem, 0.9vw, 1.5rem);
   font-weight: 500;
 }
 </style>
