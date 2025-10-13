@@ -29,11 +29,25 @@ async function onSubmit() {
     await navigateTo('/profile');
   } catch (error) {
     console.error('Login error:', error);
+
+    let errorMessage = 'Ошибка входа. Проверьте email и пароль.';
+
+    if (error instanceof Error) {
+      if (error.message.includes('не зарегистрирован')) {
+        errorMessage =
+          'Пользователь с таким email не зарегистрирован, перейдите на страницу регистрации.';
+      } else if (error.message.includes('Неверный пароль')) {
+        errorMessage = 'Неверный пароль. Попробуйте еще раз.';
+      } else if (error.message.includes('не найден')) {
+        errorMessage = 'Пользователь не найден.';
+      }
+    }
+
     $q.notify({
       color: 'red-5',
       textColor: 'white',
       icon: 'error',
-      message: 'Ошибка входа. Проверьте email и пароль.',
+      message: errorMessage,
     });
   } finally {
     isLoading.value = false;
