@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { navLinks } from '~/constants/commonConstants';
+import { navLinks } from '~/constants/navLinks';
 </script>
 <template>
   <div class="nav-container">

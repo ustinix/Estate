@@ -2,7 +2,7 @@
 import { useQuasar } from 'quasar';
 import NavMenu from './NavMenu.vue';
 import BurgerMenu from './BurgerMenu.vue';
-import { navLinks } from '~/constants/commonConstants';
+import { navLinks } from '~/constants/navLinks';
 
 const $q = useQuasar();
 

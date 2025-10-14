@@ -47,7 +47,7 @@ import { FOOTER_PAGE } from '~/constants/footer';
   </footer>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .footer {
   background: var(--bg-color);
   color: var(--text-color);
