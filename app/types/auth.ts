@@ -4,7 +4,8 @@ export interface User {
   id: UserID;
   name: string;
   email: string;
-  avatar?: string;
+  mobile?: string;
+  telegram?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,9 +26,19 @@ export interface RegisterRequest {
 export interface UpdateProfileRequest {
   name?: string;
   email?: string;
-  avatar?: string;
-  currentPassword?: string;
-  newPassword?: string;
+  mobile?: string;
+  telegram?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface NotificationSettings {
+  emailNotifications: boolean;
+  smsNotifications: boolean;
+  telegramNotifications: boolean;
 }
 
 export interface AuthResponse {
