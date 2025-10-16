@@ -2,12 +2,10 @@ export type UserID = string;
 
 export interface User {
   id: UserID;
-  name: string;
+  name?: string;
   email: string;
   mobile?: string;
   telegram?: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface LoginRequest {
@@ -15,12 +13,21 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface RegisterRequest {
+export interface LoginResponse {
+  id: string;
   name: string;
   email: string;
+  mobile?: string;
+  telegram?: string;
+}
+
+export interface RegisterRequest {
+  email: string;
   password: string;
-  confirmPassword: string;
-  accept: boolean;
+}
+
+export interface RegisterResponse {
+  id: string;
 }
 
 export interface UpdateProfileRequest {
@@ -35,19 +42,8 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
-export interface NotificationSettings {
+export interface NotificationSettingsRequest {
   emailNotifications: boolean;
   smsNotifications: boolean;
   telegramNotifications: boolean;
-}
-
-export interface AuthResponse {
-  user: User;
-  token?: string;
-}
-
-export interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
 }

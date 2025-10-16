@@ -9,9 +9,9 @@ const $q = useQuasar();
 const { register } = useAuth();
 
 const isLoading = ref(false);
+const errorMessage = ref('');
 
-const formData = ref<RegisterRequest>({
-  name: '',
+const formData = ref({
   email: '',
   password: '',
   confirmPassword: '',
@@ -23,16 +23,7 @@ const validateConfirmPassword = (val: string) => {
 };
 
 async function onSubmit() {
-  if (formData.value.accept !== true) {
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'warning',
-      message: 'Необходимо согласие с условиями обработки персональных данных',
-    });
-    return;
-  }
-
+  errorMessage.value = '';
   isLoading.value = true;
 
   try {
@@ -48,12 +39,24 @@ async function onSubmit() {
     await navigateTo('/profile');
   } catch (error) {
     console.error('Registration error:', error);
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'error',
-      message: 'Ошибка регистрации. Попробуйте еще раз.',
-    });
+
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+
+      $q.notify({
+        color: 'red-5',
+        textColor: 'white',
+        icon: 'error',
+        message: error.message,
+      });
+    } else {
+      $q.notify({
+        color: 'red-5',
+        textColor: 'white',
+        icon: 'error',
+        message: 'Ошибка регистрации. Попробуйте еще раз.',
+      });
+    }
   } finally {
     isLoading.value = false;
   }
@@ -61,28 +64,23 @@ async function onSubmit() {
 
 function onReset() {
   formData.value = {
-    name: '',
     email: '',
     password: '',
     confirmPassword: '',
     accept: false,
   };
+  errorMessage.value = '';
   visibilityStates.value.password = false;
   visibilityStates.value.confirmPassword = false;
 }
 </script>
 <template>
   <div class="register-form q-pa-md">
+    <div v-if="errorMessage" class="error-message q-mb-md">
+      <q-icon name="error" color="red" />
+      {{ errorMessage }}
+    </div>
     <q-form @submit="onSubmit" @reset="onReset" class="q-gutter-md">
-      <q-input
-        filled
-        v-model="formData.name"
-        label="Ваше имя *"
-        hint="Имя должно содержать минимум 3 буквы"
-        lazy-rules
-        :rules="[val => (val && val.length >= 3) || 'Имя должно содержать минимум 3 буквы']"
-      />
-
       <q-input
         filled
         v-model="formData.email"

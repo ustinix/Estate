@@ -3,6 +3,7 @@ import { useQuasar } from 'quasar';
 import NavMenu from './NavMenu.vue';
 import BurgerMenu from './BurgerMenu.vue';
 import { navLinks } from '~/constants/navLinks';
+import { getUserNameFromEmail } from '~/utils/userName';
 
 const $q = useQuasar();
 
@@ -23,6 +24,16 @@ const handleLogout = async () => {
     console.error('Ошибка при выходе:', error);
   }
 };
+
+const userName = computed(() => {
+  if (user.value?.name) {
+    return user.value.name;
+  }
+  if (user.value?.email) {
+    return getUserNameFromEmail(user.value.email);
+  }
+  return 'Пользователь';
+});
 </script>
 
 <template>
@@ -55,7 +66,7 @@ const handleLogout = async () => {
           <div class="user-menu">
             <NuxtLink to="/profile" class="nav-link profile-link" title="Профиль">
               <q-icon name="person" class="nav-icon" />
-              <span class="nav-text">{{ user?.name }}</span>
+              <span class="nav-text">{{ userName }}</span>
             </NuxtLink>
             <q-btn class="header-btn button" color="negative" label="Выйти" @click="handleLogout" />
           </div>

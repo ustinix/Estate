@@ -1,26 +1,38 @@
 import type {
   User,
   LoginRequest,
+  LoginResponse,
   RegisterRequest,
+  RegisterResponse,
   UpdateProfileRequest,
   ChangePasswordRequest,
-  NotificationSettings,
+  NotificationSettingsRequest,
 } from '~/types/auth';
 
-const mockUser: User = {
-  id: '1',
-  name: 'Тестовый Пользователь',
-  email: 'test@example.com',
-  mobile: '+7 (999) 123-45-67',
-  telegram: 'testuser',
-  createdAt: new Date('2024-01-01'),
-  updatedAt: new Date(),
+const handleApiError = (error: any): never => {
+  if (error?.status) {
+    const message = error.data?.message || getErrorMessage(error.status);
+    throw new Error(message);
+  }
+
+  if (error instanceof Error) {
+    throw error;
+  }
+
+  throw new Error('Произошла неизвестная ошибка');
 };
 
-const mockNotifications: NotificationSettings = {
-  emailNotifications: true,
-  smsNotifications: false,
-  telegramNotifications: true,
+const getErrorMessage = (status: number): string => {
+  const messages: { [key: number]: string } = {
+    400: 'Неверный запрос',
+    401: 'Неверные учетные данные',
+    403: 'Доступ запрещен',
+    404: 'Ресурс не найден',
+    409: 'Пользователь уже существует',
+    500: 'Внутренняя ошибка сервера',
+  };
+
+  return messages[status] || 'Произошла ошибка';
 };
 
 export const useAuth = () => {
@@ -39,41 +51,15 @@ export const useAuth = () => {
 
   const isAuthenticated = computed(() => !!user.value);
 
-  const checkUserExists = (email: string): boolean => {
-    if (import.meta.client) {
-      try {
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-          const existingUser: User = JSON.parse(savedUser);
-          return existingUser.email === email;
-        }
-      } catch (error) {
-        console.error('Error checking user existence:', error);
-      }
-    }
-    return false;
-  };
-
-  const getRegisteredUsers = (): User[] => {
-    if (import.meta.client) {
-      try {
-        // заменить на запрос к API
-        const savedUser = localStorage.getItem('user');
-        return savedUser ? [JSON.parse(savedUser)] : [];
-      } catch (error) {
-        console.error('Error getting registered users:', error);
-        return [];
-      }
-    }
-    return [];
-  };
-
   const setUserToStorage = (userData: User | null) => {
     if (import.meta.client) {
       try {
         if (userData) {
-          localStorage.setItem('user', JSON.stringify(userData));
+          const userString = JSON.stringify(userData);
+          console.log('Saving to LS:', userString);
+          localStorage.setItem('user', userString);
         } else {
+          console.log('Removing from LS');
           localStorage.removeItem('user');
         }
       } catch (error) {
@@ -83,47 +69,65 @@ export const useAuth = () => {
   };
 
   const login = async (credentials: LoginRequest): Promise<User> => {
-    if (!checkUserExists(credentials.email)) {
-      throw new Error('Пользователь с таким email не зарегистрирован');
+    try {
+      const response: LoginResponse = await $fetch('/api/auth/login', {
+        method: 'POST',
+        body: credentials,
+      });
+
+      console.log('Backend response:', response);
+
+      const loggedInUser: User = {
+        id: response.id,
+        name: response.name || getUserNameFromEmail(credentials.email),
+        email: response.email || credentials.email,
+        mobile: response.mobile,
+        telegram: response.telegram,
+      };
+
+      console.log('Final user object:', loggedInUser);
+
+      user.value = loggedInUser;
+      setUserToStorage(loggedInUser);
+      return loggedInUser;
+    } catch (error: any) {
+      return handleApiError(error);
     }
-
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    const savedUser = localStorage.getItem('user');
-    if (!savedUser) {
-      throw new Error('Пользователь не найден');
-    }
-
-    const existingUser: User = JSON.parse(savedUser);
-
-    // Проверяем пароль (в реальном приложении было бы хеширование)
-    if (credentials.password.length < 3) {
-      throw new Error('Неверный пароль');
-    }
-
-    user.value = existingUser;
-    setUserToStorage(existingUser);
-    return existingUser;
   };
 
   const register = async (userData: RegisterRequest): Promise<User> => {
-    if (checkUserExists(userData.email)) {
-      throw new Error('Пользователь с таким email уже зарегистрирован');
+    try {
+      const response: RegisterResponse = await $fetch('/api/auth/register', {
+        method: 'POST',
+        body: userData,
+      });
+
+      console.log('Register response:', response);
+
+      const newUser: User = {
+        id: response.id,
+        name: getUserNameFromEmail(userData.email),
+        email: userData.email,
+      };
+
+      console.log('New user:', newUser);
+
+      user.value = newUser;
+      setUserToStorage(newUser);
+      return newUser;
+    } catch (error: any) {
+      return handleApiError(error);
     }
+  };
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const newUser: User = {
-      id: Math.random().toString(36).substring(2, 9),
-      name: userData.name,
-      email: userData.email,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    user.value = newUser;
-    setUserToStorage(newUser);
-
-    return newUser;
+  const getRegisteredUsers = async (): Promise<User[]> => {
+    try {
+      const response: User[] = await $fetch('/api/auth/users');
+      return response;
+    } catch (error: any) {
+      console.error('Не удалось получить список зарегестрированных пользователей:', error);
+      throw new Error(error.data?.message || 'Ошибка получения пользователей');
+    }
   };
 
   const logout = (): void => {
@@ -131,26 +135,75 @@ export const useAuth = () => {
     setUserToStorage(null);
   };
 
-  const getNotificationSettings = async (): Promise<NotificationSettings> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
+  const updateProfile = async (profileData: UpdateProfileRequest): Promise<User> => {
+    if (!user.value) {
+      throw new Error('Пользователь не авторизован');
+    }
 
+    try {
+      const response: User = await $fetch(`/api/users/${user.value.id}`, {
+        method: 'PATCH',
+        body: profileData,
+      });
+
+      const updatedUser: User = {
+        ...user.value,
+        ...response,
+      };
+
+      user.value = updatedUser;
+      setUserToStorage(updatedUser);
+      return updatedUser;
+    } catch (error: any) {
+      throw new Error(error.data?.message || 'Ошибка обновления профиля');
+    }
+  };
+
+  const changePassword = async (passwordData: ChangePasswordRequest): Promise<void> => {
+    if (!user.value) {
+      throw new Error('Пользователь не авторизован');
+    }
+
+    try {
+      await $fetch(`/api/users/${user.value.id}/password`, {
+        method: 'POST',
+        body: passwordData,
+      });
+    } catch (error: any) {
+      throw new Error(error.data?.message || 'Ошибка смены пароля');
+    }
+  };
+
+  const getNotificationSettings = async (): Promise<NotificationSettingsRequest> => {
     if (import.meta.client) {
       try {
         const saved = localStorage.getItem('notificationSettings');
-        return saved ? JSON.parse(saved) : { ...mockNotifications };
+        return saved
+          ? JSON.parse(saved)
+          : {
+              emailNotifications: true,
+              smsNotifications: false,
+              telegramNotifications: true,
+            };
       } catch (error) {
         console.error('Ошибка загрузки настроек уведомлений', error);
-        return { ...mockNotifications };
+        return {
+          emailNotifications: true,
+          smsNotifications: false,
+          telegramNotifications: true,
+        };
       }
     }
-    return { ...mockNotifications };
+    return {
+      emailNotifications: true,
+      smsNotifications: false,
+      telegramNotifications: true,
+    };
   };
 
   const updateNotificationSettings = async (
-    settings: NotificationSettings,
-  ): Promise<NotificationSettings> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
+    settings: NotificationSettingsRequest,
+  ): Promise<NotificationSettingsRequest> => {
     if (import.meta.client) {
       try {
         localStorage.setItem('notificationSettings', JSON.stringify(settings));
@@ -163,52 +216,12 @@ export const useAuth = () => {
     return settings;
   };
 
-  const updateProfile = async (profileData: UpdateProfileRequest): Promise<User> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    if (!user.value) {
-      throw new Error('Пользователь не авторизован');
-    }
-
-    const updatedUser: User = {
-      ...user.value,
-      ...profileData,
-      updatedAt: new Date(),
-    };
-
-    user.value = updatedUser;
-    setUserToStorage(updatedUser);
-
-    return updatedUser;
-  };
-
-  const changePassword = async (passwordData: ChangePasswordRequest): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    if (!passwordData.currentPassword || passwordData.currentPassword.length < 3) {
-      throw new Error('Неверный текущий пароль');
-    }
-
-    if (passwordData.newPassword.length < 3) {
-      throw new Error('Новый пароль должен содержать минимум 3 символа');
-    }
-
-    // тут будет ответ от апи
-    console.log('Пароль изменен на:', passwordData.newPassword);
-
-    if (user.value) {
-      user.value.updatedAt = new Date();
-      setUserToStorage(user.value);
-    }
-  };
-
   return {
     user: readonly(user),
     isAuthenticated,
     login,
     register,
     logout,
-    checkUserExists,
     getRegisteredUsers,
     updateProfile,
     changePassword,

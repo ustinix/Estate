@@ -9,6 +9,7 @@ const $q = useQuasar();
 const { login } = useAuth();
 
 const isLoading = ref(false);
+const errorMessage = ref('');
 
 const formData = ref<LoginRequest>({
   email: '',
@@ -16,6 +17,7 @@ const formData = ref<LoginRequest>({
 });
 
 async function onSubmit() {
+  errorMessage.value = '';
   isLoading.value = true;
   try {
     const user = await login(formData.value);
@@ -30,25 +32,16 @@ async function onSubmit() {
   } catch (error) {
     console.error('Login error:', error);
 
-    let errorMessage = 'Ошибка входа. Проверьте email и пароль.';
-
     if (error instanceof Error) {
-      if (error.message.includes('не зарегистрирован')) {
-        errorMessage =
-          'Пользователь с таким email не зарегистрирован, перейдите на страницу регистрации.';
-      } else if (error.message.includes('Неверный пароль')) {
-        errorMessage = 'Неверный пароль. Попробуйте еще раз.';
-      } else if (error.message.includes('не найден')) {
-        errorMessage = 'Пользователь не найден.';
-      }
-    }
+      errorMessage.value = error.message;
 
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'error',
-      message: errorMessage,
-    });
+      $q.notify({
+        color: 'red-5',
+        textColor: 'white',
+        icon: 'error',
+        message: error.message,
+      });
+    }
   } finally {
     isLoading.value = false;
   }
@@ -59,10 +52,15 @@ function onReset() {
     email: '',
     password: '',
   };
+  errorMessage.value = '';
 }
 </script>
 <template>
   <section class="register-section q-pa-md">
+    <div v-if="errorMessage" class="error-message q-mb-md">
+      <q-icon name="error" color="red" />
+      {{ errorMessage }}
+    </div>
     <q-form @submit="onSubmit" @reset="onReset" class="q-gutter-md">
       <q-input
         filled

@@ -4,7 +4,7 @@ import type {
   User,
   UpdateProfileRequest,
   ChangePasswordRequest,
-  NotificationSettings,
+  NotificationSettingsRequest,
 } from '~/types/auth';
 
 const $q = useQuasar();
@@ -25,7 +25,7 @@ const passwordData = ref<ChangePasswordRequest>({
   newPassword: '',
 });
 
-const notificationsData = ref<NotificationSettings>({
+const notificationsData = ref<NotificationSettingsRequest>({
   emailNotifications: false,
   smsNotifications: false,
   telegramNotifications: false,
