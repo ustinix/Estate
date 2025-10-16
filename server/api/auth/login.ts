@@ -1,7 +1,9 @@
 export default defineEventHandler(async event => {
   const body = await readBody(event);
+  const config = useRuntimeConfig(event);
 
-  const { apiSecret, apiBaseUrl } = useRuntimeConfig(event);
+  const apiSecret = config.apiSecret as string;
+  const apiBaseUrl = config.apiBaseUrl as string;
 
   const response = await $fetch(`${apiBaseUrl}/users/login`, {
     method: 'POST',
