@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import LoginForm from '~/components/LoginForm.vue';
+definePageMeta({
+  middleware: 'auth',
+  requiresGuest: true,
+});
 </script>
 <template>
   <section class="login-section layout">

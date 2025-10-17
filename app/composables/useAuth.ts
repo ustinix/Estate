@@ -36,31 +36,40 @@ const getErrorMessage = (status: number): string => {
 };
 
 export const useAuth = () => {
-  const user = useState<User | null>('user', () => {
+  const user = useState<User | null>('user', () => null);
+  const isAuthenticated = computed(() => !!user.value);
+  const isLoading = ref(true);
+
+  const loadUserFromStorage = () => {
     if (import.meta.client) {
       try {
         const saved = localStorage.getItem('user');
-        return saved ? JSON.parse(saved) : null;
+        if (saved) {
+          user.value = JSON.parse(saved);
+          console.log('✅ User loaded from localStorage:', user.value);
+        }
       } catch (error) {
-        console.error('Ошибка получения данных авторизации из LocalStorage', error);
-        return null;
+        console.error('❌ Error loading user from localStorage:', error);
+      } finally {
+        isLoading.value = false;
       }
     }
-    return null;
-  });
+  };
 
-  const isAuthenticated = computed(() => !!user.value);
+  if (import.meta.client) {
+    loadUserFromStorage();
+  }
 
   const setUserToStorage = (userData: User | null) => {
     if (import.meta.client) {
       try {
         if (userData) {
-          const userString = JSON.stringify(userData);
-          console.log('Saving to LS:', userString);
-          localStorage.setItem('user', userString);
+          localStorage.setItem('user', JSON.stringify(userData));
+          user.value = userData;
+          console.log('💾 User saved to localStorage and state');
         } else {
-          console.log('Removing from LS');
           localStorage.removeItem('user');
+          user.value = null;
         }
       } catch (error) {
         console.error('Ошибка сохранения данных в LocalStorage', error);
@@ -102,15 +111,11 @@ export const useAuth = () => {
         body: userData,
       });
 
-      console.log('Register response:', response);
-
       const newUser: User = {
         id: response.id,
         name: getUserNameFromEmail(userData.email),
         email: userData.email,
       };
-
-      console.log('New user:', newUser);
 
       user.value = newUser;
       setUserToStorage(newUser);
@@ -219,6 +224,7 @@ export const useAuth = () => {
   return {
     user: readonly(user),
     isAuthenticated,
+    isLoading,
     login,
     register,
     logout,

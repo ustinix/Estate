@@ -1,8 +1,10 @@
-export const visibilityStates = ref({
+export const visibilityStates = reactive({
   password: false,
   confirmPassword: false,
+  currentPassword: false,
+  newPassword: false,
 });
 
-export const toggleVisibility = (field: keyof typeof visibilityStates.value) => {
-  visibilityStates.value[field] = !visibilityStates.value[field];
+export const toggleVisibility = (field: keyof typeof visibilityStates) => {
+  visibilityStates[field] = !visibilityStates[field];
 };

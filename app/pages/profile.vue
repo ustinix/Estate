@@ -1,17 +1,30 @@
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
 import type {
-  User,
   UpdateProfileRequest,
   ChangePasswordRequest,
   NotificationSettingsRequest,
 } from '~/types/auth';
+import { visibilityStates, toggleVisibility } from '~/utils/toggleVisibility';
+
+definePageMeta({
+  middleware: 'auth',
+  requiresAuth: true,
+});
 
 const $q = useQuasar();
-const { user, updateProfile, changePassword, getNotificationSettings, updateNotificationSettings } =
-  useAuth();
-const isLoading = ref(false);
-const activeTab = ref('profile');
+const {
+  user,
+  updateProfile,
+  changePassword,
+  getNotificationSettings,
+  updateNotificationSettings,
+  isLoading,
+} = useAuth();
+
+const activeTab = useLocalStorage('profile-active-tab', 'profile');
+const isProfileLoading = ref(true);
+const isNotificationsLoading = ref(true);
 
 const profileData = ref<UpdateProfileRequest>({
   name: '',
@@ -31,40 +44,38 @@ const notificationsData = ref<NotificationSettingsRequest>({
   telegramNotifications: false,
 });
 
-onMounted(async () => {
-  await loadUserData();
-  await loadNotifications();
-});
-
-async function loadUserData() {
-  try {
-    if (user.value) {
+watch(
+  user,
+  newUser => {
+    if (newUser && isProfileLoading.value) {
       profileData.value = {
-        name: user.value.name,
-        email: user.value.email,
-        mobile: user.value.mobile || '',
-        telegram: user.value.telegram || '',
+        name: newUser.name || '',
+        email: newUser.email || '',
+        mobile: newUser.mobile || '',
+        telegram: newUser.telegram || '',
       };
+      isProfileLoading.value = false;
     }
-  } catch (error) {
-    console.error('Error loading profile:', error);
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'error',
-      message: 'Ошибка загрузки данных профиля',
-    });
-  }
-}
+  },
+  { immediate: true },
+);
 
-async function loadNotifications() {
-  try {
-    const settings = await getNotificationSettings();
-    notificationsData.value = { ...settings };
-  } catch (error) {
-    console.error('Error loading notifications:', error);
-  }
-}
+watch(
+  [user, isLoading],
+  async ([newUser, newIsLoading]) => {
+    if (newUser && !newIsLoading && isNotificationsLoading.value) {
+      try {
+        const settings = await getNotificationSettings();
+        notificationsData.value = { ...settings };
+        isNotificationsLoading.value = false;
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+        isNotificationsLoading.value = false;
+      }
+    }
+  },
+  { immediate: true },
+);
 
 async function updateProfileData() {
   try {
@@ -156,31 +167,35 @@ async function changeNotificationSettings() {
 
     <q-tab-panels v-model="activeTab" animated>
       <q-tab-panel name="profile">
-        <q-form @submit="updateProfileData" class="q-gutter-md">
-          <q-input filled v-model="profileData.name" label="Имя" hint="Ваше имя" />
+        <div v-if="isProfileLoading" class="text-center q-pa-lg">
+          <q-spinner size="50px" color="primary" />
+          <div class="q-mt-md">Загрузка профиля...</div>
+        </div>
+        <q-form v-else @submit="updateProfileData" class="q-gutter-md">
+          <q-input filled v-model="profileData.name" label="Имя" :readonly="isLoading" />
 
           <q-input
             filled
             v-model="profileData.email"
             label="Email"
-            hint="Электронная почта"
             type="email"
+            :readonly="isLoading"
           />
 
           <q-input
             filled
             v-model="profileData.mobile"
             label="Телефон"
-            hint="Номер телефона"
             mask="+# (###) ###-##-##"
+            :readonly="isLoading"
           />
 
           <q-input
             filled
             v-model="profileData.telegram"
             label="Telegram"
-            hint="Имя пользователя в Telegram"
             prefix="@"
+            :readonly="isLoading"
           />
 
           <q-btn
@@ -189,6 +204,7 @@ async function changeNotificationSettings() {
             type="submit"
             color="secondary"
             :loading="isLoading"
+            :disable="isLoading"
           />
         </q-form>
       </q-tab-panel>
@@ -199,16 +215,34 @@ async function changeNotificationSettings() {
             filled
             v-model="passwordData.currentPassword"
             label="Текущий пароль"
-            type="password"
-          />
+            :readonly="isLoading"
+            :type="visibilityStates.currentPassword ? 'text' : 'password'"
+          >
+            <template v-slot:append>
+              <q-icon
+                :name="visibilityStates.currentPassword ? 'visibility_off' : 'visibility'"
+                class="cursor-pointer"
+                @click="toggleVisibility('currentPassword')"
+              />
+            </template>
+          </q-input>
 
           <q-input
             filled
             v-model="passwordData.newPassword"
             label="Новый пароль"
-            type="password"
             hint="Минимум 3 символа"
-          />
+            :readonly="isLoading"
+            :type="visibilityStates.newPassword ? 'text' : 'password'"
+          >
+            <template v-slot:append>
+              <q-icon
+                :name="visibilityStates.newPassword ? 'visibility_off' : 'visibility'"
+                class="cursor-pointer"
+                @click="toggleVisibility('newPassword')"
+              />
+            </template>
+          </q-input>
 
           <q-btn
             class="button"
@@ -216,19 +250,33 @@ async function changeNotificationSettings() {
             type="submit"
             color="secondary"
             :loading="isLoading"
+            :disable="isLoading"
           />
         </q-form>
       </q-tab-panel>
 
       <q-tab-panel name="notifications">
-        <q-form @submit="changeNotificationSettings" class="q-gutter-md">
-          <q-toggle v-model="notificationsData.emailNotifications" label="Email уведомления" />
+        <div v-if="isNotificationsLoading" class="text-center q-pa-lg">
+          <q-spinner size="50px" color="primary" />
+          <div class="q-mt-md">Загрузка настроек...</div>
+        </div>
+        <q-form v-else @submit="changeNotificationSettings" class="q-gutter-md">
+          <q-toggle
+            v-model="notificationsData.emailNotifications"
+            label="Email уведомления"
+            :disable="isLoading"
+          />
 
-          <q-toggle v-model="notificationsData.smsNotifications" label="SMS уведомления" />
+          <q-toggle
+            v-model="notificationsData.smsNotifications"
+            label="SMS уведомления"
+            :disable="isLoading"
+          />
 
           <q-toggle
             v-model="notificationsData.telegramNotifications"
             label="Telegram уведомления"
+            :disable="isLoading"
           />
 
           <q-btn
@@ -237,6 +285,7 @@ async function changeNotificationSettings() {
             type="submit"
             color="secondary"
             :loading="isLoading"
+            :disable="isLoading"
           />
         </q-form>
       </q-tab-panel>

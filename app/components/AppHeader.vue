@@ -7,7 +7,7 @@ import { getUserNameFromEmail } from '~/utils/userName';
 
 const $q = useQuasar();
 
-const { user, isAuthenticated, logout } = useAuth();
+const { user, isAuthenticated, logout, isLoading } = useAuth();
 
 const handleLogout = async () => {
   try {
@@ -54,6 +54,9 @@ const userName = computed(() => {
       </div>
 
       <div class="toolbar-right">
+        <template v-if="isLoading">
+          <q-spinner size="sm" />
+        </template>
         <template v-if="!isAuthenticated">
           <NuxtLink to="/login">
             <q-btn class="header-btn button" color="secondary" label="Войти" />

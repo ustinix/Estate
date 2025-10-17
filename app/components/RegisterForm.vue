@@ -3,7 +3,6 @@ import { useQuasar } from 'quasar';
 import { ref } from 'vue';
 import { validateEmail, validatePassword } from '~/utils/validateRules';
 import { visibilityStates, toggleVisibility } from '~/utils/toggleVisibility';
-import type { RegisterRequest } from '~/types/auth';
 
 const $q = useQuasar();
 const { register } = useAuth();
@@ -15,7 +14,6 @@ const formData = ref({
   email: '',
   password: '',
   confirmPassword: '',
-  accept: false,
 });
 
 const validateConfirmPassword = (val: string) => {
@@ -67,11 +65,10 @@ function onReset() {
     email: '',
     password: '',
     confirmPassword: '',
-    accept: false,
   };
   errorMessage.value = '';
-  visibilityStates.value.password = false;
-  visibilityStates.value.confirmPassword = false;
+  visibilityStates.password = false;
+  visibilityStates.confirmPassword = false;
 }
 </script>
 <template>
@@ -124,11 +121,6 @@ function onReset() {
           />
         </template>
       </q-input>
-
-      <q-toggle
-        v-model="formData.accept"
-        label="Соглашаюсь на обработку персональных данных в соответствии с политикой конфиденциальности"
-      />
 
       <div>
         <q-btn label="Зарегистрироваться" type="submit" color="secondary" class="button" />
