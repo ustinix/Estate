@@ -1,25 +1,33 @@
 <script setup lang="ts">
 import type { Estate } from '~/types/estate';
 import PropertyCard from '~/components/PropertyCard.vue';
-import { useEstate } from '~/composables/useEstate';
-import { useAuth } from '~/composables/useAuth';
+import { useEstateStore } from '~/stores/estateStore';
+import { useAuthStore } from '~/stores/authStore';
+import { storeToRefs } from 'pinia';
 
-const { user } = useAuth();
-const { estates, estateTypes, getUserEstates, getEstateTypes, isLoading } = useEstate();
+const authStore = useAuthStore();
+const estateStore = useEstateStore();
+const { estates, estateTypes, isLoading } = storeToRefs(estateStore);
 
 const selectedType = ref('все');
 
 onMounted(async () => {
-  if (user.value) {
-    await Promise.all([getEstateTypes(), getUserEstates(user.value.id)]);
+  if (authStore.user) {
+    await Promise.all([
+      estateStore.getEstateTypes(),
+      estateStore.getUserEstates(authStore.user.id),
+    ]);
   }
 });
 
-watch(user, newUser => {
-  if (newUser) {
-    Promise.all([getEstateTypes(), getUserEstates(newUser.id)]);
-  }
-});
+watch(
+  () => authStore.user,
+  newUser => {
+    if (newUser) {
+      Promise.all([estateStore.getEstateTypes(), estateStore.getUserEstates(newUser.id)]);
+    }
+  },
+);
 
 const typeOptions = computed(() => {
   const allOption = { name: 'все', icon: '' };
@@ -55,6 +63,7 @@ const calculateRecoupment = (estateId: number): number => {
   return Math.floor(Math.random() * 100) + 1;
 };
 </script>
+
 <template>
   <section class="profile-section layout">
     <div class="q-pa-md" style="width: 340px">

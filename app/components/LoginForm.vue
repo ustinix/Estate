@@ -4,11 +4,13 @@ import { ref } from 'vue';
 import { validateEmail, validatePassword } from '~/utils/validateRules';
 import { visibilityStates, toggleVisibility } from '~/utils/toggleVisibility';
 import type { LoginRequest } from '~/types/auth';
+import { useAuthStore } from '~/stores/authStore';
+import { getUserNameFromEmail } from '~/utils/getUserName';
 
 const $q = useQuasar();
-const { login } = useAuth();
+const authStore = useAuthStore();
+const { login, isLoading } = authStore;
 
-const isLoading = ref(false);
 const errorMessage = ref('');
 
 const formData = ref<LoginRequest>({
@@ -18,32 +20,34 @@ const formData = ref<LoginRequest>({
 
 async function onSubmit() {
   errorMessage.value = '';
-  isLoading.value = true;
+
   try {
-    const user = await login(formData.value);
+    const response = await login(formData.value);
+
+    const userName = response?.user?.name
+      ? response.user.name
+      : getUserNameFromEmail(formData.value.email);
 
     $q.notify({
       color: 'green-4',
       textColor: 'white',
       icon: 'cloud_done',
-      message: `Добро пожаловать, ${user.name}!`,
+      message: `Добро пожаловать, ${userName}!`,
     });
+    await nextTick();
     await navigateTo('/profile');
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
 
-    if (error instanceof Error) {
-      errorMessage.value = error.message;
+    const message = error.data?.message || error.message || 'Ошибка входа';
+    errorMessage.value = message;
 
-      $q.notify({
-        color: 'red-5',
-        textColor: 'white',
-        icon: 'error',
-        message: error.message,
-      });
-    }
-  } finally {
-    isLoading.value = false;
+    $q.notify({
+      color: 'red-5',
+      textColor: 'white',
+      icon: 'error',
+      message: message,
+    });
   }
 }
 
@@ -53,6 +57,7 @@ function onReset() {
     password: '',
   };
   errorMessage.value = '';
+  visibilityStates.password = false;
 }
 </script>
 <template>
@@ -90,7 +95,7 @@ function onReset() {
       </q-input>
 
       <div>
-        <q-btn label="Войти" type="submit" color="secondary" class="button" />
+        <q-btn label="Войти" type="submit" color="secondary" class="button" :loading="isLoading" />
         <q-btn label="Очистить" type="reset" color="secondary" flat class="q-ml-sm button" />
       </div>
     </q-form>

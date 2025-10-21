@@ -8,26 +8,29 @@ export interface User {
   telegram?: string;
 }
 
+export interface TokenResponse {
+  token: string;
+  refresh_token: string;
+  expires_at: number;
+  user: User;
+}
+
+export interface AuthState {
+  user: User | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  expiresAt: number | null;
+  isLoading: boolean;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
 }
 
-export interface LoginResponse {
-  id: string;
-  name: string;
-  email: string;
-  mobile?: string;
-  telegram?: string;
-}
-
 export interface RegisterRequest {
   email: string;
   password: string;
-}
-
-export interface RegisterResponse {
-  id: string;
 }
 
 export interface UpdateProfileRequest {

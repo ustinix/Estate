@@ -1,13 +1,19 @@
+isLoading
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
 import { ref } from 'vue';
 import { validateEmail, validatePassword } from '~/utils/validateRules';
 import { visibilityStates, toggleVisibility } from '~/utils/toggleVisibility';
+import { useAuthStore } from '~/stores/authStore';
+import { getUserNameFromEmail } from '~/utils/getUserName';
+import { storeToRefs } from 'pinia';
+
+const authStore = useAuthStore();
+
+const { isLoading } = storeToRefs(authStore);
 
 const $q = useQuasar();
-const { register } = useAuth();
 
-const isLoading = ref(false);
 const errorMessage = ref('');
 
 const formData = ref({
@@ -22,41 +28,37 @@ const validateConfirmPassword = (val: string) => {
 
 async function onSubmit() {
   errorMessage.value = '';
-  isLoading.value = true;
 
   try {
-    const user = await register(formData.value);
+    const response = await authStore.register({
+      email: formData.value.email,
+      password: formData.value.password,
+    });
+
+    const userName = response?.user?.name
+      ? response.user.name
+      : getUserNameFromEmail(formData.value.email);
 
     $q.notify({
       color: 'green-4',
       textColor: 'white',
       icon: 'cloud_done',
-      message: `Регистрация успешна! Добро пожаловать, ${user.name}!`,
+      message: `Регистрация успешна! Добро пожаловать, ${userName}!`,
     });
 
     await navigateTo('/profile');
-  } catch (error) {
+  } catch (error: any) {
     console.error('Registration error:', error);
 
-    if (error instanceof Error) {
-      errorMessage.value = error.message;
+    const message = error.data?.message || error.message || 'Ошибка регистрации';
+    errorMessage.value = message;
 
-      $q.notify({
-        color: 'red-5',
-        textColor: 'white',
-        icon: 'error',
-        message: error.message,
-      });
-    } else {
-      $q.notify({
-        color: 'red-5',
-        textColor: 'white',
-        icon: 'error',
-        message: 'Ошибка регистрации. Попробуйте еще раз.',
-      });
-    }
-  } finally {
-    isLoading.value = false;
+    $q.notify({
+      color: 'red-5',
+      textColor: 'white',
+      icon: 'error',
+      message: message,
+    });
   }
 }
 
@@ -123,7 +125,13 @@ function onReset() {
       </q-input>
 
       <div>
-        <q-btn label="Зарегистрироваться" type="submit" color="secondary" class="button" />
+        <q-btn
+          label="Зарегистрироваться"
+          type="submit"
+          color="secondary"
+          class="button"
+          :loading="isLoading"
+        />
         <q-btn label="Очистить" type="reset" color="secondary" flat class="q-ml-sm button" />
       </div>
     </q-form>

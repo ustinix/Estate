@@ -1,8 +1,25 @@
 import { defineNuxtConfig } from 'nuxt/config';
 export default defineNuxtConfig({
+  ssr: true,
+  devServer: {
+    port: 3000,
+  },
+
+  nitro: {
+    devProxy: {
+      '/api': {
+        target: 'http://176.123.168.27:8085',
+        changeOrigin: true,
+      },
+    },
+  },
   runtimeConfig: {
-    apiSecret: process.env.NUXT_API_SECRET || 'mysecretapikey123',
-    apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://176.123.168.27:8085',
+    public: {
+      apiBaseUrl:
+        process.env.NUXT_PUBLIC_API_BASE_URL ||
+        (process.env.NODE_ENV === 'development' ? '/api' : 'http://176.123.168.27:8085'),
+      apiSecret: process.env.NUXT_API_SECRET || 'ключ',
+    },
   },
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },

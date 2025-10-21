@@ -3,11 +3,19 @@ import { useQuasar } from 'quasar';
 import NavMenu from './NavMenu.vue';
 import BurgerMenu from './BurgerMenu.vue';
 import { navLinks } from '~/constants/navLinks';
-import { getUserNameFromEmail } from '~/utils/userName';
+import { getUserNameFromEmail } from '~/utils/getUserName';
+import { useAuthStore } from '~/stores/authStore';
+import { storeToRefs } from 'pinia';
 
 const $q = useQuasar();
 
-const { user, isAuthenticated, logout, isLoading } = useAuth();
+const authStore = useAuthStore();
+const { user, isAuthenticated, isLoading } = storeToRefs(authStore);
+const { logout } = authStore;
+
+console.log('🔄 Header rendered - isAuthenticated:', isAuthenticated);
+console.log('🔄 Header rendered - user:', user);
+console.log('🔄 Header rendered - accessToken:', authStore.accessToken);
 
 const handleLogout = async () => {
   try {
@@ -26,11 +34,11 @@ const handleLogout = async () => {
 };
 
 const userName = computed(() => {
-  if (user.value?.name) {
-    return user.value.name;
+  if (user?.value?.name && user.value?.name.trim() !== '') {
+    return user.value?.name;
   }
-  if (user.value?.email) {
-    return getUserNameFromEmail(user.value.email);
+  if (user?.value?.email) {
+    return getUserNameFromEmail(user.value?.email);
   }
   return 'Пользователь';
 });

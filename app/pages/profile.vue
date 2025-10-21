@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
+import { useAuthStore } from '~/stores/authStore';
 import type {
   UpdateProfileRequest,
   ChangePasswordRequest,
@@ -13,24 +14,16 @@ definePageMeta({
 });
 
 const $q = useQuasar();
-const {
-  user,
-  updateProfile,
-  changePassword,
-  getNotificationSettings,
-  updateNotificationSettings,
-  isLoading,
-} = useAuth();
+const authStore = useAuthStore();
 
 const activeTab = useLocalStorage('profile-active-tab', 'profile');
-const isProfileLoading = ref(true);
 const isNotificationsLoading = ref(true);
 
 const profileData = ref<UpdateProfileRequest>({
-  name: '',
-  email: '',
-  mobile: '',
-  telegram: '',
+  name: authStore.user?.name || '',
+  email: authStore.user?.email || '',
+  mobile: authStore.user?.mobile || '',
+  telegram: authStore.user?.telegram || '',
 });
 
 const passwordData = ref<ChangePasswordRequest>({
@@ -45,41 +38,34 @@ const notificationsData = ref<NotificationSettingsRequest>({
 });
 
 watch(
-  user,
+  () => authStore.user,
   newUser => {
-    if (newUser && isProfileLoading.value) {
+    if (newUser) {
       profileData.value = {
         name: newUser.name || '',
         email: newUser.email || '',
         mobile: newUser.mobile || '',
         telegram: newUser.telegram || '',
       };
-      isProfileLoading.value = false;
     }
   },
   { immediate: true },
 );
 
-watch(
-  [user, isLoading],
-  async ([newUser, newIsLoading]) => {
-    if (newUser && !newIsLoading && isNotificationsLoading.value) {
-      try {
-        const settings = await getNotificationSettings();
-        notificationsData.value = { ...settings };
-        isNotificationsLoading.value = false;
-      } catch (error) {
-        console.error('Error loading notifications:', error);
-        isNotificationsLoading.value = false;
-      }
-    }
-  },
-  { immediate: true },
-);
+onMounted(async () => {
+  try {
+    const settings = await authStore.getNotificationSettings();
+    notificationsData.value = { ...settings };
+  } catch (error: unknown) {
+    console.error('Error loading notifications:', error);
+  } finally {
+    isNotificationsLoading.value = false;
+  }
+});
 
 async function updateProfileData() {
   try {
-    await updateProfile(profileData.value);
+    await authStore.updateProfile(profileData.value);
 
     $q.notify({
       color: 'green-4',
@@ -87,7 +73,7 @@ async function updateProfileData() {
       icon: 'cloud_done',
       message: 'Профиль успешно обновлен!',
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Profile update error:', error);
     $q.notify({
       color: 'red-5',
@@ -110,7 +96,7 @@ async function changeUserPassword() {
   }
 
   try {
-    await changePassword(passwordData.value);
+    await authStore.changePassword(passwordData.value);
 
     $q.notify({
       color: 'green-4',
@@ -123,20 +109,21 @@ async function changeUserPassword() {
       currentPassword: '',
       newPassword: '',
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Password change error:', error);
+    const message = error instanceof Error ? error.message : 'Ошибка смены пароля';
     $q.notify({
       color: 'red-5',
       textColor: 'white',
       icon: 'error',
-      message: error.message || 'Ошибка смены пароля',
+      message: message,
     });
   }
 }
 
 async function changeNotificationSettings() {
   try {
-    await updateNotificationSettings(notificationsData.value);
+    await authStore.updateNotificationSettings(notificationsData.value);
 
     $q.notify({
       color: 'green-4',
@@ -144,7 +131,7 @@ async function changeNotificationSettings() {
       icon: 'cloud_done',
       message: 'Настройки уведомлений обновлены!',
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Notifications update error:', error);
     $q.notify({
       color: 'red-5',
@@ -167,19 +154,15 @@ async function changeNotificationSettings() {
 
     <q-tab-panels v-model="activeTab" animated>
       <q-tab-panel name="profile">
-        <div v-if="isProfileLoading" class="text-center q-pa-lg">
-          <q-spinner size="50px" color="primary" />
-          <div class="q-mt-md">Загрузка профиля...</div>
-        </div>
-        <q-form v-else @submit="updateProfileData" class="q-gutter-md">
-          <q-input filled v-model="profileData.name" label="Имя" :readonly="isLoading" />
+        <q-form @submit="updateProfileData" class="q-gutter-md">
+          <q-input filled v-model="profileData.name" label="Имя" :readonly="authStore.isLoading" />
 
           <q-input
             filled
             v-model="profileData.email"
             label="Email"
             type="email"
-            :readonly="isLoading"
+            :readonly="authStore.isLoading"
           />
 
           <q-input
@@ -187,7 +170,7 @@ async function changeNotificationSettings() {
             v-model="profileData.mobile"
             label="Телефон"
             mask="+# (###) ###-##-##"
-            :readonly="isLoading"
+            :readonly="authStore.isLoading"
           />
 
           <q-input
@@ -195,7 +178,7 @@ async function changeNotificationSettings() {
             v-model="profileData.telegram"
             label="Telegram"
             prefix="@"
-            :readonly="isLoading"
+            :readonly="authStore.isLoading"
           />
 
           <q-btn
@@ -203,8 +186,8 @@ async function changeNotificationSettings() {
             label="Сохранить изменения"
             type="submit"
             color="secondary"
-            :loading="isLoading"
-            :disable="isLoading"
+            :loading="authStore.isLoading"
+            :disabled="authStore.isLoading"
           />
         </q-form>
       </q-tab-panel>
@@ -215,7 +198,7 @@ async function changeNotificationSettings() {
             filled
             v-model="passwordData.currentPassword"
             label="Текущий пароль"
-            :readonly="isLoading"
+            :readonly="authStore.isLoading"
             :type="visibilityStates.currentPassword ? 'text' : 'password'"
           >
             <template v-slot:append>
@@ -232,7 +215,7 @@ async function changeNotificationSettings() {
             v-model="passwordData.newPassword"
             label="Новый пароль"
             hint="Минимум 3 символа"
-            :readonly="isLoading"
+            :readonly="authStore.isLoading"
             :type="visibilityStates.newPassword ? 'text' : 'password'"
           >
             <template v-slot:append>
@@ -249,8 +232,8 @@ async function changeNotificationSettings() {
             label="Сменить пароль"
             type="submit"
             color="secondary"
-            :loading="isLoading"
-            :disable="isLoading"
+            :loading="authStore.isLoading"
+            :disabled="authStore.isLoading"
           />
         </q-form>
       </q-tab-panel>
@@ -264,19 +247,19 @@ async function changeNotificationSettings() {
           <q-toggle
             v-model="notificationsData.emailNotifications"
             label="Email уведомления"
-            :disable="isLoading"
+            :disabled="authStore.isLoading"
           />
 
           <q-toggle
             v-model="notificationsData.smsNotifications"
             label="SMS уведомления"
-            :disable="isLoading"
+            :disabled="authStore.isLoading"
           />
 
           <q-toggle
             v-model="notificationsData.telegramNotifications"
             label="Telegram уведомления"
-            :disable="isLoading"
+            :disabled="authStore.isLoading"
           />
 
           <q-btn
@@ -284,8 +267,8 @@ async function changeNotificationSettings() {
             label="Сохранить настройки"
             type="submit"
             color="secondary"
-            :loading="isLoading"
-            :disable="isLoading"
+            :loading="authStore.isLoading"
+            :disabled="authStore.isLoading"
           />
         </q-form>
       </q-tab-panel>
