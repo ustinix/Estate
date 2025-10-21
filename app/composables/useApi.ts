@@ -4,24 +4,21 @@ export function useApi() {
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
 
-  const baseURL = config.public.apiBaseUrl;
+  const baseURL = import.meta.dev ? '/api' : config.public.apiBaseUrl;
 
   async function request<T>(url: string, options: any = {}): Promise<T> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'X-API-Key': config.public.apiSecret,
       ...options.headers,
     };
+
+    if (!import.meta.dev) {
+      headers['X-API-Key'] = config.public.apiSecret;
+    }
 
     if (authStore.isAuthenticated && authStore.accessToken) {
       headers['Authorization'] = `Bearer ${authStore.accessToken}`;
     }
-
-    console.log('🔐 API Request:', {
-      url: `${baseURL}${url}`,
-      baseURL,
-      hasApiKey: !!config.public.apiSecret,
-    });
 
     try {
       const response = (await $fetch(`${baseURL}${url}`, {
@@ -42,27 +39,13 @@ export function useApi() {
     }
   }
 
-  const $api = {
-    get<T>(url: string, options?: any): Promise<T> {
-      return request<T>(url, { method: 'GET', ...options });
-    },
-
-    post<T>(url: string, data?: any, options?: any): Promise<T> {
-      return request<T>(url, { method: 'POST', body: data, ...options });
-    },
-
-    put<T>(url: string, data?: any, options?: any): Promise<T> {
-      return request<T>(url, { method: 'PUT', body: data, ...options });
-    },
-
-    patch<T>(url: string, data?: any, options?: any): Promise<T> {
-      return request<T>(url, { method: 'PATCH', body: data, ...options });
-    },
-
-    delete<T>(url: string, options?: any): Promise<T> {
-      return request<T>(url, { method: 'DELETE', ...options });
-    },
+  return {
+    get: <T>(url: string, options?: any) => request<T>(url, { ...options, method: 'GET' }),
+    post: <T>(url: string, data?: any, options?: any) =>
+      request<T>(url, { ...options, method: 'POST', body: data }),
+    put: <T>(url: string, data?: any, options?: any) =>
+      request<T>(url, { ...options, method: 'PUT', body: data }),
+    delete: <T>(url: string, options?: any) => request<T>(url, { ...options, method: 'DELETE' }),
+    request,
   };
-
-  return $api;
 }

@@ -10,15 +10,16 @@ export default defineNuxtConfig({
       '/api': {
         target: 'http://176.123.168.27:8085',
         changeOrigin: true,
+        headers: {
+          'X-API-Key': process.env.NUXT_API_SECRET || '',
+        },
       },
     },
   },
   runtimeConfig: {
     public: {
-      apiBaseUrl:
-        process.env.NUXT_PUBLIC_API_BASE_URL ||
-        (process.env.NODE_ENV === 'development' ? '/api' : 'http://176.123.168.27:8085'),
-      apiSecret: process.env.NUXT_API_SECRET || 'ключ',
+      apiBaseUrl: process.env.NODE_ENV === 'development' ? '/api' : 'http://176.123.168.27:8085',
+      apiSecret: process.env.NUXT_API_SECRET,
     },
   },
   compatibilityDate: '2025-07-15',
