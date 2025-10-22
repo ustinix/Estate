@@ -9,7 +9,7 @@ export interface User {
 }
 
 export interface TokenResponse {
-  token: string;
+  access_token: string;
   refresh_token: string;
   expires_at: number;
   user: User;

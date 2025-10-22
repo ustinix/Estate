@@ -8,14 +8,17 @@ const props = defineProps<{
 }>();
 
 const progressValue = computed(() => (props.estate.recoupment || 0) / 100);
+
+const handleClick = () => {
+  navigateTo(`/estate?id=${props.estate.id}`);
+};
 </script>
 
 <template>
-  <div class="q-pa-md row items-start q-gutter-md">
-    <q-card class="my-card" flat bordered>
+  <q-card class="my-card" flat bordered>
+    <div @click="handleClick" class="clickable-area">
       <q-card-section class="card-header">
         <div class="card-title">
-          <!-- Используем иконку из estate или через функцию -->
           <q-icon :name="estate.icon" size="lg" color="green-9" />
           <div class="text-overline text-indigo-10">
             {{ estate.type_name || 'Неизвестный тип' }}
@@ -36,44 +39,54 @@ const progressValue = computed(() => (props.estate.recoupment || 0) / 100);
       <q-card-section v-if="estate.description" class="text-body2 q-pt-none">
         {{ estate.description }}
       </q-card-section>
+    </div>
 
-      <q-card-actions class="card-actions">
-        <q-btn flat color="secondary" label="Подробнее" />
+    <q-card-actions class="card-actions">
+      <q-btn flat color="secondary" label="Подробнее" @click="handleClick" />
 
-        <q-space />
+      <q-space />
 
-        <q-btn
-          color="grey"
-          round
-          flat
-          dense
-          :icon="expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-          @click="expanded = !expanded"
-        />
-      </q-card-actions>
+      <q-btn
+        color="grey"
+        round
+        flat
+        dense
+        :icon="expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+        @click="expanded = !expanded"
+      />
+    </q-card-actions>
 
-      <q-slide-transition>
-        <div v-show="expanded">
-          <q-separator />
-          <q-card-section class="text-subtitle2">
-            <div class="q-mb-sm"><strong>ID:</strong> {{ estate.id }}</div>
-            <div class="q-mb-sm"><strong>Тип ID:</strong> {{ estate.estate_type_id }}</div>
-            <div v-if="estate.user_id" class="q-mb-sm">
-              <strong>ID пользователя:</strong> {{ estate.user_id }}
-            </div>
-            Дополнительная информация о {{ estate.name }}
-          </q-card-section>
-        </div>
-      </q-slide-transition>
-    </q-card>
-  </div>
+    <q-slide-transition>
+      <div v-show="expanded">
+        <q-separator />
+        <q-card-section class="text-subtitle2">
+          Дополнительная информация о {{ estate.name }}
+        </q-card-section>
+      </div>
+    </q-slide-transition>
+  </q-card>
 </template>
 
 <style lang="scss" scoped>
 .my-card {
-  width: 310px;
-  min-height: 300px;
+  width: 100%;
+  min-height: 350px;
   flex-shrink: 0;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.my-card:hover {
+  border-color: var(--text-color);
+  background-color: #f5f5f5;
+}
+
+.clickable-area {
+  cursor: pointer;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 .card-header {
   .card-title {
@@ -85,5 +98,6 @@ const progressValue = computed(() => (props.estate.recoupment || 0) / 100);
 }
 .card-actions {
   margin-top: auto;
+  flex-shrink: 0;
 }
 </style>

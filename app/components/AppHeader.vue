@@ -13,13 +13,10 @@ const authStore = useAuthStore();
 const { user, isAuthenticated, isLoading } = storeToRefs(authStore);
 const { logout } = authStore;
 
-console.log('🔄 Header rendered - isAuthenticated:', isAuthenticated);
-console.log('🔄 Header rendered - user:', user);
-console.log('🔄 Header rendered - accessToken:', authStore.accessToken);
-
 const handleLogout = async () => {
   try {
     await logout();
+    await authStore.initAuth();
 
     $q.notify({
       color: 'green-4',

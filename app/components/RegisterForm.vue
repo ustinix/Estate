@@ -9,11 +9,8 @@ import { getUserNameFromEmail } from '~/utils/getUserName';
 import { storeToRefs } from 'pinia';
 
 const authStore = useAuthStore();
-
 const { isLoading } = storeToRefs(authStore);
-
 const $q = useQuasar();
-
 const errorMessage = ref('');
 
 const formData = ref({
@@ -35,6 +32,8 @@ async function onSubmit() {
       password: formData.value.password,
     });
 
+    await authStore.initAuth();
+
     const userName = response?.user?.name
       ? response.user.name
       : getUserNameFromEmail(formData.value.email);
@@ -45,7 +44,7 @@ async function onSubmit() {
       icon: 'cloud_done',
       message: `Регистрация успешна! Добро пожаловать, ${userName}!`,
     });
-
+    await nextTick();
     await navigateTo('/profile');
   } catch (error: any) {
     console.error('Registration error:', error);

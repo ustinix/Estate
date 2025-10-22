@@ -20,18 +20,22 @@ export const useAuthStore = defineStore('auth', () => {
   const $api = useApi();
 
   const accessTokenCookie = useCookie('access-token', {
-    maxAge: AUTH_CONSTANTS.ACCESS_TOKEN_MAX_AGE_24HOURES,
+    maxAge: AUTH_CONSTANTS.ACCESS_TOKEN_MAX_AGE,
     secure: !import.meta.dev,
     sameSite: 'lax',
   });
 
   const refreshTokenCookie = useCookie<string | null>('refresh-token', {
-    maxAge: AUTH_CONSTANTS.REFRESH_TOKEN_MAX_AGE_30DAYS,
+    maxAge: AUTH_CONSTANTS.REFRESH_TOKEN_MAX_AGE,
     secure: !import.meta.dev,
     sameSite: 'lax',
   });
 
-  const isAuthenticated = computed(() => !!accessToken.value);
+  const isAuthenticated = computed(() => {
+    const hasToken = !!accessToken.value;
+    const hasUser = !!user.value;
+    return hasToken && hasUser;
+  });
 
   const isTokenExpired = computed(() => {
     if (!expiresAt.value) return true;
@@ -40,11 +44,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   const needsRefresh = computed(() => {
     if (!expiresAt.value) return false;
-    return Date.now() >= expiresAt.value * 1000 - AUTH_CONSTANTS.REFRESH_THRESHOLD_5MINUTS * 1000;
+    return Date.now() >= expiresAt.value * 1000 - AUTH_CONSTANTS.REFRESH_THRESHOLD * 1000;
   });
 
   const setAuthData = (tokenResponse: TokenResponse) => {
-    accessToken.value = tokenResponse.token;
+    accessToken.value = tokenResponse.access_token;
     refreshToken.value = tokenResponse.refresh_token;
     expiresAt.value = tokenResponse.expires_at;
     user.value = tokenResponse.user;
@@ -53,20 +57,10 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('currentUser', JSON.stringify(tokenResponse.user));
     }
 
-    console.log('✅ After setting - accessToken:', accessToken.value);
-    console.log('✅ After setting - refreshToken:', refreshToken.value);
-    console.log('✅ After setting - user:', user.value);
-    console.log('✅ After setting - isAuthenticated:', isAuthenticated.value);
-
-    accessTokenCookie.value = tokenResponse.token;
+    accessTokenCookie.value = tokenResponse.access_token;
     if (tokenResponse.refresh_token) {
       refreshTokenCookie.value = tokenResponse.refresh_token;
-    } else {
-      refreshTokenCookie.value = 'no-refresh-token';
     }
-
-    console.log('🍪 Cookies set - accessTokenCookie:', accessTokenCookie.value);
-    console.log('🍪 Cookies set - refreshTokenCookie:', refreshTokenCookie.value);
   };
 
   const clearAuth = () => {
@@ -83,34 +77,42 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
-  const initAuth = () => {
-    console.log('🔍 initAuth called');
+  const initAuth = async () => {
+    const accessTokenFromCookie = accessTokenCookie.value;
+    const refreshTokenFromCookie = refreshTokenCookie.value;
 
-    if (accessTokenCookie.value) {
-      accessToken.value = accessTokenCookie.value;
-      console.log('✅ initAuth - tokens restored');
-      if (!user.value) {
+    if (accessTokenFromCookie) {
+      accessToken.value = accessTokenFromCookie;
+      refreshToken.value = refreshTokenFromCookie;
+      if (import.meta.client) {
         try {
           const savedUser = localStorage.getItem('currentUser');
           if (savedUser) {
             user.value = JSON.parse(savedUser);
+          } else {
           }
         } catch (error) {
-          console.error('Не удалось загрузить данные из LS');
+          console.error('❌ Failed to parse user from localStorage:', error);
         }
       }
     } else {
-      console.log('❌ initAuth - no tokens found');
+      console.log('❌ No access token found in cookies');
+      clearAuth();
     }
   };
 
   const login = async (credentials: { email: string; password: string }) => {
+    const isValid = await isValidToken();
+    if (!isValid) {
+      refreshTokens();
+    }
     isLoading.value = true;
     try {
       const response = await $api.post<TokenResponse>('/users/login', credentials);
       setAuthData(response);
       return response;
     } catch (error) {
+      clearAuth();
       throw handleApiError(error);
     } finally {
       isLoading.value = false;
@@ -120,18 +122,18 @@ export const useAuthStore = defineStore('auth', () => {
   const register = async (userData: { email: string; password: string; name?: string }) => {
     isLoading.value = true;
     try {
-      // 1. Сначала регистрация
       await $api.post('/users/registration', userData);
 
-      // 2. Затем автоматический логин
       const loginResponse = await $api.post<TokenResponse>('/users/login', {
         email: userData.email,
         password: userData.password,
       });
 
       setAuthData(loginResponse);
+      console.log('✅ Registration successful, auth state updated');
       return loginResponse;
     } catch (error) {
+      clearAuth();
       throw handleApiError(error);
     } finally {
       isLoading.value = false;
@@ -140,16 +142,17 @@ export const useAuthStore = defineStore('auth', () => {
 
   const refreshTokens = async (): Promise<boolean> => {
     if (!refreshToken.value) {
+      console.log('❌ No refresh token available');
       clearAuth();
       return false;
     }
 
     try {
-      // ПРЕДПОЛОЖИТЕЛЬНЫЙ эндпоинт - нужно проверить
-      const response = await $api.post<TokenResponse>('/auth/refresh', {
+      const response = await $api.post<TokenResponse>('/users/refresh-token', {
         refresh_token: refreshToken.value,
       });
       setAuthData(response);
+      console.log('✅ Tokens refreshed successfully');
       return true;
     } catch (error: any) {
       console.error('Token refresh failed:', error);
@@ -164,10 +167,22 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const isValidToken = async (): Promise<boolean> => {
-    if (!accessToken.value) return false;
-    if (needsRefresh.value) {
+    if (!accessToken.value || !user.value) {
+      console.log('❌ Token validation: no token or user');
+      return false;
+    }
+
+    if (isTokenExpired.value) {
+      console.log('🔄 Token expired, attempting refresh');
       return await refreshTokens();
     }
+
+    if (needsRefresh.value) {
+      console.log('🔄 Token needs refresh, attempting refresh');
+      return await refreshTokens();
+    }
+
+    console.log('✅ Token is valid');
     return true;
   };
 
