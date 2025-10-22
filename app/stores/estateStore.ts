@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { useApi } from '~/composables/useApi';
-import type { Estate, EstateType } from '~/types/estate';
+import type { Estate, EstateResponse, EstateType } from '~/types/estate';
 
 export const useEstateStore = defineStore('estate', () => {
   const estates = ref<Estate[]>([]);
@@ -25,7 +25,7 @@ export const useEstateStore = defineStore('estate', () => {
     }
   };
 
-  const getUserEstates = async (userId: string) => {
+  const getUserEstates = async (userId: number) => {
     try {
       isLoading.value = true;
       error.value = null;
@@ -38,53 +38,10 @@ export const useEstateStore = defineStore('estate', () => {
     }
   };
 
-  const getUserEstate = async (userId: string, estateId: string) => {
+  const getUserEstate = async (userId: number, estateId: string) => {
     try {
       isLoading.value = true;
       error.value = null;
-
-      // Удалить заглушку когда бекенд будет готов
-      // if (import.meta.dev) {
-      //   await new Promise(resolve => setTimeout(resolve, 300));
-
-      //   const testEstates: { [key: string]: Estate } = {
-      //     '4': {
-      //       id: 4,
-      //       estate_type_id: '1',
-      //       name: 'Элитная квартира в центре',
-      //       user_id: Number(userId),
-      //       description:
-      //         'Просторная 3-комнатная квартира с видом на город. Современный ремонт, вся необходимая техника.',
-      //       recoupment: 12.3,
-      //       icon: 'apartment',
-      //       type_name: 'Аппартаменты',
-      //     },
-      //     '5': {
-      //       id: 5,
-      //       estate_type_id: '2',
-      //       name: 'Загородный дом',
-      //       user_id: Number(userId),
-      //       description:
-      //         'Уютный двухэтажный дом с садом и бассейном. Идеально для семейного проживания.',
-      //       recoupment: 8.7,
-      //       icon: 'house',
-      //       type_name: 'Дом',
-      //     },
-      //   };
-
-      //   estate.value = testEstates[estateId] || {
-      //     id: Number(estateId),
-      //     estate_type_id: '1',
-      //     name: `Недвижимость #${estateId}`,
-      //     user_id: Number(userId),
-      //     description: 'Описание недвижимости',
-      //     recoupment: 10.0,
-      //     icon: 'house',
-      //     type_name: 'Неизвестный тип',
-      //   };
-      //   return;
-      // }
-
       estate.value = await $api.get<Estate>(`/users/${userId}/estates/${estateId}`);
     } catch (err: any) {
       error.value = err.message;
@@ -95,40 +52,22 @@ export const useEstateStore = defineStore('estate', () => {
   };
 
   const createUserEstate = async (
-    userId: string,
-    estateData: { estate_type_id: string; name: string },
+    userId: number,
+    estateData: { estate_type_id: number; name: string },
   ) => {
     try {
       isLoading.value = true;
       error.value = null;
       newEstate.value = null;
 
-      // Удалить заглушку когда бекенд будет готов
-      if (import.meta.dev) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const selectedType = estateTypes.value.find(
-          type => type.id.toString() === estateData.estate_type_id,
-        );
-
-        const createdEstate: Estate = {
-          id: Date.now(),
-          estate_type_id: estateData.estate_type_id,
-          name: estateData.name,
-          user_id: Number(userId),
-          description: 'Описание недвижимости',
-          recoupment: 10.0,
-          icon: selectedType?.icon || 'house',
-          type_name: selectedType?.name || 'Неизвестный тип',
-        };
-        estates.value.push(createdEstate);
-        newEstate.value = createdEstate;
-        return createdEstate;
-      }
-
-      // newEstate.value = await $api.post(`/users/${user.id}/estates`, estateData);
-      //estates.value.push(response);
-      // newEstate.value = response;
-      // return response;
+      const requestData = {
+        ...estateData,
+        user_id: userId,
+      };
+      const response: EstateResponse = await $api.post(`/estates`, requestData);
+      estates.value.push(response);
+      newEstate.value = response;
+      return response;
     } catch (err: any) {
       error.value = err.message;
       throw err;

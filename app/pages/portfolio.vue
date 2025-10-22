@@ -42,7 +42,7 @@ const typeOptions = computed(() => {
 
 const enrichedEstates = computed<Estate[]>(() => {
   return estates.value.map((estate: Estate) => {
-    const estateType = estateTypes.value.find(type => type.id.toString() === estate.estate_type_id);
+    const estateType = estateTypes.value.find(type => type.id === estate.estate_type_id);
 
     return {
       ...estate,
@@ -58,14 +58,14 @@ const filteredEstates = computed(() => {
   if (selectedType.value === 'все') {
     return enrichedEstates.value;
   }
-  return enrichedEstates.value.filter(estate => estate.type_name === selectedType.value);
+  return enrichedEstates.value.filter(estate => estate.estate_type_name === selectedType.value);
 });
 
 const calculateRecoupment = (estateId: number): number => {
   return Math.floor(Math.random() * 100) + 1;
 };
 
-const createEstate = async (estateData: { estate_type_id: string; name: string }) => {
+const createEstate = async (estateData: { estate_type_id: number; name: string }) => {
   if (!authStore.user?.id) {
     showError('Пользователь не авторизован');
     return;
@@ -105,10 +105,10 @@ const createEstate = async (estateData: { estate_type_id: string; name: string }
         <q-icon name="real_estate_agent" size="50px" color="grey" />
         <div class="q-mt-md text-grey">Недвижимость не найдена</div>
         <q-btn
+          @click="showAddModal = true"
           color="secondary"
           label="Добавить первую недвижимость"
           class="q-mt-md button"
-          to="/add-property"
         />
       </div>
 

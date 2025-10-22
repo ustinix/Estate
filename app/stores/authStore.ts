@@ -16,6 +16,7 @@ export const useAuthStore = defineStore('auth', () => {
   const refreshToken = ref<string | null>(null);
   const expiresAt = ref<number | null>(null);
   const isLoading = ref(false);
+  const isInitialized = ref(false);
 
   const $api = useApi();
 
@@ -78,27 +79,58 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const initAuth = async () => {
+    if (isInitialized.value) return;
     const accessTokenFromCookie = accessTokenCookie.value;
     const refreshTokenFromCookie = refreshTokenCookie.value;
 
+    // Есть access token - просто восстанавливаем состояние
     if (accessTokenFromCookie) {
       accessToken.value = accessTokenFromCookie;
       refreshToken.value = refreshTokenFromCookie;
+
       if (import.meta.client) {
         try {
           const savedUser = localStorage.getItem('currentUser');
           if (savedUser) {
             user.value = JSON.parse(savedUser);
           } else {
+            clearAuth();
+            return;
           }
         } catch (error) {
           console.error('❌ Failed to parse user from localStorage:', error);
+          clearAuth();
+          return;
         }
       }
+
+      const isValid = await isValidToken();
+      if (!isValid) {
+        console.log('❌ Token is invalid after init');
+        clearAuth();
+      } else {
+        console.log('✅ Auto-login successful with existing token');
+      }
+
+      // Нет access token, но есть refresh token - пытаемся обновить
+    } else if (refreshTokenFromCookie && refreshTokenFromCookie !== 'no-refresh-token') {
+      refreshToken.value = refreshTokenFromCookie;
+
+      try {
+        const refreshSuccess = await refreshTokens();
+        if (!refreshSuccess) {
+          clearAuth();
+        }
+      } catch (error) {
+        console.error('❌ Refresh token failed:', error);
+        clearAuth();
+      }
+
+      // Нет никаких токенов - очищаем
     } else {
-      console.log('❌ No access token found in cookies');
       clearAuth();
     }
+    isInitialized.value = true;
   };
 
   const login = async (credentials: { email: string; password: string }) => {
@@ -143,7 +175,6 @@ export const useAuthStore = defineStore('auth', () => {
   const refreshTokens = async (): Promise<boolean> => {
     if (!refreshToken.value) {
       console.log('❌ No refresh token available');
-      clearAuth();
       return false;
     }
 
@@ -156,7 +187,10 @@ export const useAuthStore = defineStore('auth', () => {
       return true;
     } catch (error: any) {
       console.error('Token refresh failed:', error);
-      clearAuth();
+      if (error.status === 401 || error.status === 403) {
+        console.log('🔄 Refresh token invalid, clearing auth');
+        clearAuth();
+      }
       return false;
     }
   };
@@ -172,12 +206,7 @@ export const useAuthStore = defineStore('auth', () => {
       return false;
     }
 
-    if (isTokenExpired.value) {
-      console.log('🔄 Token expired, attempting refresh');
-      return await refreshTokens();
-    }
-
-    if (needsRefresh.value) {
+    if (isTokenExpired.value || needsRefresh.value) {
       console.log('🔄 Token needs refresh, attempting refresh');
       return await refreshTokens();
     }
@@ -276,6 +305,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading,
     isAuthenticated,
     isTokenExpired,
+    isInitialized,
     needsRefresh,
     initAuth,
     login,

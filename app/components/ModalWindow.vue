@@ -8,7 +8,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void;
-  (e: 'create', estateData: { estate_type_id: string; name: string }): void;
+  (e: 'create', estateData: { estate_type_id: number; name: string }): void;
 }
 
 const props = defineProps<Props>();
@@ -16,7 +16,7 @@ const emit = defineEmits<Emits>();
 
 const isLoading = ref(false);
 const form = ref({
-  estate_type_id: '',
+  estate_type_id: null as number | null,
   name: '',
 });
 const showModal = computed({
@@ -24,16 +24,14 @@ const showModal = computed({
   set: value => emit('update:modelValue', value),
 });
 
-// Опции для select
 const estateTypeOptions = computed(() =>
   props.estateTypes.map(type => ({
-    id: type.id.toString(),
+    id: type.id,
     name: type.name,
     icon: type.icon,
   })),
 );
 
-// Обработчик отправки формы
 const handleSubmit = async () => {
   if (!form.value.estate_type_id || !form.value.name) {
     return;
@@ -41,7 +39,7 @@ const handleSubmit = async () => {
 
   isLoading.value = true;
   try {
-    await emit('create', { ...form.value });
+    await emit('create', { estate_type_id: form.value.estate_type_id, name: form.value.name });
     resetForm();
     closeModal();
   } catch (error) {
@@ -60,7 +58,7 @@ const closeModal = () => {
 // Сброс формы
 const resetForm = () => {
   form.value = {
-    estate_type_id: '',
+    estate_type_id: null,
     name: '',
   };
 };

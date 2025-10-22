@@ -30,7 +30,7 @@ const goBack = () => {
         <button @click="goBack" class="btn-back">← Назад</button>
       </div>
       <div class="estate-header">
-        <q-icon :name="estate.icon" size="lg" color="green-9" />
+        <q-icon :name="estate.estate_type_icon" size="lg" color="green-9" />
         <h1 class="estate-title">{{ estate.name }}</h1>
       </div>
 
@@ -43,7 +43,7 @@ const goBack = () => {
           <div class="estate-meta">
             <div class="meta-item">
               <span class="label">Тип недвижимости:</span>
-              <span class="value">{{ estate.type_name || 'Не указан' }}</span>
+              <span class="value">{{ estate.estate_type_name || 'Не указан' }}</span>
             </div>
 
             <div class="meta-item" v-if="estate.recoupment">

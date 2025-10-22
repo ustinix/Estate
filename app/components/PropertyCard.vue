@@ -19,9 +19,9 @@ const handleClick = () => {
     <div @click="handleClick" class="clickable-area">
       <q-card-section class="card-header">
         <div class="card-title">
-          <q-icon :name="estate.icon" size="lg" color="green-9" />
+          <q-icon :name="estate.estate_type_icon" size="lg" color="green-9" />
           <div class="text-overline text-indigo-10">
-            {{ estate.type_name || 'Неизвестный тип' }}
+            {{ estate.estate_type_name || 'Неизвестный тип' }}
           </div>
         </div>
         <div class="text-h6 q-mt-sm q-mb-xs text-no-wrap ellipsis">{{ estate.name }}</div>

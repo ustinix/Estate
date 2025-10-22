@@ -2,7 +2,9 @@ import { useAuthStore } from '~/stores/authStore';
 
 export default defineNuxtRouteMiddleware(async to => {
   const authStore = useAuthStore();
-  await authStore.initAuth();
+  if (!authStore.isInitialized) {
+    await authStore.initAuth();
+  }
 
   const protectedRoutes = ['/profile'];
   const authRoutes = ['/login', '/register'];
