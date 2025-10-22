@@ -22,14 +22,23 @@ export const useAuthStore = defineStore('auth', () => {
 
   const accessTokenCookie = useCookie('access-token', {
     maxAge: AUTH_CONSTANTS.ACCESS_TOKEN_MAX_AGE,
-    secure: !import.meta.dev,
+    secure: false,
     sameSite: 'lax',
+    domain: import.meta.dev ? 'localhost' : undefined,
   });
 
   const refreshTokenCookie = useCookie<string | null>('refresh-token', {
     maxAge: AUTH_CONSTANTS.REFRESH_TOKEN_MAX_AGE,
-    secure: !import.meta.dev,
+    secure: false,
     sameSite: 'lax',
+    domain: import.meta.dev ? 'localhost' : undefined,
+  });
+
+  const expiresAtCookie = useCookie<number | null>('expires-at', {
+    maxAge: AUTH_CONSTANTS.REFRESH_TOKEN_MAX_AGE,
+    secure: false,
+    sameSite: 'lax',
+    domain: import.meta.dev ? 'localhost' : undefined,
   });
 
   const isAuthenticated = computed(() => {
@@ -54,7 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
     expiresAt.value = tokenResponse.expires_at;
     user.value = tokenResponse.user;
 
-    if (tokenResponse.user && import.meta.client) {
+    if (import.meta.client) {
       localStorage.setItem('currentUser', JSON.stringify(tokenResponse.user));
     }
 
@@ -62,6 +71,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (tokenResponse.refresh_token) {
       refreshTokenCookie.value = tokenResponse.refresh_token;
     }
+    expiresAtCookie.value = tokenResponse.expires_at;
   };
 
   const clearAuth = () => {
@@ -72,6 +82,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     accessTokenCookie.value = null;
     refreshTokenCookie.value = null;
+    expiresAtCookie.value = null;
 
     if (import.meta.client) {
       localStorage.removeItem('currentUser');
@@ -80,22 +91,31 @@ export const useAuthStore = defineStore('auth', () => {
 
   const initAuth = async () => {
     if (isInitialized.value) return;
+    if (!import.meta.client) {
+      isInitialized.value = true;
+      return;
+    }
     const accessTokenFromCookie = accessTokenCookie.value;
     const refreshTokenFromCookie = refreshTokenCookie.value;
+    const expiresAtFromCookie = expiresAtCookie.value;
 
     // Есть access token - просто восстанавливаем состояние
     if (accessTokenFromCookie) {
       accessToken.value = accessTokenFromCookie;
       refreshToken.value = refreshTokenFromCookie;
+      expiresAt.value = expiresAtFromCookie;
 
       if (import.meta.client) {
         try {
           const savedUser = localStorage.getItem('currentUser');
           if (savedUser) {
             user.value = JSON.parse(savedUser);
+            const isValid = await isValidToken();
+            if (!isValid) {
+              clearAuth();
+            }
           } else {
             clearAuth();
-            return;
           }
         } catch (error) {
           console.error('❌ Failed to parse user from localStorage:', error);
@@ -106,12 +126,8 @@ export const useAuthStore = defineStore('auth', () => {
 
       const isValid = await isValidToken();
       if (!isValid) {
-        console.log('❌ Token is invalid after init');
         clearAuth();
-      } else {
-        console.log('✅ Auto-login successful with existing token');
       }
-
       // Нет access token, но есть refresh token - пытаемся обновить
     } else if (refreshTokenFromCookie && refreshTokenFromCookie !== 'no-refresh-token') {
       refreshToken.value = refreshTokenFromCookie;
@@ -162,7 +178,6 @@ export const useAuthStore = defineStore('auth', () => {
       });
 
       setAuthData(loginResponse);
-      console.log('✅ Registration successful, auth state updated');
       return loginResponse;
     } catch (error) {
       clearAuth();
@@ -174,7 +189,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   const refreshTokens = async (): Promise<boolean> => {
     if (!refreshToken.value) {
-      console.log('❌ No refresh token available');
       return false;
     }
 
@@ -183,12 +197,10 @@ export const useAuthStore = defineStore('auth', () => {
         refresh_token: refreshToken.value,
       });
       setAuthData(response);
-      console.log('✅ Tokens refreshed successfully');
       return true;
     } catch (error: any) {
       console.error('Token refresh failed:', error);
       if (error.status === 401 || error.status === 403) {
-        console.log('🔄 Refresh token invalid, clearing auth');
         clearAuth();
       }
       return false;
@@ -201,46 +213,42 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const isValidToken = async (): Promise<boolean> => {
-    if (!accessToken.value || !user.value) {
-      console.log('❌ Token validation: no token or user');
+    if (!import.meta.client) {
+      console.log('SSR: Skipping token validation on server');
       return false;
     }
 
-    if (isTokenExpired.value || needsRefresh.value) {
-      console.log('🔄 Token needs refresh, attempting refresh');
+    if (!accessToken.value || !user.value) {
+      return false;
+    }
+
+    if (isTokenExpired.value) {
       return await refreshTokens();
     }
 
-    console.log('✅ Token is valid');
+    if (needsRefresh.value) {
+      const refreshSuccess = await refreshTokens();
+      return refreshSuccess || !isTokenExpired.value;
+    }
+
     return true;
   };
 
-  const getRegisteredUsers = async (): Promise<User[]> => {
-    const isValid = await isValidToken();
-    if (!isValid) throw new Error('Not authenticated');
-
-    try {
-      const users = await $api.get<User[]>('/users');
-      return users;
-    } catch (error: any) {
-      throw handleApiError(error);
-    }
-  };
-
-  const updateProfile = async (profileData: UpdateProfileRequest): Promise<User> => {
+  const updateProfile = async (
+    userId: number,
+    profileData: UpdateProfileRequest,
+  ): Promise<void> => {
     const isValid = await isValidToken();
     if (!isValid || !user.value) throw new Error('Not authenticated');
 
     try {
-      // ПРЕДПОЛОЖИТЕЛЬНЫЙ эндпоинт для обновления профиля
-      const updatedUser = await $api.put<User>('/users/profile', profileData);
-      user.value = { ...user.value, ...updatedUser };
-      return updatedUser;
-    } catch (error: any) {
-      // Если эндпоинта нет - обновляем локально
-      console.warn('Update profile endpoint not available, updating locally');
+      await $api.put<User>(`/users/${userId}/profile`, profileData);
       user.value = { ...user.value, ...profileData };
-      return user.value;
+      if (import.meta.client) {
+        localStorage.setItem('currentUser', JSON.stringify(user.value));
+      }
+    } catch (error: any) {
+      throw new Error('Не удалось обновить профиль. Сервер недоступен.');
     }
   };
 
@@ -312,7 +320,6 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     refreshTokens,
-    getRegisteredUsers,
     updateProfile,
     changePassword,
     getNotificationSettings,

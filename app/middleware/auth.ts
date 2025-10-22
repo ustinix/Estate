@@ -2,6 +2,10 @@ import { useAuthStore } from '~/stores/authStore';
 
 export default defineNuxtRouteMiddleware(async to => {
   const authStore = useAuthStore();
+  if (import.meta.server) {
+    console.log('SSR: Skipping auth check on server');
+    return;
+  }
   if (!authStore.isInitialized) {
     await authStore.initAuth();
   }

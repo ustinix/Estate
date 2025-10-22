@@ -35,9 +35,11 @@ export interface RegisterRequest {
 
 export interface UpdateProfileRequest {
   name?: string;
-  email?: string;
   mobile?: string;
-  telegram?: string;
+}
+
+export interface UpdateProfileResponse {
+  id: number;
 }
 
 export interface ChangePasswordRequest {

@@ -18,12 +18,12 @@ const authStore = useAuthStore();
 
 const activeTab = useLocalStorage('profile-active-tab', 'profile');
 const isNotificationsLoading = ref(true);
+const userId = computed(() => authStore.user?.id);
+const userEmail = computed(() => authStore.user?.email);
 
-const profileData = ref<UpdateProfileRequest>({
-  name: authStore.user?.name || '',
-  email: authStore.user?.email || '',
-  mobile: authStore.user?.mobile || '',
-  telegram: authStore.user?.telegram || '',
+const editableProfileData = ref<UpdateProfileRequest>({
+  name: '',
+  mobile: '',
 });
 
 const passwordData = ref<ChangePasswordRequest>({
@@ -37,20 +37,14 @@ const notificationsData = ref<NotificationSettingsRequest>({
   telegramNotifications: false,
 });
 
-watch(
-  () => authStore.user,
-  newUser => {
-    if (newUser) {
-      profileData.value = {
-        name: newUser.name || '',
-        email: newUser.email || '',
-        mobile: newUser.mobile || '',
-        telegram: newUser.telegram || '',
-      };
-    }
-  },
-  { immediate: true },
-);
+watchEffect(() => {
+  if (authStore.user) {
+    editableProfileData.value = {
+      name: authStore.user.name || '',
+      mobile: authStore.user.mobile || '',
+    };
+  }
+});
 
 onMounted(async () => {
   try {
@@ -64,8 +58,18 @@ onMounted(async () => {
 });
 
 async function updateProfileData() {
+  if (!userId.value) {
+    $q.notify({
+      color: 'red-5',
+      textColor: 'white',
+      icon: 'error',
+      message: 'Ошибка: пользователь не найден',
+    });
+    return;
+  }
+
   try {
-    await authStore.updateProfile(profileData.value);
+    await authStore.updateProfile(userId.value, editableProfileData.value);
 
     $q.notify({
       color: 'green-4',
@@ -143,137 +147,149 @@ async function changeNotificationSettings() {
 }
 </script>
 <template>
-  <div class="profile-page q-pa-lg">
-    <h4 class="q-mb-md">Личный кабинет</h4>
+  <ClientOnly>
+    <div class="profile-page q-pa-lg">
+      <h4 class="q-mb-md">Личный кабинет</h4>
 
-    <q-tabs v-model="activeTab" class="text-teal">
-      <q-tab name="profile" icon="person" label="Профиль" />
-      <q-tab name="password" icon="lock" label="Смена пароля" />
-      <q-tab name="notifications" icon="notifications" label="Уведомления" />
-    </q-tabs>
+      <q-tabs v-model="activeTab" class="text-teal">
+        <q-tab name="profile" icon="person" label="Профиль" />
+        <q-tab name="password" icon="lock" label="Смена пароля" />
+        <q-tab name="notifications" icon="notifications" label="Уведомления" />
+      </q-tabs>
 
-    <q-tab-panels v-model="activeTab" animated>
-      <q-tab-panel name="profile">
-        <q-form @submit="updateProfileData" class="q-gutter-md">
-          <q-input filled v-model="profileData.name" label="Имя" :readonly="authStore.isLoading" />
+      <q-tab-panels v-model="activeTab" animated>
+        <q-tab-panel name="profile">
+          <q-form @submit="updateProfileData" class="q-gutter-md">
+            <q-input
+              filled
+              v-model="editableProfileData.name"
+              label="Имя"
+              :readonly="authStore.isLoading"
+            />
 
-          <q-input
+            <q-input
+              filled
+              v-model="userEmail"
+              label="Email"
+              type="email"
+              :readonly="authStore.isLoading"
+              disable
+              hint="Email нельзя изменить"
+            />
+
+            <q-input
+              filled
+              v-model="editableProfileData.mobile"
+              label="Телефон"
+              mask="+# (###) ###-##-##"
+              :readonly="authStore.isLoading"
+            />
+
+            <!-- <q-input
             filled
-            v-model="profileData.email"
-            label="Email"
-            type="email"
-            :readonly="authStore.isLoading"
-          />
-
-          <q-input
-            filled
-            v-model="profileData.mobile"
-            label="Телефон"
-            mask="+# (###) ###-##-##"
-            :readonly="authStore.isLoading"
-          />
-
-          <q-input
-            filled
-            v-model="profileData.telegram"
+            v-model="editableProfileData.telegram"
             label="Telegram"
             prefix="@"
             :readonly="authStore.isLoading"
-          />
+          /> -->
 
-          <q-btn
-            class="button"
-            label="Сохранить изменения"
-            type="submit"
-            color="secondary"
-            :loading="authStore.isLoading"
-            :disabled="authStore.isLoading"
-          />
-        </q-form>
-      </q-tab-panel>
+            <q-btn
+              class="button"
+              label="Сохранить изменения"
+              type="submit"
+              color="secondary"
+              :loading="authStore.isLoading"
+              :disabled="authStore.isLoading"
+            />
+          </q-form>
+        </q-tab-panel>
 
-      <q-tab-panel name="password">
-        <q-form @submit="changeUserPassword" class="q-gutter-md">
-          <q-input
-            filled
-            v-model="passwordData.currentPassword"
-            label="Текущий пароль"
-            :readonly="authStore.isLoading"
-            :type="visibilityStates.currentPassword ? 'text' : 'password'"
-          >
-            <template v-slot:append>
-              <q-icon
-                :name="visibilityStates.currentPassword ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
-                @click="toggleVisibility('currentPassword')"
+        <q-tab-panel name="password">
+          <q-form @submit="changeUserPassword" class="q-gutter-md">
+            <q-input
+              filled
+              v-model="passwordData.currentPassword"
+              label="Текущий пароль"
+              :readonly="authStore.isLoading"
+              :type="visibilityStates.currentPassword ? 'text' : 'password'"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="visibilityStates.currentPassword ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="toggleVisibility('currentPassword')"
+                />
+              </template>
+            </q-input>
+
+            <q-input
+              filled
+              v-model="passwordData.newPassword"
+              label="Новый пароль"
+              hint="Минимум 3 символа"
+              :readonly="authStore.isLoading"
+              :type="visibilityStates.newPassword ? 'text' : 'password'"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="visibilityStates.newPassword ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="toggleVisibility('newPassword')"
+                />
+              </template>
+            </q-input>
+
+            <q-btn
+              class="button"
+              label="Сменить пароль"
+              type="submit"
+              color="secondary"
+              :loading="authStore.isLoading"
+              :disabled="authStore.isLoading"
+            />
+          </q-form>
+        </q-tab-panel>
+
+        <q-tab-panel name="notifications" class="notification-container">
+          <div v-if="isNotificationsLoading" class="text-center q-pa-lg">
+            <q-spinner size="50px" color="primary" />
+            <div class="q-mt-md">Загрузка настроек...</div>
+          </div>
+          <q-form v-else @submit="changeNotificationSettings" class="notification-form">
+            <div class="form-content">
+              <q-toggle
+                v-model="notificationsData.emailNotifications"
+                label="Email уведомления"
+                class="q-mb-md"
               />
-            </template>
-          </q-input>
 
-          <q-input
-            filled
-            v-model="passwordData.newPassword"
-            label="Новый пароль"
-            hint="Минимум 3 символа"
-            :readonly="authStore.isLoading"
-            :type="visibilityStates.newPassword ? 'text' : 'password'"
-          >
-            <template v-slot:append>
-              <q-icon
-                :name="visibilityStates.newPassword ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
-                @click="toggleVisibility('newPassword')"
+              <q-toggle
+                v-model="notificationsData.smsNotifications"
+                label="SMS уведомления"
+                class="q-mb-md"
               />
-            </template>
-          </q-input>
-
-          <q-btn
-            class="button"
-            label="Сменить пароль"
-            type="submit"
-            color="secondary"
-            :loading="authStore.isLoading"
-            :disabled="authStore.isLoading"
-          />
-        </q-form>
-      </q-tab-panel>
-
-      <q-tab-panel name="notifications">
-        <div v-if="isNotificationsLoading" class="text-center q-pa-lg">
-          <q-spinner size="50px" color="primary" />
-          <div class="q-mt-md">Загрузка настроек...</div>
-        </div>
-        <q-form v-else @submit="changeNotificationSettings" class="q-gutter-md">
-          <q-toggle
-            v-model="notificationsData.emailNotifications"
-            label="Email уведомления"
-            :disabled="authStore.isLoading"
-          />
-
-          <q-toggle
-            v-model="notificationsData.smsNotifications"
-            label="SMS уведомления"
-            :disabled="authStore.isLoading"
-          />
-
-          <q-toggle
+              <!-- <q-toggle
             v-model="notificationsData.telegramNotifications"
             label="Telegram уведомления"
             :disabled="authStore.isLoading"
-          />
+          /> -->
+            </div>
 
-          <q-btn
-            class="button"
-            label="Сохранить настройки"
-            type="submit"
-            color="secondary"
-            :loading="authStore.isLoading"
-            :disabled="authStore.isLoading"
-          />
-        </q-form>
-      </q-tab-panel>
-    </q-tab-panels>
-  </div>
+            <div class="form-actions">
+              <q-btn
+                class="button"
+                label="Сохранить настройки"
+                type="submit"
+                color="secondary"
+                :loading="authStore.isLoading"
+                :disabled="authStore.isLoading"
+              />
+            </div>
+          </q-form>
+        </q-tab-panel>
+      </q-tab-panels>
+    </div>
+  </ClientOnly>
 </template>
 
 <style scoped>
@@ -283,5 +299,26 @@ async function changeNotificationSettings() {
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+.notification-form {
+  margin-top: 2rem;
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.form-content {
+  flex: 1;
+  padding: 0 16px;
+}
+
+.form-actions {
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+  background: white;
+  text-align: center;
 }
 </style>
