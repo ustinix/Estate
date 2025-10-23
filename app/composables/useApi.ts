@@ -4,7 +4,7 @@ export function useApi() {
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
 
-  const baseURL = import.meta.dev ? '/api' : config.public.apiBaseUrl;
+  const baseURL = '/api';
 
   async function request<T>(url: string, options: any = {}): Promise<T> {
     const headers: Record<string, string> = {
@@ -12,7 +12,7 @@ export function useApi() {
       ...options.headers,
     };
 
-    if (!import.meta.dev) {
+    if (config.public.apiSecret) {
       headers['X-API-Key'] = config.public.apiSecret;
     }
 
