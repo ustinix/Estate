@@ -58,6 +58,32 @@ export const useEstateStore = defineStore('estate', () => {
     }
   };
 
+  const updateUserEstate = async (
+    userId: number,
+    estateId: number,
+    estateData: { estate_type_id?: number; name?: string; description?: string },
+  ): Promise<Estate> => {
+    try {
+      isLoading.value = true;
+      error.value = null;
+
+      const response: Estate = await $api.put(`/users/${userId}/estates/${estateId}`, estateData);
+      const index = estates.value.findIndex(e => e.id === estateId);
+      if (index !== -1) {
+        estates.value[index] = { ...estates.value[index], ...response };
+      }
+      if (estate.value && estate.value.id === estateId) {
+        estate.value = { ...estate.value, ...response };
+      }
+      return response;
+    } catch (err: any) {
+      error.value = err.message;
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   return {
     estates,
     estate,
@@ -66,5 +92,6 @@ export const useEstateStore = defineStore('estate', () => {
     getUserEstates,
     getUserEstate,
     createUserEstate,
+    updateUserEstate,
   };
 });

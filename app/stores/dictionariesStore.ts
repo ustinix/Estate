@@ -74,6 +74,10 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
     })),
   );
 
+  const getEstateTypeById = (id: number) => {
+    return estateTypes.value.find(type => type.id === id);
+  };
+
   return {
     isLoading,
     isLoaded,
@@ -83,5 +87,6 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
     getEstateTypes,
     loadAllDictionaries,
     estateTypeOptions,
+    getEstateTypeById,
   };
 });

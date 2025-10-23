@@ -1,16 +1,87 @@
 <script setup lang="ts">
+import { useQuasar } from 'quasar';
+import { useDictionariesStore } from '~/stores/dictionariesStore';
+import EstateDetailCard from '~/components/EstateDetailCard.vue';
+
+const $q = useQuasar();
 const route = useRoute();
 const authStore = useAuthStore();
 const estateStore = useEstateStore();
+const dictionariesStore = useDictionariesStore();
 
 const estateId = Number(route.params.id);
 const userId = authStore.user?.id;
+
+const isEditing = ref(false);
+const editForm = ref({
+  name: '' as string | undefined,
+  estate_type_id: undefined as number | undefined,
+});
 
 if (userId && estateId) {
   await estateStore.getUserEstate(userId, estateId);
 }
 
 const { estate, isLoading: pending, error } = storeToRefs(estateStore);
+const estateTypeOptions = computed(() => dictionariesStore.estateTypeOptions);
+
+watch(estate, newEstate => {
+  if (newEstate) {
+    editForm.value = {
+      name: newEstate.name,
+      estate_type_id: newEstate.estate_type_id,
+    };
+  }
+});
+
+const startEditing = () => {
+  isEditing.value = true;
+};
+
+const cancelEditing = () => {
+  isEditing.value = false;
+  if (estate.value) {
+    editForm.value = {
+      name: estate.value.name,
+      estate_type_id: estate.value.estate_type_id,
+    };
+  }
+};
+
+const saveEditing = async () => {
+  if (!estate.value || !userId) return;
+
+  try {
+    await estateStore.updateUserEstate(userId, estate.value.id, editForm.value);
+    isEditing.value = false;
+
+    $q.notify({
+      color: 'green-4',
+      textColor: 'white',
+      icon: 'cloud_done',
+      message: 'Данные обновлены!',
+    });
+  } catch (error) {
+    console.error('Ошибка обновления:', error);
+    $q.notify({
+      color: 'red-5',
+      textColor: 'white',
+      icon: 'error',
+      message: 'Ошибка при обновлении',
+    });
+  }
+};
+
+const hasRecoupment = computed(() => !!(estate.value?.recoupment && estate.value.recoupment > 0));
+
+const hasDescription = computed(
+  () => !!(estate.value?.description && estate.value.description.trim() !== ''),
+);
+
+const currentEstateType = computed(() => {
+  if (!estate.value) return null;
+  return dictionariesStore.getEstateTypeById(estate.value.estate_type_id);
+});
 
 const goBack = () => {
   navigateTo('/portfolio');
@@ -18,47 +89,92 @@ const goBack = () => {
 </script>
 <template>
   <div class="estate-page">
+    <div class="back-button-container">
+      <button @click="goBack" class="btn-back">← Назад к портфелю</button>
+    </div>
+
     <div v-if="pending" class="loading">Загрузка данных недвижимости...</div>
+
     <div v-else-if="error" class="error">
       <p>Ошибка: {{ error }}</p>
       <button @click="goBack" class="btn-back">← Назад к портфелю</button>
     </div>
-    <div v-else-if="estate" class="estate-detail">
-      <div class="back-button-container">
-        <button @click="goBack" class="btn-back">← Назад</button>
-      </div>
-      <div class="estate-header">
-        <q-icon :name="estate.estate_type_icon" size="lg" color="green-9" />
-        <h1 class="estate-title">{{ estate.name }}</h1>
-      </div>
 
-      <div class="estate-content">
-        <div class="estate-info">
-          <p class="estate-description" v-if="estate.description">
-            {{ estate.description }}
-          </p>
+    <div v-else-if="estate" class="estate-content">
+      <!-- Режим редактирования -->
+      <div v-if="isEditing" class="edit-mode">
+        <q-form @submit="saveEditing" class="q-gutter-md">
+          <q-input
+            filled
+            v-model="editForm.name"
+            label="Название недвижимости"
+            :rules="[val => !!val || 'Введите название']"
+          />
 
-          <div class="estate-meta">
-            <div class="meta-item">
-              <span class="label">Тип недвижимости:</span>
-              <span class="value">{{ estate.estate_type_name || 'Не указан' }}</span>
-            </div>
+          <q-select
+            filled
+            v-model="editForm.estate_type_id"
+            :options="estateTypeOptions"
+            option-label="label"
+            option-value="value"
+            label="Тип недвижимости"
+            emit-value
+            map-options
+          >
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section avatar>
+                  <q-icon :name="scope.opt.icon" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
 
-            <div class="meta-item" v-if="estate.recoupment">
-              <span class="label">Окупаемость:</span>
-              <span class="value">{{ estate.recoupment }}%</span>
-            </div>
+          <div class="edit-actions">
+            <q-btn flat label="Отмена" @click="cancelEditing" />
+            <q-btn label="Сохранить" type="submit" color="primary" />
           </div>
-        </div>
+        </q-form>
+      </div>
+
+      <!-- Режим просмотра -->
+      <div v-else>
+        <EstateDetailCard
+          :estate="estate"
+          :current-estate-type="currentEstateType"
+          :has-recoupment="hasRecoupment"
+          :has-description="hasDescription"
+          :on-edit="startEditing"
+        />
       </div>
     </div>
   </div>
 </template>
 <style scoped>
 .estate-page {
-  max-width: 800px;
+  max-width: 600px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.back-button-container {
+  margin-bottom: 20px;
+}
+
+.btn-back {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-back:hover {
+  background: #f5f5f5;
 }
 
 .loading,
@@ -67,94 +183,30 @@ const goBack = () => {
   padding: 40px;
 }
 
-.back-button-container {
+.error {
+  color: #d32f2f;
+}
+
+.edit-mode {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.edit-actions {
   display: flex;
-  justify-content: flex-start;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-.btn-back {
-  min-width: 200px;
-  background: none;
-  border: 1px solid #ddd;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.btn-back:hover {
-  background: #f5f5f5;
-}
-
-.estate-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-}
-.title-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.estate-title {
-  font-size: 30px;
-  color: #333;
-}
-
-.estate-content {
-  display: flex;
-  gap: 30px;
-  align-items: flex-start;
-}
-
-.estate-icon {
-  font-size: 48px;
-  flex-shrink: 0;
-}
-
-.estate-info {
-  flex: 1;
-}
-
-.estate-description {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #666;
-  margin-bottom: 24px;
-}
-
-.estate-meta {
-  display: flex;
-  flex-direction: column;
   gap: 12px;
-}
-
-.meta-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.label {
-  font-weight: 500;
-  color: #555;
-}
-
-.value {
-  color: #333;
+  justify-content: flex-end;
+  margin-top: 20px;
 }
 
 @media (max-width: 768px) {
-  .estate-content {
-    flex-direction: column;
+  .estate-page {
+    padding: 16px;
   }
 
-  .estate-icon {
-    align-self: center;
+  .edit-mode {
+    padding: 16px;
   }
 }
 </style>
