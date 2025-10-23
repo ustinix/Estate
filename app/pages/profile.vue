@@ -29,6 +29,7 @@ const editableProfileData = ref<UpdateProfileRequest>({
 const passwordData = ref<ChangePasswordRequest>({
   currentPassword: '',
   newPassword: '',
+  confirmPassword: '',
 });
 
 const notificationsData = ref<NotificationSettingsRequest>({
@@ -145,6 +146,9 @@ async function changeNotificationSettings() {
     });
   }
 }
+const validateConfirmPassword = (val: string) => {
+  return val === passwordData.value.newPassword || 'Пароли не совпадают';
+};
 </script>
 <template>
   <ClientOnly>
@@ -235,6 +239,25 @@ async function changeNotificationSettings() {
                   :name="visibilityStates.newPassword ? 'visibility_off' : 'visibility'"
                   class="cursor-pointer"
                   @click="toggleVisibility('newPassword')"
+                />
+              </template>
+            </q-input>
+            <q-input
+              filled
+              v-model="passwordData.confirmPassword"
+              :type="visibilityStates.confirmPassword ? 'text' : 'password'"
+              label="Подтверждение пароля"
+              lazy-rules
+              :rules="[
+                val => (val && val.length > 0) || 'Повторите пароль',
+                validateConfirmPassword,
+              ]"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="visibilityStates.confirmPassword ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="toggleVisibility('confirmPassword')"
                 />
               </template>
             </q-input>

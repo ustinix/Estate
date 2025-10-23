@@ -45,6 +45,7 @@ export interface UpdateProfileResponse {
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
+  confirmPassword?: string;
 }
 
 export interface NotificationSettingsRequest {
