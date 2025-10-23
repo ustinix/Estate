@@ -6,11 +6,9 @@ const estateStore = useEstateStore();
 const estateId = Number(route.params.id);
 const userId = authStore.user?.id;
 
-onMounted(async () => {
-  if (userId && estateId) {
-    await estateStore.getUserEstate(userId, estateId);
-  }
-});
+if (userId && estateId) {
+  await estateStore.getUserEstate(userId, estateId);
+}
 
 const { estate, isLoading: pending, error } = storeToRefs(estateStore);
 

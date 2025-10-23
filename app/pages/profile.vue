@@ -49,7 +49,7 @@ watchEffect(() => {
   }
 });
 
-onMounted(async () => {
+const loadNotificationSettings = async () => {
   try {
     const settings = await authStore.getNotificationSettings();
     notificationsData.value = { ...settings };
@@ -58,7 +58,9 @@ onMounted(async () => {
   } finally {
     isNotificationsLoading.value = false;
   }
-});
+};
+
+loadNotificationSettings();
 
 async function updateProfileData() {
   if (!userId.value) {

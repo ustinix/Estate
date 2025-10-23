@@ -16,11 +16,9 @@ const { estates, isLoading } = storeToRefs(estateStore);
 const showAddModal = ref(false);
 const selectedType = ref('все');
 
-onMounted(async () => {
-  if (authStore.user) {
-    await Promise.all([estateStore.getUserEstates(authStore.user.id)]);
-  }
-});
+if (authStore.user) {
+  estateStore.getUserEstates(authStore.user.id);
+}
 
 watch(
   () => authStore.user,
