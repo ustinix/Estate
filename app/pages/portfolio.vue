@@ -5,20 +5,20 @@ import { useEstateStore } from '~/stores/estateStore';
 import { useAuthStore } from '~/stores/authStore';
 import { storeToRefs } from 'pinia';
 import ModalWindow from '~/components/ModalWindow.vue';
+import { useDictionariesStore } from '~/stores/dictionariesStore';
 
+const dictionariesStore = useDictionariesStore();
+const estateTypes = computed(() => dictionariesStore.estateTypes);
 const authStore = useAuthStore();
 const estateStore = useEstateStore();
-const { estates, estateTypes, isLoading } = storeToRefs(estateStore);
+const { estates, isLoading } = storeToRefs(estateStore);
 
 const showAddModal = ref(false);
 const selectedType = ref('все');
 
 onMounted(async () => {
   if (authStore.user) {
-    await Promise.all([
-      estateStore.getEstateTypes(),
-      estateStore.getUserEstates(authStore.user.id),
-    ]);
+    await Promise.all([estateStore.getUserEstates(authStore.user.id)]);
   }
 });
 
@@ -26,7 +26,7 @@ watch(
   () => authStore.user,
   newUser => {
     if (newUser) {
-      Promise.all([estateStore.getEstateTypes(), estateStore.getUserEstates(newUser.id)]);
+      estateStore.getUserEstates(newUser.id);
     }
   },
 );
@@ -46,7 +46,7 @@ const enrichedEstates = computed<Estate[]>(() => {
 
     return {
       ...estate,
-      type_name: estateType?.name || 'неизвестно',
+      estate_type_name: estateType?.name || 'неизвестно',
       icon: estateType?.icon || 'help',
       description: estate.description || 'Описание будет добавлено позже',
       recoupment: estate.recoupment || calculateRecoupment(estate.id),
@@ -88,7 +88,7 @@ const createEstate = async (estateData: { estate_type_id: number; name: string }
         v-model="selectedType"
         :options="typeOptions.map(t => t.name)"
         label="Тип недвижимости"
-        :loading="isLoading && estateTypes.length === 0"
+        :loading="dictionariesStore.isLoading && estateTypes.length === 0"
       />
     </div>
     <ClientOnly>
@@ -115,11 +115,7 @@ const createEstate = async (estateData: { estate_type_id: number; name: string }
         </div>
         <PropertyCard v-for="estate in filteredEstates" :key="estate.id" :estate="estate" />
       </div>
-      <ModalWindow
-        v-model="showAddModal"
-        :estate-types="estateStore.estateTypes"
-        @create="createEstate"
-      />
+      <ModalWindow v-model="showAddModal" :estate-types="estateTypes" @create="createEstate" />
     </ClientOnly>
   </section>
 </template>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { EstateType } from '~/types/estate';
+import type { EstateType } from '~/types/dictionaries';
+import { useDictionariesStore } from '~/stores/dictionariesStore';
 
 interface Props {
   modelValue: boolean;
-  estateTypes: EstateType[];
 }
 
 interface Emits {
@@ -13,6 +13,8 @@ interface Emits {
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
+
+const dictionariesStore = useDictionariesStore();
 
 const isLoading = ref(false);
 const form = ref({
@@ -24,13 +26,7 @@ const showModal = computed({
   set: value => emit('update:modelValue', value),
 });
 
-const estateTypeOptions = computed(() =>
-  props.estateTypes.map(type => ({
-    id: type.id,
-    name: type.name,
-    icon: type.icon,
-  })),
-);
+const estateTypeOptions = computed(() => dictionariesStore.estateTypeOptions);
 
 const handleSubmit = async () => {
   if (!form.value.estate_type_id || !form.value.name) {
@@ -84,8 +80,8 @@ watch(showModal, newVal => {
           <q-select
             v-model="form.estate_type_id"
             :options="estateTypeOptions"
-            option-label="name"
-            option-value="id"
+            option-label="label"
+            option-value="value"
             label="Тип недвижимости *"
             :rules="[val => !!val || 'Выберите тип']"
             emit-value
@@ -97,7 +93,7 @@ watch(showModal, newVal => {
                   <q-icon :name="scope.opt.icon" />
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label>{{ scope.opt.name }}</q-item-label>
+                  <q-item-label>{{ scope.opt.label }}</q-item-label>
                 </q-item-section>
               </q-item>
             </template>

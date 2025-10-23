@@ -261,7 +261,14 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       await $api.put<User>(`/users/${userId}/profile`, profileData);
-      await getCurrentUser();
+      // await getCurrentUser(); пока бэк отдает устаревшие данные сохраняю в LS сама, потом буду брать с бэка
+      user.value = {
+        ...user.value,
+        ...profileData,
+      };
+      if (import.meta.client) {
+        localStorage.setItem('currentUser', JSON.stringify(user.value));
+      }
     } catch (error: any) {
       throw new Error('Не удалось обновить профиль. Сервер недоступен.');
     }

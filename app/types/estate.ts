@@ -29,9 +29,3 @@ export interface EstateResponse {
   created_at: string;
   updated_at: string;
 }
-
-export interface EstateType {
-  id: number;
-  name: string;
-  icon: string;
-}
