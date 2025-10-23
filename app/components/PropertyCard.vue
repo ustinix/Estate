@@ -10,7 +10,7 @@ const props = defineProps<{
 const progressValue = computed(() => (props.estate.recoupment || 0) / 100);
 
 const handleClick = () => {
-  navigateTo(`/estate?id=${props.estate.id}`);
+  navigateTo(`/estate/${props.estate.id}`);
 };
 </script>
 

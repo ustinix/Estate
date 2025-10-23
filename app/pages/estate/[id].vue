@@ -3,7 +3,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const estateStore = useEstateStore();
 
-const estateId = route.query.id as string;
+const estateId = Number(route.params.id);
 const userId = authStore.user?.id;
 
 onMounted(async () => {

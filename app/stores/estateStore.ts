@@ -38,7 +38,7 @@ export const useEstateStore = defineStore('estate', () => {
     }
   };
 
-  const getUserEstate = async (userId: number, estateId: string) => {
+  const getUserEstate = async (userId: number, estateId: number) => {
     try {
       isLoading.value = true;
       error.value = null;
@@ -60,11 +60,7 @@ export const useEstateStore = defineStore('estate', () => {
       error.value = null;
       newEstate.value = null;
 
-      const requestData = {
-        ...estateData,
-        user_id: userId,
-      };
-      const response: EstateResponse = await $api.post(`/estates`, requestData);
+      const response: EstateResponse = await $api.post(`/users/${userId}/estates`, estateData);
       estates.value.push(response);
       newEstate.value = response;
       return response;

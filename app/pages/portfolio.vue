@@ -72,11 +72,7 @@ const createEstate = async (estateData: { estate_type_id: number; name: string }
   }
 
   try {
-    const createdEstate = await estateStore.createUserEstate(authStore.user.id, estateData);
-
-    if (createdEstate) {
-      navigateTo(`/estate?id=${createdEstate.id}`);
-    }
+    await estateStore.createUserEstate(authStore.user.id, estateData);
   } catch (error) {
     console.error('Ошибка создания недвижимости:', error);
     throw error;
