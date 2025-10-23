@@ -4,7 +4,7 @@ export interface User {
   id: UserID;
   name?: string;
   email: string;
-  mobile?: string;
+  phone?: string;
   telegram?: string;
 }
 
@@ -35,7 +35,7 @@ export interface RegisterRequest {
 
 export interface UpdateProfileRequest {
   name?: string;
-  mobile?: string;
+  phone?: string;
 }
 
 export interface UpdateProfileResponse {

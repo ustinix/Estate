@@ -234,6 +234,24 @@ export const useAuthStore = defineStore('auth', () => {
     return true;
   };
 
+  const getCurrentUser = async (): Promise<void> => {
+    if (!user.value?.id) return;
+
+    try {
+      const updatedUser = await $api.get<User>(`/users/${user.value.id}`);
+      user.value = {
+        ...user.value,
+        name: updatedUser.name,
+        phone: updatedUser.phone,
+      };
+      if (import.meta.client) {
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+    }
+  };
+
   const updateProfile = async (
     userId: number,
     profileData: UpdateProfileRequest,
@@ -243,10 +261,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       await $api.put<User>(`/users/${userId}/profile`, profileData);
-      user.value = { ...user.value, ...profileData };
-      if (import.meta.client) {
-        localStorage.setItem('currentUser', JSON.stringify(user.value));
-      }
+      await getCurrentUser();
     } catch (error: any) {
       throw new Error('Не удалось обновить профиль. Сервер недоступен.');
     }
@@ -316,6 +331,7 @@ export const useAuthStore = defineStore('auth', () => {
     isInitialized,
     needsRefresh,
     initAuth,
+    getCurrentUser,
     login,
     register,
     logout,

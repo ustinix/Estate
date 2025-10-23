@@ -7,6 +7,8 @@ import type {
   NotificationSettingsRequest,
 } from '~/types/auth';
 import { visibilityStates, toggleVisibility } from '~/utils/toggleVisibility';
+import { formatPhone } from '~/utils/formatPhone';
+import { validateName, validatePhone } from '~/utils/validateRules';
 
 definePageMeta({
   middleware: 'auth',
@@ -23,7 +25,7 @@ const userEmail = computed(() => authStore.user?.email);
 
 const editableProfileData = ref<UpdateProfileRequest>({
   name: '',
-  mobile: '',
+  phone: '',
 });
 
 const passwordData = ref<ChangePasswordRequest>({
@@ -42,7 +44,7 @@ watchEffect(() => {
   if (authStore.user) {
     editableProfileData.value = {
       name: authStore.user.name || '',
-      mobile: authStore.user.mobile || '',
+      phone: authStore.user.phone || '',
     };
   }
 });
@@ -70,7 +72,11 @@ async function updateProfileData() {
   }
 
   try {
-    await authStore.updateProfile(userId.value, editableProfileData.value);
+    const formattedData = {
+      ...editableProfileData.value,
+      phone: formatPhone(editableProfileData.value.phone),
+    };
+    await authStore.updateProfile(userId.value, formattedData);
 
     $q.notify({
       color: 'green-4',
@@ -155,7 +161,12 @@ const validateConfirmPassword = (val: string) => {
     <div class="profile-page q-pa-lg">
       <h4 class="q-mb-md">Личный кабинет</h4>
 
-      <q-tabs v-model="activeTab" class="text-teal">
+      <q-tabs
+        v-model="activeTab"
+        active-color="indigo-10"
+        indicator-color="indigo-10"
+        class="text-teal"
+      >
         <q-tab name="profile" icon="person" label="Профиль" />
         <q-tab name="password" icon="lock" label="Смена пароля" />
         <q-tab name="notifications" icon="notifications" label="Уведомления" />
@@ -169,6 +180,7 @@ const validateConfirmPassword = (val: string) => {
               v-model="editableProfileData.name"
               label="Имя"
               :readonly="authStore.isLoading"
+              :rules="[validateName]"
             />
 
             <q-input
@@ -183,10 +195,11 @@ const validateConfirmPassword = (val: string) => {
 
             <q-input
               filled
-              v-model="editableProfileData.mobile"
+              v-model="editableProfileData.phone"
               label="Телефон"
               mask="+# (###) ###-##-##"
               :readonly="authStore.isLoading"
+              :rules="[validatePhone]"
             />
 
             <!-- <q-input
