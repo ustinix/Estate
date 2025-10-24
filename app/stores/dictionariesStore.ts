@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia';
 import { useApi } from '~/composables/useApi';
-import type { EstateType, Currency } from '~/types/dictionaries';
+import type { EstateType, Currency, TransactionType } from '~/types/dictionaries';
 
 export const useDictionariesStore = defineStore('dictionaries', () => {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const currencies = ref<Currency[]>([]);
   const estateTypes = ref<EstateType[]>([]);
+  const transactionTypes = ref<TransactionType[]>([]);
   const isLoaded = ref(false);
 
   const $api = useApi();
@@ -24,12 +25,26 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
     }
   };
 
+  const getTransactionTypes = async () => {
+    try {
+      isLoading.value = true;
+      error.value = null;
+      transactionTypes.value = await $api.get<TransactionType[]>('/transaction-types');
+    } catch (err: any) {
+      error.value = err.message;
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   const loadAllDictionaries = async (): Promise<void> => {
     try {
       isLoading.value = true;
       error.value = null;
       await Promise.all([
         getEstateTypes(),
+        getTransactionTypes(),
         // getCurrencies(),
       ]);
     } catch (err: any) {
@@ -83,10 +98,12 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
     isLoaded,
     initializeDictionaries,
     estateTypes,
+    transactionTypes,
     currencies,
     getEstateTypes,
     loadAllDictionaries,
     estateTypeOptions,
     getEstateTypeById,
+    getTransactionTypes,
   };
 });

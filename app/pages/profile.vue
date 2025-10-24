@@ -157,6 +157,11 @@ async function changeNotificationSettings() {
 const validateConfirmPassword = (val: string) => {
   return val === passwordData.value.newPassword || 'Пароли не совпадают';
 };
+
+// временно, пока бэк не починит ответ на логин
+onMounted(async () => {
+  await authStore.getCurrentUser();
+});
 </script>
 <template>
   <ClientOnly>

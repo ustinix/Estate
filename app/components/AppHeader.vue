@@ -6,16 +6,16 @@ import { navLinks } from '~/constants/navLinks';
 import { getUserNameFromEmail } from '~/utils/getUserName';
 import { useAuthStore } from '~/stores/authStore';
 import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
 
 const $q = useQuasar();
 
 const authStore = useAuthStore();
 const { user, isAuthenticated, isLoading } = storeToRefs(authStore);
-const { logout } = authStore;
 
 const handleLogout = async () => {
   try {
-    await logout();
+    await authStore.logout();
     await authStore.initAuth();
 
     $q.notify({
@@ -24,7 +24,6 @@ const handleLogout = async () => {
       icon: 'cloud_done',
       message: 'Выход выполнен успешно',
     });
-    await navigateTo('/');
   } catch (error) {
     console.error('Ошибка при выходе:', error);
   }

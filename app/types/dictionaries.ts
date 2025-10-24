@@ -4,6 +4,11 @@ export interface EstateType {
   icon: string;
 }
 
+export interface TransactionType {
+  id: number;
+  name: string;
+}
+
 export interface Currency {
   id: number;
   code: string;

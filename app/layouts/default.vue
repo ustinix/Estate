@@ -4,7 +4,7 @@ import AppFooter from '~/components/AppFooter.vue';
 </script>
 <template>
   <div class="layout">
-    <ClientOnly><AppHeader /></ClientOnly>
+    <AppHeader />
     <main class="main">
       <slot />
     </main>

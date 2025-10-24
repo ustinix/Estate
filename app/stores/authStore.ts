@@ -110,6 +110,7 @@ export const useAuthStore = defineStore('auth', () => {
           const savedUser = localStorage.getItem('currentUser');
           if (savedUser) {
             user.value = JSON.parse(savedUser);
+            await getCurrentUser();
             const isValid = await isValidToken();
             if (!isValid) {
               clearAuth();
@@ -157,6 +158,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true;
     try {
       const response = await $api.post<TokenResponse>('/users/login', credentials);
+      await getCurrentUser();
       setAuthData(response);
       return response;
     } catch (error) {
@@ -207,7 +209,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     clearAuth();
     navigateTo('/');
   };
@@ -241,6 +243,7 @@ export const useAuthStore = defineStore('auth', () => {
       const updatedUser = await $api.get<User>(`/users/${user.value.id}`);
       user.value = {
         ...user.value,
+        ...updatedUser,
         name: updatedUser.name,
         phone: updatedUser.phone,
       };
@@ -261,7 +264,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       await $api.put<User>(`/users/${userId}/profile`, profileData);
-      // await getCurrentUser(); пока бэк отдает устаревшие данные сохраняю в LS сама, потом буду брать с бэка
+      // await getCurrentUser();
       user.value = {
         ...user.value,
         ...profileData,
