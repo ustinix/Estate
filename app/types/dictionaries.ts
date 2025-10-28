@@ -7,6 +7,8 @@ export interface EstateType {
 export interface TransactionType {
   id: number;
   name: string;
+  direction?: number;
+  regularity?: number;
 }
 
 export interface Currency {

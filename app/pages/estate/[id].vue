@@ -2,6 +2,7 @@
 import { useQuasar } from 'quasar';
 import { useDictionariesStore } from '~/stores/dictionariesStore';
 import EstateDetailCard from '~/components/EstateDetailCard.vue';
+import TransactionForm from '~/components/TransactionForm.vue';
 
 const $q = useQuasar();
 const route = useRoute();
@@ -14,8 +15,9 @@ const userId = authStore.user?.id;
 
 const isEditing = ref(false);
 const editForm = ref({
-  name: '' as string | undefined,
+  name: '',
   estate_type_id: undefined as number | undefined,
+  description: '',
 });
 
 if (userId && estateId) {
@@ -25,11 +27,12 @@ if (userId && estateId) {
 const { estate, isLoading: pending, error } = storeToRefs(estateStore);
 const estateTypeOptions = computed(() => dictionariesStore.estateTypeOptions);
 
-watch(estate, newEstate => {
-  if (newEstate) {
+watchEffect(() => {
+  if (estate.value) {
     editForm.value = {
-      name: newEstate.name,
-      estate_type_id: newEstate.estate_type_id,
+      name: estate.value.name || '',
+      estate_type_id: estate.value.estate_type_id,
+      description: estate.value.description || '',
     };
   }
 });
@@ -42,8 +45,9 @@ const cancelEditing = () => {
   isEditing.value = false;
   if (estate.value) {
     editForm.value = {
-      name: estate.value.name,
+      name: estate.value.name || '',
       estate_type_id: estate.value.estate_type_id,
+      description: estate.value.description || '',
     };
   }
 };
@@ -53,6 +57,7 @@ const saveEditing = async () => {
 
   try {
     await estateStore.updateUserEstate(userId, estate.value.id, editForm.value);
+
     isEditing.value = false;
 
     $q.notify({
@@ -101,7 +106,6 @@ const goBack = () => {
     </div>
 
     <div v-else-if="estate" class="estate-content">
-      <!-- Режим редактирования -->
       <div v-if="isEditing" class="edit-mode">
         <q-form @submit="saveEditing" class="q-gutter-md">
           <q-input
@@ -120,6 +124,7 @@ const goBack = () => {
             label="Тип недвижимости"
             emit-value
             map-options
+            class="edit-select"
           >
             <template v-slot:option="scope">
               <q-item v-bind="scope.itemProps">
@@ -132,15 +137,24 @@ const goBack = () => {
               </q-item>
             </template>
           </q-select>
+          <q-input
+            filled
+            v-model="editForm.description"
+            label="Описание недвижимости"
+            type="textarea"
+            autogrow
+            :rules="[val => !val || val.length <= 500 || 'Максимум 500 символов']"
+          >
+            <template v-slot:counter> {{ editForm.description?.length || 0 }}/500 </template>
+          </q-input>
 
           <div class="edit-actions">
-            <q-btn flat label="Отмена" @click="cancelEditing" />
-            <q-btn label="Сохранить" type="submit" color="primary" />
+            <q-btn flat label="Отмена" @click="cancelEditing" class="button" />
+            <q-btn label="Сохранить" type="submit" color="secondary" class="button" />
           </div>
         </q-form>
       </div>
 
-      <!-- Режим просмотра -->
       <div v-else>
         <EstateDetailCard
           :estate="estate"
@@ -151,13 +165,18 @@ const goBack = () => {
         />
       </div>
     </div>
+    <TransactionForm />
   </div>
 </template>
 <style scoped>
 .estate-page {
-  max-width: 600px;
   margin: 0 auto;
+  max-width: 600px;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .back-button-container {
@@ -191,6 +210,10 @@ const goBack = () => {
   background: #f8f9fa;
   padding: 20px;
   border-radius: 12px;
+}
+
+.edit-select {
+  margin-bottom: 40px;
 }
 
 .edit-actions {

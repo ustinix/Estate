@@ -10,10 +10,14 @@ const getErrorMessage = (status: number): string => {
   return messages[status] || 'Произошла ошибка';
 };
 
-export const handleApiError = (error: any): never => {
-  if (error?.status) {
-    const message = error.data?.message || getErrorMessage(error.status);
-    throw new Error(message);
+export const handleApiError = (error: unknown): never => {
+  if (typeof error === 'object' && error !== null && 'status' in error) {
+    const errorObj = error as { status: unknown; data?: { message?: string } };
+
+    if (typeof errorObj.status === 'number') {
+      const message = errorObj.data?.message || getErrorMessage(errorObj.status);
+      throw new Error(message);
+    }
   }
 
   if (error instanceof Error) {

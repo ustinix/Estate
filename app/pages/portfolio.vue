@@ -47,7 +47,7 @@ const enrichedEstates = computed<Estate[]>(() => {
       estate_type_name: estateType?.name || 'неизвестно',
       icon: estateType?.icon || 'help',
       description: estate.description || 'Описание будет добавлено позже',
-      recoupment: estate.recoupment || calculateRecoupment(estate.id),
+      recoupment: estate.recoupment || calculateRecoupment(),
     };
   });
 });
@@ -59,7 +59,7 @@ const filteredEstates = computed(() => {
   return enrichedEstates.value.filter(estate => estate.estate_type_name === selectedType.value);
 });
 
-const calculateRecoupment = (estateId: number): number => {
+const calculateRecoupment = (): number => {
   return Math.floor(Math.random() * 100) + 1;
 };
 

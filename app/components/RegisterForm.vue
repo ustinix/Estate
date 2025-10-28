@@ -46,10 +46,14 @@ async function onSubmit() {
     });
     await nextTick();
     await navigateTo('/profile');
-  } catch (error: any) {
+  } catch (error) {
     console.error('Registration error:', error);
 
-    const message = error.data?.message || error.message || 'Ошибка регистрации';
+    let message = 'Ошибка регистрации';
+
+    if (error instanceof Error) {
+      message = error.message;
+    }
     errorMessage.value = message;
 
     $q.notify({

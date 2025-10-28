@@ -16,8 +16,8 @@ export const useEstateStore = defineStore('estate', () => {
       isLoading.value = true;
       error.value = null;
       estates.value = await $api.get<Estate[]>(`/users/${userId}/estates`);
-    } catch (err: any) {
-      error.value = err.message;
+    } catch (err) {
+      error.value = String(err);
       throw err;
     } finally {
       isLoading.value = false;
@@ -29,8 +29,8 @@ export const useEstateStore = defineStore('estate', () => {
       isLoading.value = true;
       error.value = null;
       estate.value = await $api.get<Estate>(`/users/${userId}/estates/${estateId}`);
-    } catch (err: any) {
-      error.value = err.message;
+    } catch (err) {
+      error.value = String(err);
       throw err;
     } finally {
       isLoading.value = false;
@@ -50,8 +50,8 @@ export const useEstateStore = defineStore('estate', () => {
       estates.value.push(response);
       newEstate.value = response;
       return response;
-    } catch (err: any) {
-      error.value = err.message;
+    } catch (err) {
+      error.value = String(err);
       throw err;
     } finally {
       isLoading.value = false;
@@ -76,8 +76,8 @@ export const useEstateStore = defineStore('estate', () => {
         estate.value = { ...estate.value, ...response };
       }
       return response;
-    } catch (err: any) {
-      error.value = err.message;
+    } catch (err) {
+      error.value = String(err);
       throw err;
     } finally {
       isLoading.value = false;

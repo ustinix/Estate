@@ -36,10 +36,14 @@ async function onSubmit() {
     });
     await nextTick();
     await navigateTo('/profile');
-  } catch (error: any) {
+  } catch (error) {
     console.error('Login error:', error);
 
-    const message = error.data?.message || error.message || 'Ошибка входа';
+    let message = 'Ошибка входа';
+
+    if (error instanceof Error) {
+      message = error.message;
+    }
     errorMessage.value = message;
 
     $q.notify({

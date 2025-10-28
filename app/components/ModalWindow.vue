@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { EstateType } from '~/types/dictionaries';
 import { useDictionariesStore } from '~/stores/dictionariesStore';
 
 interface Props {

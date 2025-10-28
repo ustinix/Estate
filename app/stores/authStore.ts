@@ -200,11 +200,9 @@ export const useAuthStore = defineStore('auth', () => {
       });
       setAuthData(response);
       return true;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Token refresh failed:', error);
-      if (error.status === 401 || error.status === 403) {
-        clearAuth();
-      }
+      clearAuth();
       return false;
     }
   };
@@ -272,7 +270,8 @@ export const useAuthStore = defineStore('auth', () => {
       if (import.meta.client) {
         localStorage.setItem('currentUser', JSON.stringify(user.value));
       }
-    } catch (error: any) {
+    } catch (error) {
+      console.error(error);
       throw new Error('Не удалось обновить профиль. Сервер недоступен.');
     }
   };
@@ -284,7 +283,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       // ПРЕДПОЛОЖИТЕЛЬНЫЙ эндпоинт для смены пароля
       await $api.post('/users/change-password', passwordData);
-    } catch (error: any) {
+    } catch (error) {
+      console.error(error);
       throw handleApiError(error);
     }
   };

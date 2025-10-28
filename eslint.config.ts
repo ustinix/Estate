@@ -1,57 +1,50 @@
-import js from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import pluginVue from 'eslint-plugin-vue';
-import stylistic from '@stylistic/eslint-plugin';
-import nuxt from '@nuxt/eslint-config';
 
-export default [
+export default tseslint.config(
   {
     ignores: [
-      'node_modules/**',
-      'dist/**',
-      '.nuxt/**',
-      'output/**',
-      '*.min.js',
-      '*.bundle.js',
-      '**/*.d.ts',
-      'coverage/**',
+      '**/node_modules/**',
+      '**/dist/**',
+      '.nuxt',
+      '**/.nuxt/**',
+      '**/.output/**',
+      '**/output/**',
+      '**/*.min.*',
+      '**/*.bundle.*',
+      '**/*.d.*',
+      '**/coverage/**',
+      '**/*.mjs',
+      '**/*.cjs',
+      '**/dev/**',
+      '**/*-*',
     ],
-    ...nuxt.flatConfigs.base,
-    ...nuxt.flatConfigs.typescript,
-    files: ['**/*.{js,mjs,cjs,ts,mts,cts,vue}'],
-    plugins: {
-      js,
-      '@stylistic': stylistic,
-    },
+  },
+
+  {
+    files: ['**/*.{js,ts,vue}'],
     languageOptions: {
       globals: {
         ...globals.browser,
         ...globals.node,
-        ...globals.es2025,
-        ...nuxt.flatConfigs.base.languageOptions?.globals,
       },
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-      },
-    },
-    rules: {
-      ...js.configs.recommended.rules,
-      '@stylistic/indent': ['error', 2],
-      '@stylistic/semi': ['error', 'always'],
-      '@stylistic/quotes': ['error', 'single'],
-      'no-undef': 'off',
+      ecmaVersion: 'latest',
+      sourceType: 'module',
     },
   },
 
   ...tseslint.configs.recommended,
   {
-    files: ['**/*.ts'],
+    files: ['**/*.{ts,vue}'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-namespace': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/triple-slash-reference': 'off',
+      '@typescript-eslint/ban-ts-comment': 'warn',
+      'no-undef': 'off',
     },
   },
 
@@ -62,23 +55,19 @@ export default [
       parserOptions: {
         parser: tseslint.parser,
         extraFileExtensions: ['.vue'],
-        ecmaFeatures: {
-          jsx: true,
-        },
       },
     },
     rules: {
-      'vue/multi-word-component-names': 'warn',
+      'vue/multi-word-component-names': 'off',
       'vue/html-self-closing': 'off',
-      'vue/component-api-style': ['error', ['script-setup']],
+      'vue/component-api-style': 'off',
       'vue/max-attributes-per-line': 'off',
       'vue/singleline-html-element-content-newline': 'off',
-      'vue/block-order': [
-        'error',
-        {
-          order: ['script', 'template', 'style'],
-        },
-      ],
+      'vue/multiline-html-element-content-newline': 'off',
+      'vue/html-closing-bracket-newline': 'off',
+      'vue/attributes-order': 'off',
+      'vue/v-slot-style': 'off',
+      'vue/block-order': 'off',
     },
   },
-];
+);

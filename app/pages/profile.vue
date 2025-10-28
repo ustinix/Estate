@@ -209,14 +209,6 @@ onMounted(async () => {
               :rules="[validatePhone]"
             />
 
-            <!-- <q-input
-            filled
-            v-model="editableProfileData.telegram"
-            label="Telegram"
-            prefix="@"
-            :readonly="authStore.isLoading"
-          /> -->
-
             <q-btn
               class="button"
               label="Сохранить изменения"
@@ -311,11 +303,6 @@ onMounted(async () => {
                 label="SMS уведомления"
                 class="q-mb-md"
               />
-              <!-- <q-toggle
-            v-model="notificationsData.telegramNotifications"
-            label="Telegram уведомления"
-            :disabled="authStore.isLoading"
-          /> -->
             </div>
 
             <div class="form-actions">

@@ -17,8 +17,8 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
       isLoading.value = true;
       error.value = null;
       estateTypes.value = await $api.get<EstateType[]>('/estate-types');
-    } catch (err: any) {
-      error.value = err.message;
+    } catch (err) {
+      error.value = String(err);
       throw err;
     } finally {
       isLoading.value = false;
@@ -30,8 +30,8 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
       isLoading.value = true;
       error.value = null;
       transactionTypes.value = await $api.get<TransactionType[]>('/transaction-types');
-    } catch (err: any) {
-      error.value = err.message;
+    } catch (err) {
+      error.value = String(err);
       throw err;
     } finally {
       isLoading.value = false;
@@ -47,8 +47,8 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
         getTransactionTypes(),
         // getCurrencies(),
       ]);
-    } catch (err: any) {
-      error.value = err.message;
+    } catch (err) {
+      error.value = String(err);
       throw err;
     } finally {
       isLoading.value = false;
@@ -65,8 +65,8 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
       error.value = null;
       await loadAllDictionaries();
       isLoaded.value = true;
-    } catch (err: any) {
-      error.value = err.message;
+    } catch (err) {
+      error.value = String(err);
       throw err;
     } finally {
       isLoading.value = false;
@@ -100,6 +100,7 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
     estateTypes,
     transactionTypes,
     currencies,
+    currencyOptions,
     getEstateTypes,
     loadAllDictionaries,
     estateTypeOptions,

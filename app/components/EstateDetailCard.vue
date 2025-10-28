@@ -31,7 +31,7 @@ defineProps<Props>();
           </div>
           <div v-else class="recoupment-placeholder">
             <q-icon name="insights" size="xs" />
-            <span>Нет данных</span>
+            <span>0%</span>
           </div>
 
           <q-btn round flat icon="more_vert" color="grey-6" size="sm" class="menu-btn">
@@ -51,8 +51,7 @@ defineProps<Props>();
           {{ estate.description }}
         </div>
         <div v-else class="placeholder-card">
-          <p>Описание пока не добавлено</p>
-          <q-btn flat color="indigo-10" label="Добавить описание" icon="add" size="sm" />
+          <div>Описание пока не добавлено</div>
         </div>
       </div>
     </div>
@@ -73,7 +72,7 @@ defineProps<Props>();
 
 .card-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   padding: 20px;
   background: #f8f9fa;
@@ -88,6 +87,9 @@ defineProps<Props>();
 }
 
 .text-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   flex: 1;
 }
 
@@ -154,9 +156,8 @@ defineProps<Props>();
 
 .placeholder-card {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   text-align: center;
   color: #666;
 }
