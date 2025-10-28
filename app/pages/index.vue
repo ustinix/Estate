@@ -9,7 +9,9 @@ import { HOME_TEXT } from '~/constants/homePage';
         <h1>{{ HOME_TEXT.hero.title }}</h1>
         <p>{{ HOME_TEXT.hero.subtitle }}</p>
         <div class="actions">
-          <q-btn class="hero-btn button" color="secondary" :label="HOME_TEXT.hero.btn" />
+          <NuxtLink to="/register">
+            <q-btn class="hero-btn button" color="secondary" :label="HOME_TEXT.hero.btn" />
+          </NuxtLink>
         </div>
       </div>
     </section>

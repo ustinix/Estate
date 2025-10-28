@@ -80,38 +80,43 @@ const createEstate = async (estateData: { estate_type_id: number; name: string }
 
 <template>
   <section class="profile-section layout">
-    <div class="filter-container">
-      <q-select
-        standout="bg-teal text-white"
-        v-model="selectedType"
-        :options="typeOptions.map(t => t.name)"
-        label="Тип недвижимости"
-        :loading="dictionariesStore.isLoading && estateTypes.length === 0"
-      />
-    </div>
     <ClientOnly>
       <div v-if="isLoading && estates.length === 0" class="text-center q-pa-lg">
         <q-spinner size="50px" color="secondary" />
         <div class="q-mt-md">Загрузка недвижимости...</div>
       </div>
 
-      <div v-else-if="enrichedEstates.length === 0" class="text-center q-pa-lg">
-        <q-icon name="real_estate_agent" size="50px" color="grey" />
-        <div class="q-mt-md text-grey">Недвижимость не найдена</div>
-        <q-btn
-          @click="showAddModal = true"
-          color="secondary"
-          label="Добавить первую недвижимость"
-          class="q-mt-md button"
-        />
-      </div>
-
-      <div v-else class="cards-container">
-        <div class="add-card" @click="showAddModal = true">
-          <q-icon name="add" size="48px" color="grey-6" />
-          <div class="add-text">Добавить недвижимость</div>
+      <div v-else-if="enrichedEstates.length === 0" class="default-block-container">
+        <div class="text-center q-pa-lg default-block">
+          <q-icon name="real_estate_agent" size="50px" color="grey" />
+          <div class="q-mt-md text-grey">Недвижимость не найдена</div>
+          <NuxtLink to="/register">
+            <q-btn
+              color="secondary"
+              label="Зарегистрируйтесь чтобы добавить первую недвижимость"
+              class="q-mt-md button"
+            />
+          </NuxtLink>
         </div>
-        <PropertyCard v-for="estate in filteredEstates" :key="estate.id" :estate="estate" />
+      </div>
+      <div v-else>
+        <div class="filter-container">
+          <q-select
+            standout="bg-teal text-white"
+            v-model="selectedType"
+            :options="typeOptions.map(t => t.name)"
+            label="Тип недвижимости"
+            :loading="dictionariesStore.isLoading && estateTypes.length === 0"
+          />
+        </div>
+
+        <div class="cards-container">
+          <div class="add-card" @click="showAddModal = true">
+            <q-icon name="add" size="48px" color="grey-6" />
+            <div class="add-text">Добавить недвижимость</div>
+          </div>
+          <PropertyCard v-for="estate in filteredEstates" :key="estate.id" :estate="estate" />
+        </div>
       </div>
       <ModalWindow v-model="showAddModal" :estate-types="estateTypes" @create="createEstate" />
     </ClientOnly>
@@ -119,6 +124,22 @@ const createEstate = async (estateData: { estate_type_id: number; name: string }
 </template>
 
 <style scoped>
+.default-block-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  width: 100%;
+}
+
+.default-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 400px;
+  width: 100%;
+}
 .add-card {
   border: 2px dashed #ccc;
   display: flex;

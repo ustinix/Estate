@@ -224,8 +224,7 @@ watch([operationType, regularity], () => {
       <q-form @submit="onSubmit">
         <div class="form-container">
           <div class="form-header">
-            <h5>Учет финансов</h5>
-
+            <h6 class="form-title">Учет финансов</h6>
             <div class="radio-group">
               <div class="text-subtitle2">Тип операции:</div>
               <q-option-group
@@ -266,26 +265,34 @@ watch([operationType, regularity], () => {
 
           <div class="form-details">
             <div v-if="showOneTimeForm && selectedCategory">
-              <h5>Разовая операция</h5>
-              <q-input
-                filled
-                v-model="oneTimeForm.amount"
-                label="Сумма"
-                type="number"
-                :rules="[val => !!val || 'Введите сумму']"
-              />
-              <q-input
-                filled
-                v-model="oneTimeForm.date"
-                label="Дата"
-                type="date"
-                :rules="[val => !!val || 'Введите дату']"
-              />
-              <q-input filled v-model="oneTimeForm.description" label="Описание" type="textarea" />
+              <h6 class="form-title">Разовая операция</h6>
+              <div class="inputs-group">
+                <q-input
+                  filled
+                  v-model="oneTimeForm.amount"
+                  label="Сумма"
+                  type="number"
+                  :rules="[val => !!val || 'Введите сумму']"
+                />
+                <q-input
+                  filled
+                  v-model="oneTimeForm.date"
+                  label="Дата"
+                  type="date"
+                  :rules="[val => !!val || 'Введите дату']"
+                />
+                <q-input
+                  filled
+                  v-model="oneTimeForm.description"
+                  label="Описание"
+                  type="textarea"
+                  rows="2"
+                />
+              </div>
             </div>
 
             <div v-if="showRegularIncomeForm && selectedCategory">
-              <h5>Регулярный доход</h5>
+              <h6 class="form-title">Регулярный доход</h6>
 
               <div class="inputs-group">
                 <q-input
@@ -319,6 +326,7 @@ watch([operationType, regularity], () => {
                   v-model="regularIncomeForm.description"
                   label="Описание"
                   type="textarea"
+                  rows="2"
                 />
               </div>
 
@@ -329,13 +337,14 @@ watch([operationType, regularity], () => {
                     showAdvancedSettings ? 'Скрыть доп. настройки' : 'Показать доп. настройки'
                   "
                   @click="showAdvancedSettings = !showAdvancedSettings"
-                  color="secondary"
-                  icon="settings"
+                  color="indigo-10"
+                  no-caps
+                  class="settings-btn"
                 />
               </div>
 
-              <div v-if="showAdvancedSettings" class="advanced-settings q-pl-md border-left">
-                <h6>Дополнительные настройки</h6>
+              <div v-if="showAdvancedSettings" class="advanced-settings q-pl-md">
+                <h6 class="form-title">Дополнительные настройки</h6>
                 <div class="inputs-group">
                   <q-select
                     filled
@@ -367,7 +376,7 @@ watch([operationType, regularity], () => {
               </div>
             </div>
             <div v-if="showRegularExpenseForm && selectedCategory" class="regular-expense">
-              <h5>Регулярный расход</h5>
+              <h6 class="form-title">Регулярный расход</h6>
 
               <div class="regular-expense-container">
                 <div class="inputs-group">
@@ -399,7 +408,7 @@ watch([operationType, regularity], () => {
                 </div>
 
                 <div v-if="isCreditCategory" class="loan-fields q-mb-md">
-                  <h6>Параметры кредита</h6>
+                  <h6 class="form-title">Параметры кредита</h6>
                   <div class="inputs-group">
                     <q-input
                       filled
@@ -434,6 +443,7 @@ watch([operationType, regularity], () => {
                       v-model="regularExpenseForm.description"
                       label="Описание"
                       type="textarea"
+                      rows="2"
                     />
                   </div>
                 </div>
@@ -446,13 +456,14 @@ watch([operationType, regularity], () => {
                     showAdvancedSettings ? 'Скрыть доп. настройки' : 'Показать доп. настройки'
                   "
                   @click="showAdvancedSettings = !showAdvancedSettings"
-                  color="primary"
-                  icon="settings"
+                  color="indigo-10"
+                  no-caps
+                  class="settings-btn"
                 />
               </div>
 
-              <div v-if="showAdvancedSettings" class="advanced-settings q-pl-md border-left">
-                <h6>Дополнительные настройки</h6>
+              <div v-if="showAdvancedSettings" class="advanced-settings q-pl-md">
+                <h6 class="form-title">Дополнительные настройки</h6>
 
                 <q-select
                   filled
@@ -466,19 +477,21 @@ watch([operationType, regularity], () => {
                 />
 
                 <div v-if="isCreditCategory" class="early-repayment q-mb-md">
-                  <h6>Досрочное погашение</h6>
-                  <q-input
-                    filled
-                    v-model="regularExpenseForm.early_repayment_date"
-                    label="Дата досрочного погашения"
-                    type="date"
-                  />
-                  <q-input
-                    filled
-                    v-model="regularExpenseForm.early_repayment_amount"
-                    label="Сумма досрочного погашения"
-                    type="number"
-                  />
+                  <h6 class="form-title">Досрочное погашение</h6>
+                  <div class="inputs-group">
+                    <q-input
+                      filled
+                      v-model="regularExpenseForm.early_repayment_date"
+                      label="Дата досрочного погашения"
+                      type="date"
+                    />
+                    <q-input
+                      filled
+                      v-model="regularExpenseForm.early_repayment_amount"
+                      label="Сумма досрочного погашения"
+                      type="number"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -488,7 +501,7 @@ watch([operationType, regularity], () => {
                 label="Добавить операцию"
                 type="submit"
                 color="secondary"
-                class="button"
+                class="button form-btn"
                 :disable="!isFormValid"
               />
             </div>
@@ -500,13 +513,27 @@ watch([operationType, regularity], () => {
 </template>
 
 <style scoped>
+.form-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
 .form-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.5rem;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1rem;
+  width: 80vw;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.form-title {
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .radio-group {
@@ -518,15 +545,13 @@ watch([operationType, regularity], () => {
 
 .inputs-group {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
   align-items: flex-start;
 }
 
 .inputs-group .q-field {
   flex: 1;
-  min-width: 200px;
-  max-width: 300px;
 }
 
 .inputs-group .q-field:has(textarea) {
@@ -534,35 +559,29 @@ watch([operationType, regularity], () => {
   max-width: 100%;
 }
 
-.border-left {
-  border-left: 3px solid #1976d2;
-  padding-left: 16px;
-}
-
 .advanced-settings {
-  background: rgba(25, 118, 210, 0.05);
   border-radius: 8px;
-  padding: 16px;
-  margin-top: 16px;
+  margin-top: 0.75rem;
+  padding: 8px;
 }
 
 .loan-fields {
-  background: rgba(255, 0, 0, 0.05);
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 16px;
 }
 
 .early-repayment {
-  background: rgba(255, 152, 0, 0.05);
   border-radius: 8px;
   padding: 12px;
 }
 
-.current-estate-info {
-  padding: 8px;
-  border-radius: 6px;
-  background: rgba(25, 118, 210, 0.1);
+.form-btn {
+  margin: 1rem;
+}
+
+.settings-btn {
+  text-transform: none;
 }
 
 @media (max-width: 850px) {
@@ -571,13 +590,6 @@ watch([operationType, regularity], () => {
     flex-direction: column;
     gap: 1rem;
     padding: 0.8rem;
-  }
-
-  .border-left {
-    border-left: none;
-    border-top: 3px solid #1976d2;
-    padding-left: 0;
-    padding-top: 16px;
   }
 }
 @media (max-width: 850px) {
