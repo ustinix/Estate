@@ -169,7 +169,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
-  const register = async (userData: { email: string; password: string; name?: string }) => {
+  const register = async (userData: { email: string; password: string }) => {
     isLoading.value = true;
     try {
       await $api.post('/users/registration', userData);
@@ -262,7 +262,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       await $api.put<User>(`/users/${userId}/profile`, profileData);
-      // await getCurrentUser();
+      // await getCurrentUser(); пока не возвращает телефон
       user.value = {
         ...user.value,
         ...profileData,
@@ -276,13 +276,16 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
-  const changePassword = async (passwordData: ChangePasswordRequest): Promise<void> => {
+  const changePassword = async (
+    passwordData: ChangePasswordRequest,
+    userId: number,
+  ): Promise<void> => {
     const isValid = await isValidToken();
     if (!isValid || !user.value) throw new Error('Not authenticated');
 
     try {
       // ПРЕДПОЛОЖИТЕЛЬНЫЙ эндпоинт для смены пароля
-      await $api.post('/users/change-password', passwordData);
+      await $api.put(`/users/${userId}/change-password`, passwordData);
     } catch (error) {
       console.error(error);
       throw handleApiError(error);

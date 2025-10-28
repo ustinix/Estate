@@ -107,9 +107,28 @@ async function changeUserPassword() {
     });
     return;
   }
+  if (!userId.value) {
+    $q.notify({
+      color: 'red-5',
+      textColor: 'white',
+      icon: 'warning',
+      message: 'Пользователь не авторизован',
+    });
+    return;
+  }
+
+  if (passwordData.value.newPassword.length < 3) {
+    $q.notify({
+      color: 'red-5',
+      textColor: 'white',
+      icon: 'warning',
+      message: 'Пароль должен содержать минимум 3 символа',
+    });
+    return;
+  }
 
   try {
-    await authStore.changePassword(passwordData.value);
+    await authStore.changePassword(passwordData.value, userId.value);
 
     $q.notify({
       color: 'green-4',

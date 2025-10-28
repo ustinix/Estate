@@ -47,7 +47,7 @@ const enrichedEstates = computed<Estate[]>(() => {
       estate_type_name: estateType?.name || 'неизвестно',
       icon: estateType?.icon || 'help',
       description: estate.description || 'Описание будет добавлено позже',
-      recoupment: estate.recoupment || calculateRecoupment(),
+      recoupment: estate.recoupment,
     };
   });
 });
@@ -58,10 +58,6 @@ const filteredEstates = computed(() => {
   }
   return enrichedEstates.value.filter(estate => estate.estate_type_name === selectedType.value);
 });
-
-const calculateRecoupment = (): number => {
-  return Math.floor(Math.random() * 100) + 1;
-};
 
 const createEstate = async (estateData: { estate_type_id: number; name: string }) => {
   if (!authStore.user?.id) {
