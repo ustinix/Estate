@@ -24,8 +24,7 @@ watch(
 
 <template>
   <section class="calendar-section">
-    <div v-if="estates.length > 0"><CalendarBlock :user-estates="userEstates" /></div>
-    <div class="layout default-block-container" v-else>
+    <div v-if="!authStore.isAuthenticated" class="layout default-block-container">
       <div class="text-center q-pa-lg default-block">
         <q-icon name="real_estate_agent" size="50px" color="grey" />
         <div class="q-mt-md text-grey">События не найдены</div>
@@ -33,6 +32,18 @@ watch(
           <q-btn
             color="secondary"
             label="Зарегистрируйтесь чтобы добавить первые события"
+            class="q-mt-md button"
+          />
+        </NuxtLink>
+      </div>
+    </div>
+    <div v-if="estates.length > 0"><CalendarBlock :user-estates="userEstates" /></div>
+    <div v-else class="layout default-block-container">
+      <div class="text-center q-pa-lg default-block">
+        <NuxtLink to="/portfolio">
+          <q-btn
+            color="secondary"
+            label="Добавьте вашу первую недвижимость"
             class="q-mt-md button"
           />
         </NuxtLink>

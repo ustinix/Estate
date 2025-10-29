@@ -77,12 +77,7 @@ const createEstate = async (estateData: { estate_type_id: number; name: string }
 <template>
   <section class="profile-section layout">
     <ClientOnly>
-      <div v-if="isLoading && estates.length === 0" class="text-center q-pa-lg">
-        <q-spinner size="50px" color="secondary" />
-        <div class="q-mt-md">Загрузка недвижимости...</div>
-      </div>
-
-      <div v-else-if="enrichedEstates.length === 0" class="default-block-container">
+      <div v-if="!authStore.isAuthenticated" class="layout default-block-container">
         <div class="text-center q-pa-lg default-block">
           <q-icon name="real_estate_agent" size="50px" color="grey" />
           <div class="q-mt-md text-grey">Недвижимость не найдена</div>
@@ -95,7 +90,11 @@ const createEstate = async (estateData: { estate_type_id: number; name: string }
           </NuxtLink>
         </div>
       </div>
-      <div v-else>
+      <div v-if="isLoading && estates.length === 0" class="text-center q-pa-lg">
+        <q-spinner size="50px" color="secondary" />
+        <div class="q-mt-md">Загрузка недвижимости...</div>
+      </div>
+      <div v-else-if="authStore.isAuthenticated">
         <div class="filter-container">
           <q-select
             standout="bg-teal text-white"
