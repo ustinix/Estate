@@ -11,16 +11,21 @@ export interface TransactionType {
   regularity?: number;
 }
 
-export interface Currency {
+export interface TransactionFrequencies {
   id: number;
-  code: string;
   name: string;
-  symbol: string;
+}
+
+export interface RepaymentPlans {
+  id: number;
+  name: string;
 }
 
 export interface DictionaryState {
   estateTypes: EstateType[];
-  currencies: Currency[];
+  transactionTypes: TransactionType[];
+  transactionFrequencies: TransactionFrequencies[];
+  repaymentPlans: RepaymentPlans[];
   isLoading: boolean;
   error: string | null;
 }
