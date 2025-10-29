@@ -63,7 +63,7 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
     try {
       isLoading.value = true;
       error.value = null;
-      repaymentPlans.value = await $api.get<RepaymentPlans[]>('/transaction-frequencies');
+      repaymentPlans.value = await $api.get<RepaymentPlans[]>('/transaction-repayment-plans');
     } catch (err) {
       error.value = String(err);
       throw err;
@@ -126,6 +126,8 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
     initializeDictionaries,
     estateTypes,
     transactionTypes,
+    transactionFrequencies,
+    repaymentPlans,
     getEstateTypes,
     loadAllDictionaries,
     estateTypeOptions,

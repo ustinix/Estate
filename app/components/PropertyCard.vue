@@ -35,10 +35,6 @@ const handleClick = () => {
           </div>
         </q-linear-progress>
       </q-card-section>
-
-      <q-card-section v-if="estate.description" class="text-body2 q-pt-none">
-        {{ estate.description }}
-      </q-card-section>
     </div>
 
     <q-card-actions class="card-actions">
@@ -60,7 +56,7 @@ const handleClick = () => {
       <div v-show="expanded">
         <q-separator />
         <q-card-section class="text-subtitle2">
-          Дополнительная информация о {{ estate.name }}
+          {{ estate.description ? estate.description : 'Описание не добавлено' }}
         </q-card-section>
       </div>
     </q-slide-transition>

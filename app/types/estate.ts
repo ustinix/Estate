@@ -5,7 +5,7 @@ export interface Estate {
   estate_type_icon: string;
   name: string;
   user_id?: number;
-  description?: string;
+  description?: string | null;
   recoupment?: number;
   active?: number;
   created_at?: string;

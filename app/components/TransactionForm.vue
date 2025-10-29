@@ -1,19 +1,16 @@
 <script setup lang="ts">
-import {
-  transactionTypes,
-  repaymentPlans,
-  transactionFrequencies,
-  transactionOptions,
-  regularityOptions,
-} from '~/constants/transactions ';
+import { transactionTypes, transactionOptions, regularityOptions } from '~/constants/transactions ';
 import type {
   OneTimeFormData,
   RegularIncomeFormData,
   RegularExpenseFormData,
 } from '~/types/transactions';
 import { useEstateStore } from '~/stores/estateStore';
+import { useDictionariesStore } from '~/stores/dictionariesStore';
 
 const estateStore = useEstateStore();
+const dictionaryStore = useDictionariesStore();
+const { transactionFrequencies, repaymentPlans } = storeToRefs(dictionaryStore);
 const $q = useQuasar();
 
 const operationType = ref<0 | 1>(1);

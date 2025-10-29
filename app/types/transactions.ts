@@ -5,6 +5,16 @@ export interface TransactionType {
   regularity: 0 | 1;
 }
 
+export interface EstateTransaction {
+  estateId: number;
+  comment: string;
+  direction: boolean;
+  regularity: boolean;
+  type_id: number;
+  cost: number;
+  date_start: Date;
+}
+
 export interface BaseTransaction {
   estate_id: number;
   transaction_type_id: number | null;

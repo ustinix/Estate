@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { useApi } from '~/composables/useApi';
 import type { Estate, EstateResponse } from '~/types/estate';
+import type { EstateTransaction } from '~/types/transactions';
 
 export const useEstateStore = defineStore('estate', () => {
   const estates = ref<Estate[]>([]);
@@ -11,7 +12,7 @@ export const useEstateStore = defineStore('estate', () => {
 
   const $api = useApi();
 
-  const getUserEstates = async (userId: number) => {
+  const getUserEstates = async (userId: number): Promise<void> => {
     try {
       isLoading.value = true;
       error.value = null;
@@ -24,7 +25,7 @@ export const useEstateStore = defineStore('estate', () => {
     }
   };
 
-  const getUserEstate = async (userId: number, estateId: number) => {
+  const getUserEstate = async (userId: number, estateId: number): Promise<void> => {
     try {
       isLoading.value = true;
       error.value = null;
@@ -40,7 +41,7 @@ export const useEstateStore = defineStore('estate', () => {
   const createUserEstate = async (
     userId: number,
     estateData: { estate_type_id: number; name: string },
-  ) => {
+  ): Promise<Estate> => {
     try {
       isLoading.value = true;
       error.value = null;
@@ -84,6 +85,19 @@ export const useEstateStore = defineStore('estate', () => {
     }
   };
 
+  const addEstateTransactions = async (transactionsData: EstateTransaction): Promise<void> => {
+    try {
+      isLoading.value = true;
+      error.value = null;
+      await $api.post(`/transactions`, transactionsData);
+    } catch (err) {
+      error.value = String(err);
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   return {
     estates,
     estate,
@@ -93,5 +107,6 @@ export const useEstateStore = defineStore('estate', () => {
     getUserEstate,
     createUserEstate,
     updateUserEstate,
+    addEstateTransactions,
   };
 });
