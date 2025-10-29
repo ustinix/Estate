@@ -79,7 +79,9 @@ onUnmounted(() => {
 
     <div class="burger-menu" :class="drawer ? 'open' : ''">
       <div class="burger-header">
-        <h2 class="burger-title">EstateMetrics</h2>
+        <NuxtLink to="/">
+          <h2 class="burger-title">EstateMetrics</h2>
+        </NuxtLink>
         <q-btn flat round dense icon="close" class="close-btn" @click="closeDrawer" />
       </div>
 
