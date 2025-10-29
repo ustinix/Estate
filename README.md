@@ -10,6 +10,7 @@
 - Просмотр страниц недвижимости
 - Фильтрация по типам недвижимости
 - Просмотр аналитики по типам недвижимости
+- Просмотр календаря событий
 
 ## Technology Stack
 
@@ -18,11 +19,10 @@
 - **State Management**: Pinia
 - **UI Components**: Quasar
 - **TypeScript**: Полная типизация
-- **Deployment**:
 
 ### Ссылка на демо Vercel
 
-[https://estate-k1ex.vercel.app/](Estate)
+[Estate](https://estate-k1ex.vercel.app/)
 
 ## Local Development
 
