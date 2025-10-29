@@ -1,6 +1,6 @@
 # EstateMetrics
 
-Сайт для аналитики инвестиций в недвижимость.
+Инструмент учета денежных потоков для тех кто инвестирует в недвижимость.
 
 ## Project Overview
 
@@ -20,9 +20,9 @@
 - **TypeScript**: Полная типизация
 - **Deployment**:
 
-### Ссылка на демо Netlify
+### Ссылка на демо Vercel
 
-[Демо на Netlify]()
+[https://estate-k1ex.vercel.app/](Estate)
 
 ## Local Development
 
