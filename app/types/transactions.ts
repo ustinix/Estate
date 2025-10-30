@@ -1,18 +1,18 @@
 export interface TransactionType {
   id: number;
   name: string;
-  direction: 0 | 1;
-  regularity: 0 | 1;
+  direction: boolean;
+  regularity: boolean;
 }
 
 export interface EstateTransaction {
-  estateId: number;
+  estate_id: number;
   comment: string;
   direction: boolean;
   regularity: boolean;
   type_id: number;
   cost: number;
-  date_start: Date;
+  date_start: string;
 }
 
 export interface BaseTransaction {
@@ -23,13 +23,13 @@ export interface BaseTransaction {
 }
 
 export interface OneTimeTransaction extends BaseTransaction {
-  regularity: 0;
+  regularity: false;
   date: string;
 }
 
 export interface RegularIncome extends BaseTransaction {
-  regularity: 1;
-  direction: 1;
+  regularity: true;
+  direction: true;
   start_date: string;
   payment_day: number;
   contract_duration: 'short' | 'long';
@@ -40,8 +40,8 @@ export interface RegularIncome extends BaseTransaction {
 }
 
 export interface RegularExpense extends BaseTransaction {
-  regularity: 1;
-  direction: 0;
+  regularity: true;
+  direction: false;
   start_date: string;
   payment_day: number;
   loan_amount?: number;
@@ -69,7 +69,7 @@ export interface OneTimeFormData {
   amount: number | null;
   description: string;
   date: string;
-  regularity: 0;
+  regularity: false;
 }
 
 export interface RegularIncomeFormData {
@@ -79,8 +79,8 @@ export interface RegularIncomeFormData {
   description: string;
   start_date: string;
   payment_day: number | null;
-  regularity: 1;
-  direction: 1;
+  regularity: true;
+  direction: true;
   contract_duration: 'short' | 'long';
   frequency_id?: number;
   indexation_rate?: number;
@@ -94,8 +94,8 @@ export interface RegularExpenseFormData {
   description: string;
   start_date: string;
   payment_day: number | null;
-  regularity: 1;
-  direction: 0;
+  regularity: true;
+  direction: false;
   loan_amount?: number | null;
   loan_term?: number | null;
   interest_rate?: number | null;

@@ -30,11 +30,8 @@ watch(
 );
 
 const typeOptions = computed(() => {
-  const allOption = { name: 'все', icon: '' };
-  const apiTypes = estateTypes.value.map(type => ({
-    name: type.name,
-    icon: type.icon,
-  }));
+  const allOption = 'все';
+  const apiTypes = estateTypes.value.map(type => type.name);
   return [allOption, ...apiTypes];
 });
 
@@ -99,9 +96,8 @@ const createEstate = async (estateData: { estate_type_id: number; name: string }
           <q-select
             standout="bg-teal text-white"
             v-model="selectedType"
-            :options="typeOptions.map(t => t.name)"
+            :options="typeOptions"
             label="Тип недвижимости"
-            :loading="dictionariesStore.isLoading && estateTypes.length === 0"
           />
         </div>
 

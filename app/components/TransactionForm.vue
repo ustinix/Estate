@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { transactionTypes, transactionOptions, regularityOptions } from '~/constants/transactions ';
+import { transactionOptions, regularityOptions } from '~/constants/transactions ';
 import type {
+  EstateTransaction,
   OneTimeFormData,
   RegularIncomeFormData,
   RegularExpenseFormData,
@@ -10,89 +11,86 @@ import { useDictionariesStore } from '~/stores/dictionariesStore';
 
 const estateStore = useEstateStore();
 const dictionaryStore = useDictionariesStore();
-const { transactionFrequencies, repaymentPlans } = storeToRefs(dictionaryStore);
+const { transactionTypes, transactionFrequencies, repaymentPlans } = storeToRefs(dictionaryStore);
 const $q = useQuasar();
 
-const operationType = ref<0 | 1>(1);
-const regularity = ref<0 | 1>(0);
+const isMounted = ref(false);
+onMounted(() => {
+  isMounted.value = true;
+});
+
+const operationType = ref(true);
+const regularity = ref(false);
 const selectedCategory = ref<number | null>(null);
 const showAdvancedSettings = ref(false);
-const currentEstateId = computed(() => estateStore.estate?.id);
+const currentEstateId = estateStore.estate?.id;
+
+const categoryOptions = computed(() => {
+  if (!isMounted.value || !transactionTypes.value.length) return [];
+
+  return transactionTypes.value.filter(
+    type =>
+      Boolean(type.direction) === operationType.value &&
+      Boolean(type.regularity) === regularity.value,
+  );
+});
+
+const showCategories = computed(() => isMounted.value && categoryOptions.value.length > 0);
 
 const oneTimeForm = ref<OneTimeFormData>({
-  estate_id: undefined,
+  estate_id: currentEstateId,
   transaction_type_id: null,
   amount: null,
   description: '',
   date: '',
-  regularity: 0,
+  regularity: false,
 });
 
 const regularIncomeForm = ref<RegularIncomeFormData>({
-  estate_id: undefined,
+  estate_id: currentEstateId,
   transaction_type_id: null,
   amount: null,
   description: '',
   start_date: '',
   payment_day: null,
-  regularity: 1,
-  direction: 1,
+  regularity: true,
+  direction: true,
   contract_duration: 'short',
 });
 
 const regularExpenseForm = ref<RegularExpenseFormData>({
-  estate_id: undefined,
+  estate_id: currentEstateId,
   transaction_type_id: null,
   amount: null,
   description: '',
   start_date: '',
   payment_day: null,
-  regularity: 1,
-  direction: 0,
-});
-
-watch(
-  currentEstateId,
-  newEstateId => {
-    if (newEstateId) {
-      oneTimeForm.value.estate_id = newEstateId;
-      regularIncomeForm.value.estate_id = newEstateId;
-      regularExpenseForm.value.estate_id = newEstateId;
-    }
-  },
-  { immediate: true },
-);
-
-const filteredCategories = computed(() => {
-  return transactionTypes.value.filter(
-    type => type.direction === operationType.value && type.regularity === regularity.value,
-  );
+  regularity: true,
+  direction: false,
 });
 
 const isCreditCategory = computed(() => {
   if (!selectedCategory.value) return false;
-
   const category = transactionTypes.value.find(type => type.id === selectedCategory.value);
   if (!category) return false;
 
-  // Ищу по названию категории пока бек не добавит отметку
   const creditKeywords = ['ипотека', 'кредит', 'рассрочка', 'заем', 'займ'];
   return creditKeywords.some(keyword =>
     category.name.toLowerCase().includes(keyword.toLowerCase()),
   );
 });
 
-const showRegularIncomeForm = computed(() => operationType.value === 1 && regularity.value === 1);
-const showRegularExpenseForm = computed(() => operationType.value === 0 && regularity.value === 1);
-const showOneTimeForm = computed(() => regularity.value === 0);
+const showRegularIncomeForm = computed(() => operationType.value && regularity.value);
+const showRegularExpenseForm = computed(() => !operationType.value && regularity.value);
+const showOneTimeForm = computed(() => !regularity.value);
 const currentRegularForm = computed(() => {
-  return operationType.value === 1 ? regularIncomeForm.value : regularExpenseForm.value;
+  return operationType.value ? regularIncomeForm.value : regularExpenseForm.value;
 });
 
 const isFormValid = computed(() => {
-  if (!selectedCategory.value || !currentEstateId.value) return false;
+  if (!selectedCategory.value) return false;
 
-  if (regularity.value === 0) {
+  if (!regularity.value) {
     return !!oneTimeForm.value.amount && !!oneTimeForm.value.date;
   } else {
     const form = currentRegularForm.value;
@@ -101,7 +99,7 @@ const isFormValid = computed(() => {
 });
 
 const onSubmit = async () => {
-  if (!currentEstateId.value) {
+  if (!currentEstateId) {
     $q.notify({
       color: 'red-5',
       textColor: 'white',
@@ -112,40 +110,42 @@ const onSubmit = async () => {
   }
 
   try {
-    let transactionData;
+    const transactionData: EstateTransaction = {
+      estate_id: currentEstateId,
+      type_id: selectedCategory.value!,
+      cost: 0,
+      direction: operationType.value,
+      regularity: regularity.value,
+      date_start: '',
+      comment: '',
+    };
 
-    if (regularity.value === 0) {
-      transactionData = {
-        ...oneTimeForm.value,
-        estate_id: currentEstateId.value,
-        transaction_type_id: selectedCategory.value!,
-        date: oneTimeForm.value.date || new Date().toISOString().split('T')[0],
-      };
+    if (!regularity.value) {
+      transactionData.cost = Number(oneTimeForm.value.amount) || 0;
+      transactionData.comment = oneTimeForm.value.description || '';
+      transactionData.date_start = String(oneTimeForm.value.date);
     } else {
-      const baseData = {
-        ...currentRegularForm.value,
-        estate_id: currentEstateId.value,
-        transaction_type_id: selectedCategory.value!,
-      };
+      const form = currentRegularForm.value;
+      transactionData.cost = Number(form.amount) || 0;
+      transactionData.comment = form.description || '';
+      transactionData.date_start = String(form.start_date);
 
-      if (operationType.value === 1) {
-        transactionData = baseData as RegularIncomeFormData;
-      } else {
-        // Расход
-        transactionData = baseData as RegularExpenseFormData;
+      // Для регулярных операций можно добавить дополнительные поля (пока бэк не принимает регулярные, потом поправить)
+      if (!operationType.value && isCreditCategory.value) {
+        console.log('Кредитные данные:', {
+          loan_amount: regularExpenseForm.value.loan_amount,
+          loan_term: regularExpenseForm.value.loan_term,
+          interest_rate: regularExpenseForm.value.interest_rate,
+        });
       }
     }
-
-    console.log('Submitting transaction:', transactionData);
-
-    // Здесь будет вызов API
-    // await transactionStore.createTransaction(transactionData);
+    await estateStore.addEstateTransactions(transactionData);
 
     $q.notify({
       color: 'green-4',
       textColor: 'white',
       icon: 'cloud_done',
-      message: 'Транзакция добавлена!',
+      message: 'Транзакция успешно добавлена!',
     });
 
     resetForms();
@@ -162,57 +162,40 @@ const onSubmit = async () => {
 
 const resetForms = () => {
   oneTimeForm.value = {
-    estate_id: currentEstateId.value,
+    estate_id: currentEstateId,
     transaction_type_id: null,
     amount: null,
     description: '',
     date: '',
-    regularity: 0,
+    regularity: false,
   };
-
   regularIncomeForm.value = {
-    estate_id: currentEstateId.value,
+    estate_id: currentEstateId,
     transaction_type_id: null,
     amount: null,
     description: '',
     start_date: '',
     payment_day: null,
-    regularity: 1,
-    direction: 1,
+    regularity: true,
+    direction: true,
     contract_duration: 'short',
   };
-
   regularExpenseForm.value = {
-    estate_id: currentEstateId.value,
+    estate_id: currentEstateId,
     transaction_type_id: null,
     amount: null,
     description: '',
     start_date: '',
     payment_day: null,
-    regularity: 1,
-    direction: 0,
+    regularity: true,
+    direction: false,
   };
-
   selectedCategory.value = null;
   showAdvancedSettings.value = false;
 };
 
-// установка transaction_type_id при выборе категории
-watch(selectedCategory, newCategoryId => {
-  if (newCategoryId) {
-    if (regularity.value === 0) {
-      oneTimeForm.value.transaction_type_id = newCategoryId;
-    } else if (operationType.value === 1) {
-      regularIncomeForm.value.transaction_type_id = newCategoryId;
-    } else {
-      regularExpenseForm.value.transaction_type_id = newCategoryId;
-    }
-  }
-});
-
 watch([operationType, regularity], () => {
   selectedCategory.value = null;
-  resetForms();
 });
 </script>
 <template>
@@ -221,7 +204,7 @@ watch([operationType, regularity], () => {
       <q-form @submit="onSubmit">
         <div class="form-container">
           <div class="form-header">
-            <h6 class="form-title">Учет финансов</h6>
+            <h6 class="form-title">Добавить транзакцию</h6>
             <div class="radio-group">
               <div class="text-subtitle2">Тип операции:</div>
               <q-option-group
@@ -242,11 +225,11 @@ watch([operationType, regularity], () => {
               />
             </div>
 
-            <div v-if="filteredCategories.length > 0">
+            <div v-if="showCategories">
               <q-select
                 filled
                 v-model="selectedCategory"
-                :options="filteredCategories"
+                :options="categoryOptions"
                 label="Категория"
                 option-label="name"
                 option-value="id"

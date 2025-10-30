@@ -3,12 +3,18 @@ import { useQuasar } from 'quasar';
 import { useDictionariesStore } from '~/stores/dictionariesStore';
 import EstateDetailCard from '~/components/EstateDetailCard.vue';
 import TransactionForm from '~/components/TransactionForm.vue';
+import { estateMetrics, paybackData } from '~/constants/demo';
 
 const $q = useQuasar();
 const route = useRoute();
 const authStore = useAuthStore();
 const estateStore = useEstateStore();
 const dictionariesStore = useDictionariesStore();
+
+const isMounted = ref(false);
+onMounted(() => {
+  isMounted.value = true;
+});
 
 const estateId = Number(route.params.id);
 const userId = authStore.user?.id;
@@ -98,9 +104,10 @@ const goBack = () => {
       <button @click="goBack" class="btn-back">← Назад к портфелю</button>
     </div>
 
-    <div v-if="pending" class="loading">Загрузка данных недвижимости...</div>
+    <div v-if="!isMounted" class="loading">Загрузка...</div>
 
     <div v-else-if="error" class="error">
+      <div v-if="pending" class="loading">Загрузка данных недвижимости...</div>
       <p>Ошибка: {{ error }}</p>
       <button @click="goBack" class="btn-back">← Назад к портфелю</button>
     </div>
@@ -143,7 +150,7 @@ const goBack = () => {
             label="Описание недвижимости"
             type="textarea"
             autogrow
-            :rules="[val => !val || val.length <= 500 || 'Максимум 500 символов']"
+            :rules="[val => !val || val.length <= 50 || 'Максимум 50 символов']"
           >
             <template v-slot:counter> {{ editForm.description?.length || 0 }}/500 </template>
           </q-input>
@@ -165,6 +172,13 @@ const goBack = () => {
         />
       </div>
     </div>
+    <!-- <div class="estate-analytics">
+      <h4 class="text-h6 q-mb-md">Финансовые показатели</h4>
+      <EstateMetrics :metrics="estateMetrics" />
+    </div>
+    <div class="charts">
+      <PaybackChart :data="paybackData" />
+    </div> -->
     <TransactionForm />
   </div>
 </template>
