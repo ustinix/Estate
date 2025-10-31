@@ -44,13 +44,11 @@ const handleSubmit = async () => {
   }
 };
 
-// Закрытие модалки
 const closeModal = () => {
   showModal.value = false;
   resetForm();
 };
 
-// Сброс формы
 const resetForm = () => {
   form.value = {
     estate_type_id: null,
@@ -58,7 +56,6 @@ const resetForm = () => {
   };
 };
 
-// Сбрасываем форму при открытии/закрытии модалки
 watch(showModal, newVal => {
   if (!newVal) {
     resetForm();
