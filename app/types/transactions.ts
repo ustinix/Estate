@@ -15,6 +15,22 @@ export interface EstateTransaction {
   date_start: string;
 }
 
+export interface EstateTransactionResponse {
+  comment: string;
+  date: string;
+  estate_id: number;
+  estate_name: string;
+  estate_type_id: number;
+  estate_type_name: string;
+  sum: string;
+  transaction_group_id: number;
+  transaction_id: number;
+  transaction_type_direction: number;
+  transaction_type_id: number;
+  transaction_type_name: string;
+  transaction_type_regularity: number;
+}
+
 export interface BaseTransaction {
   estate_id: number;
   transaction_type_id: number | null;

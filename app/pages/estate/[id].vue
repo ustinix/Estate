@@ -11,12 +11,16 @@ const estateStore = useEstateStore();
 const dictionariesStore = useDictionariesStore();
 
 const isMounted = ref(false);
-onMounted(() => {
+onMounted(async () => {
   isMounted.value = true;
+  if (userId.value && estateId) {
+    await estateStore.getUserEstate(userId.value, estateId);
+    await authStore.getUserTransactions(userId.value);
+  }
 });
 
 const estateId = Number(route.params.id);
-const userId = authStore.user?.id;
+const userId = computed(() => authStore.user?.id);
 
 const isEditing = ref(false);
 const editForm = ref({
@@ -25,11 +29,8 @@ const editForm = ref({
   description: '',
 });
 
-if (userId && estateId) {
-  await estateStore.getUserEstate(userId, estateId);
-}
-
 const { estate, isLoading: pending, error } = storeToRefs(estateStore);
+const { userTransactions } = storeToRefs(authStore);
 const estateTypeOptions = computed(() => dictionariesStore.estateTypeOptions);
 
 watchEffect(() => {
@@ -61,7 +62,9 @@ const saveEditing = async () => {
   if (!estate.value || !userId) return;
 
   try {
-    await estateStore.updateUserEstate(userId, estate.value.id, editForm.value);
+    if (userId.value) {
+      await estateStore.updateUserEstate(userId.value, estate.value.id, editForm.value);
+    }
 
     isEditing.value = false;
 
@@ -175,10 +178,30 @@ const goBack = () => {
     <!-- <div class="charts">
       <MainChart />
     </div> -->
+    <!-- <div>
+      <div v-if="userTransactions?.length === 0" class="no-transactions">Нет транзакций</div>
+
+      <div class="transactions-list">
+        <div
+          v-for="transaction in userTransactions"
+          :key="transaction.transaction_id"
+          class="transaction-item"
+        >
+          <div>{{ new Date(transaction.date).toLocaleDateString() }}</div>
+          <div>{{ transaction.transaction_type_name }}</div>
+          <div>{{ transaction.comment }}</div>
+          <div>{{ transaction.sum }}</div>
+        </div>
+      </div>
+    </div> -->
     <TransactionForm />
   </div>
 </template>
 <style scoped>
+.transaction-item {
+  display: flex;
+  gap: 10px;
+}
 .estate-page {
   margin: 0 auto;
   max-width: 600px;
