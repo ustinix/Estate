@@ -184,26 +184,28 @@ const getEventTypeClass = (type: string) => {
     </div>
 
     <ClientOnly>
-      <div class="calendar-container">
-        <VCalendar expanded borderless trim-weeks class="custom-calendar outlook-style">
-          <template #day-content="{ day }">
-            <div class="day-cell">
-              <div class="day-number">{{ day.day }}</div>
-              <div class="events-list">
-                <div
-                  v-for="event in getEventsForDay(day)"
-                  :key="event.id"
-                  class="event-line"
-                  :class="getEventTypeClass(event.type)"
-                  @click.stop="handleEventClick(event)"
-                >
-                  <span class="event-title">{{ getEstateName(event.estateId) }}</span>
-                  <span class="event-amount">{{ formatAmount(event.amount) }}</span>
+      <div class="calendar-scroll-wrapper">
+        <div class="calendar-container">
+          <VCalendar expanded borderless trim-weeks class="custom-calendar outlook-style">
+            <template #day-content="{ day }">
+              <div class="day-cell">
+                <div class="day-number">{{ day.day }}</div>
+                <div class="events-list">
+                  <div
+                    v-for="event in getEventsForDay(day)"
+                    :key="event.id"
+                    class="event-line"
+                    :class="getEventTypeClass(event.type)"
+                    @click.stop="handleEventClick(event)"
+                  >
+                    <span class="event-title">{{ getEstateName(event.estateId) }}</span>
+                    <span class="event-amount">{{ formatAmount(event.amount) }}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </template>
-        </VCalendar>
+            </template>
+          </VCalendar>
+        </div>
       </div>
 
       <template #fallback>
@@ -401,6 +403,8 @@ const getEventTypeClass = (type: string) => {
 }
 
 .calendar-container {
+  overflow-x: auto;
+  overflow-y: hidden;
   background: white;
   border-radius: 8px;
   padding: 20px;
@@ -571,10 +575,24 @@ const getEventTypeClass = (type: string) => {
   .calendar-header {
     flex-direction: column;
     align-items: stretch;
+    h4 {
+      font-size: 18px;
+    }
   }
 
   .estate-selector {
     justify-content: space-between;
+    /* display: flex;
+  align-items: center;
+  gap: 10px; */
+  }
+
+  .estate-selector select {
+    width: 120px;
+    padding: 8px 0px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
   }
 
   .stats-grid {

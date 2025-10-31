@@ -176,11 +176,6 @@ async function changeNotificationSettings() {
 const validateConfirmPassword = (val: string) => {
   return val === passwordData.value.newPassword || 'Пароли не совпадают';
 };
-
-// временно, пока бэк не починит ответ на логин
-onMounted(async () => {
-  await authStore.getCurrentUser();
-});
 </script>
 <template>
   <ClientOnly>
@@ -191,7 +186,7 @@ onMounted(async () => {
         v-model="activeTab"
         active-color="indigo-10"
         indicator-color="indigo-10"
-        class="text-teal"
+        class="responsive-tabs"
       >
         <q-tab name="profile" icon="person" label="Профиль" />
         <q-tab name="password" icon="lock" label="Смена пароля" />
@@ -369,5 +364,29 @@ onMounted(async () => {
   border-top: 1px solid #e0e0e0;
   background: white;
   text-align: center;
+}
+
+@media (max-width: 768px) {
+  :deep(.q-tabs) {
+    padding: 0;
+    gap: 1px;
+  }
+  :deep(.q-tab__label) {
+    font-size: 10px;
+  }
+
+  :deep(.q-tab__icon) {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  :deep(.q-tab__label) {
+    font-size: 9px;
+  }
+
+  :deep(.q-tab__icon) {
+    font-size: 16px;
+  }
 }
 </style>

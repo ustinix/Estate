@@ -1,5 +1,3 @@
-import type { EstateMetrics } from '~/types/estateMetrics';
-
 export const demoEstates = [
   {
     active: 1,
@@ -90,62 +88,3 @@ export const demoEstates = [
     user_id: 4,
   },
 ];
-
-// Моковые данные для графика окупаемости
-export const paybackData = {
-  categories: ['Год 1', 'Год 2', 'Год 3', 'Год 4', 'Год 5', 'Год 6', 'Год 7'],
-  series: [
-    {
-      name: 'Накопленный доход',
-      data: [-5000000, -3500000, -1800000, 200000, 2500000, 5000000, 7800000],
-    },
-    {
-      name: 'Ежегодный доход',
-      data: [1500000, 1700000, 2000000, 2200000, 2500000, 2800000, 3000000],
-    },
-  ],
-};
-
-// Моковые данные для cравнения доходности по годам
-export const profitabilityData = {
-  categories: ['2023', '2024', '2025*', '2026*', '2027*'],
-  series: [
-    {
-      name: 'Доход от аренды',
-      data: [1200000, 1500000, 1800000, 2100000, 2400000],
-    },
-    {
-      name: 'Расходы',
-      data: [800000, 850000, 900000, 950000, 1000000],
-    },
-    {
-      name: 'Чистая прибыль',
-      data: [400000, 650000, 900000, 1150000, 1400000],
-    },
-  ],
-};
-
-//для круговой диаграммы
-export const expensesData = {
-  categories: ['Ипотека', 'Коммуналка', 'Налоги', 'Ремонт', 'Управление'],
-  series: [45000, 15000, 8000, 12000, 5000],
-};
-
-export const estateMetrics: EstateMetrics = {
-  roi: {
-    value: 8.5,
-    target: 7,
-  },
-  payback: {
-    value: '3.5 года',
-    target: '5 лет план',
-    trend: 'down',
-    subtitle: 'До полной окупаемости',
-    progress: 70,
-  },
-  profit: {
-    value: 65000,
-    growth: '+15%',
-    period: 'в месяц',
-  },
-};

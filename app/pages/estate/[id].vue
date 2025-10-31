@@ -3,7 +3,6 @@ import { useQuasar } from 'quasar';
 import { useDictionariesStore } from '~/stores/dictionariesStore';
 import EstateDetailCard from '~/components/EstateDetailCard.vue';
 import TransactionForm from '~/components/TransactionForm.vue';
-import { estateMetrics, paybackData } from '~/constants/demo';
 
 const $q = useQuasar();
 const route = useRoute();
@@ -172,12 +171,9 @@ const goBack = () => {
         />
       </div>
     </div>
-    <!-- <div class="estate-analytics">
-      <h4 class="text-h6 q-mb-md">Финансовые показатели</h4>
-      <EstateMetrics :metrics="estateMetrics" />
-    </div>
-    <div class="charts">
-      <PaybackChart :data="paybackData" />
+
+    <!-- <div class="charts">
+      <MainChart />
     </div> -->
     <TransactionForm />
   </div>
@@ -191,6 +187,7 @@ const goBack = () => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 1rem;
 }
 
 .back-button-container {
