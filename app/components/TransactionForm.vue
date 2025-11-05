@@ -202,33 +202,37 @@ watch([operationType, regularity], () => {
 });
 </script>
 <template>
-  <div>
+  <div class="transaction-form-wrapper">
     <div class="q-pa-md">
       <q-form @submit="onSubmit">
         <div class="form-container">
           <div class="form-header">
             <h6 class="form-title">Добавить транзакцию</h6>
-            <div class="radio-group">
-              <div class="text-subtitle2">Тип операции:</div>
-              <q-option-group
-                v-model="operationType"
-                :options="transactionOptions"
-                color="primary"
-                inline
-              />
+            <div class="radio-section">
+              <div class="radio-group">
+                <div class="radio-label">Тип операции:</div>
+                <q-option-group
+                  v-model="operationType"
+                  :options="transactionOptions"
+                  color="primary"
+                  inline
+                  class="radio-options"
+                />
+              </div>
+
+              <div class="radio-group">
+                <div class="radio-label">Регулярность:</div>
+                <q-option-group
+                  v-model="regularity"
+                  :options="regularityOptions"
+                  color="primary"
+                  inline
+                  class="radio-options"
+                />
+              </div>
             </div>
 
-            <div class="radio-group">
-              <div class="text-subtitle2">Регулярность:</div>
-              <q-option-group
-                v-model="regularity"
-                :options="regularityOptions"
-                color="primary"
-                inline
-              />
-            </div>
-
-            <div v-if="showCategories">
+            <div v-if="showCategories" class="category-select">
               <q-select
                 filled
                 v-model="selectedCategory"
@@ -239,16 +243,17 @@ watch([operationType, regularity], () => {
                 emit-value
                 map-options
                 :rules="[val => !!val || 'Выберите категорию']"
+                dense
               />
             </div>
-            <div v-else class="text-caption text-grey">
+            <div v-else class="text-caption text-grey no-categories">
               Нет доступных категорий для выбранных параметров
             </div>
           </div>
 
           <div class="form-details">
-            <div v-if="showOneTimeForm && selectedCategory">
-              <h6 class="form-title">Разовая операция</h6>
+            <div v-if="showOneTimeForm && selectedCategory" class="form-section">
+              <h6 class="form-subtitle">Разовая операция</h6>
               <div class="inputs-group">
                 <q-input
                   filled
@@ -256,6 +261,7 @@ watch([operationType, regularity], () => {
                   label="Сумма"
                   type="number"
                   :rules="[val => !!val || 'Введите сумму']"
+                  dense
                 />
                 <q-input
                   filled
@@ -263,6 +269,7 @@ watch([operationType, regularity], () => {
                   label="Дата"
                   type="date"
                   :rules="[val => !!val || 'Введите дату']"
+                  dense
                 />
                 <q-input
                   filled
@@ -270,12 +277,14 @@ watch([operationType, regularity], () => {
                   label="Описание"
                   type="textarea"
                   rows="2"
+                  class="full-width"
+                  dense
                 />
               </div>
             </div>
 
-            <div v-if="showRegularIncomeForm && selectedCategory">
-              <h6 class="form-title">Регулярный доход</h6>
+            <div v-if="showRegularIncomeForm && selectedCategory" class="form-section">
+              <h6 class="form-subtitle">Регулярный доход</h6>
 
               <div class="inputs-group">
                 <q-input
@@ -284,6 +293,7 @@ watch([operationType, regularity], () => {
                   label="Сумма дохода"
                   type="number"
                   :rules="[val => !!val || 'Введите сумму']"
+                  dense
                 />
 
                 <q-input
@@ -292,6 +302,7 @@ watch([operationType, regularity], () => {
                   label="Дата начала"
                   type="date"
                   :rules="[val => !!val || 'Введите дату начала']"
+                  dense
                 />
 
                 <q-input
@@ -302,6 +313,7 @@ watch([operationType, regularity], () => {
                   min="1"
                   max="31"
                   :rules="[val => !!val || 'Введите день платежа']"
+                  dense
                 />
 
                 <q-input
@@ -310,10 +322,12 @@ watch([operationType, regularity], () => {
                   label="Описание"
                   type="textarea"
                   rows="2"
+                  class="full-width"
+                  dense
                 />
               </div>
 
-              <div>
+              <div class="settings-toggle">
                 <q-btn
                   flat
                   :label="
@@ -323,11 +337,12 @@ watch([operationType, regularity], () => {
                   color="indigo-10"
                   no-caps
                   class="settings-btn"
+                  dense
                 />
               </div>
 
-              <div v-if="showAdvancedSettings" class="advanced-settings q-pl-md">
-                <h6 class="form-title">Дополнительные настройки</h6>
+              <div v-if="showAdvancedSettings" class="advanced-settings">
+                <h6 class="form-subtitle">Дополнительные настройки</h6>
                 <div class="inputs-group">
                   <q-select
                     filled
@@ -338,12 +353,14 @@ watch([operationType, regularity], () => {
                     option-value="id"
                     emit-value
                     map-options
+                    dense
                   />
                   <q-input
                     filled
                     v-model="regularIncomeForm.indexation_rate"
                     label="Процент индексации"
                     type="number"
+                    dense
                   />
                   <q-select
                     filled
@@ -354,85 +371,94 @@ watch([operationType, regularity], () => {
                     option-value="id"
                     emit-value
                     map-options
+                    dense
                   />
                 </div>
               </div>
             </div>
-            <div v-if="showRegularExpenseForm && selectedCategory" class="regular-expense">
-              <h6 class="form-title">Регулярный расход</h6>
 
-              <div class="regular-expense-container">
+            <div v-if="showRegularExpenseForm && selectedCategory" class="form-section">
+              <h6 class="form-subtitle">Регулярный расход</h6>
+
+              <div class="inputs-group">
+                <q-input
+                  filled
+                  v-model="regularExpenseForm.amount"
+                  label="Сумма платежа"
+                  type="number"
+                  :rules="[val => !!val || 'Введите сумму платежа']"
+                  dense
+                />
+
+                <q-input
+                  filled
+                  v-model="regularExpenseForm.start_date"
+                  label="Дата начала"
+                  type="date"
+                  :rules="[val => !!val || 'Введите дату начала']"
+                  dense
+                />
+
+                <q-input
+                  filled
+                  v-model="regularExpenseForm.payment_day"
+                  label="День платежа (1-31)"
+                  type="number"
+                  min="1"
+                  max="31"
+                  :rules="[val => !!val || 'Введите день платежа']"
+                  dense
+                />
+              </div>
+
+              <div v-if="isCreditCategory" class="loan-section">
+                <h6 class="form-subtitle">Параметры кредита</h6>
                 <div class="inputs-group">
                   <q-input
                     filled
-                    v-model="regularExpenseForm.amount"
-                    label="Сумма платежа"
+                    v-model="regularExpenseForm.loan_amount"
+                    label="Сумма кредита"
                     type="number"
-                    :rules="[val => !!val || 'Введите сумму платежа']"
+                    dense
                   />
-
                   <q-input
                     filled
-                    v-model="regularExpenseForm.start_date"
-                    label="Дата начала"
-                    type="date"
-                    :rules="[val => !!val || 'Введите дату начала']"
+                    v-model="regularExpenseForm.loan_term"
+                    label="Срок кредита (месяцев)"
+                    type="number"
+                    dense
                   />
-
                   <q-input
                     filled
-                    v-model="regularExpenseForm.payment_day"
-                    label="День платежа (1-31)"
+                    v-model="regularExpenseForm.interest_rate"
+                    label="Процентная ставка (%)"
                     type="number"
-                    min="1"
-                    max="31"
-                    :rules="[val => !!val || 'Введите день платежа']"
+                    dense
                   />
-                </div>
-
-                <div v-if="isCreditCategory" class="loan-fields q-mb-md">
-                  <h6 class="form-title">Параметры кредита</h6>
-                  <div class="inputs-group">
-                    <q-input
-                      filled
-                      v-model="regularExpenseForm.loan_amount"
-                      label="Сумма кредита"
-                      type="number"
-                    />
-                    <q-input
-                      filled
-                      v-model="regularExpenseForm.loan_term"
-                      label="Срок кредита (месяцев)"
-                      type="number"
-                    />
-                    <q-input
-                      filled
-                      v-model="regularExpenseForm.interest_rate"
-                      label="Процентная ставка (%)"
-                      type="number"
-                    />
-                    <q-select
-                      filled
-                      v-model="regularExpenseForm.repayment_plan_id"
-                      :options="repaymentPlans"
-                      label="План погашения"
-                      option-label="name"
-                      option-value="id"
-                      emit-value
-                      map-options
-                    />
-                    <q-input
-                      filled
-                      v-model="regularExpenseForm.description"
-                      label="Описание"
-                      type="textarea"
-                      rows="2"
-                    />
-                  </div>
+                  <q-select
+                    filled
+                    v-model="regularExpenseForm.repayment_plan_id"
+                    :options="repaymentPlans"
+                    label="План погашения"
+                    option-label="name"
+                    option-value="id"
+                    emit-value
+                    map-options
+                    dense
+                  />
+                  <q-input
+                    filled
+                    v-model="regularExpenseForm.description"
+                    label="Описание"
+                    type="textarea"
+                    rows="2"
+                    class="full-width"
+                    dense
+                  />
                 </div>
               </div>
 
-              <div>
+              <div class="settings-toggle">
                 <q-btn
                   flat
                   :label="
@@ -442,50 +468,57 @@ watch([operationType, regularity], () => {
                   color="indigo-10"
                   no-caps
                   class="settings-btn"
+                  dense
                 />
               </div>
 
-              <div v-if="showAdvancedSettings" class="advanced-settings q-pl-md">
-                <h6 class="form-title">Дополнительные настройки</h6>
+              <div v-if="showAdvancedSettings" class="advanced-settings">
+                <h6 class="form-subtitle">Дополнительные настройки</h6>
 
-                <q-select
-                  filled
-                  v-model="regularExpenseForm.frequency_id"
-                  :options="transactionFrequencies"
-                  label="Периодичность платежа"
-                  option-label="name"
-                  option-value="id"
-                  emit-value
-                  map-options
-                />
+                <div class="inputs-group">
+                  <q-select
+                    filled
+                    v-model="regularExpenseForm.frequency_id"
+                    :options="transactionFrequencies"
+                    label="Периодичность платежа"
+                    option-label="name"
+                    option-value="id"
+                    emit-value
+                    map-options
+                    dense
+                  />
+                </div>
 
-                <div v-if="isCreditCategory" class="early-repayment q-mb-md">
-                  <h6 class="form-title">Досрочное погашение</h6>
+                <div v-if="isCreditCategory" class="early-repayment">
+                  <h6 class="form-subtitle">Досрочное погашение</h6>
                   <div class="inputs-group">
                     <q-input
                       filled
                       v-model="regularExpenseForm.early_repayment_date"
                       label="Дата досрочного погашения"
                       type="date"
+                      dense
                     />
                     <q-input
                       filled
                       v-model="regularExpenseForm.early_repayment_amount"
                       label="Сумма досрочного погашения"
                       type="number"
+                      dense
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div v-if="selectedCategory">
+            <div v-if="selectedCategory" class="submit-section">
               <q-btn
                 label="Добавить операцию"
                 type="submit"
                 color="secondary"
-                class="button form-btn"
+                class="submit-btn"
                 :disable="!isFormValid"
+                dense
               />
             </div>
           </div>
@@ -496,84 +529,289 @@ watch([operationType, regularity], () => {
 </template>
 
 <style scoped>
-.form-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1rem;
+.transaction-form-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .form-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   border-radius: 12px;
   padding: 1rem;
-  width: 80vw;
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.form-title {
-  margin-top: 0.5rem;
-  margin-bottom: 0.75rem;
+.form-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.radio-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .radio-group {
-  min-width: 350px;
   display: flex;
   align-items: center;
-  justify-content: start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.radio-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.radio-options {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.category-select {
+  width: 100%;
+}
+
+.no-categories {
+  text-align: center;
+  padding: 1rem;
+}
+
+.form-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.form-subtitle {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--q-primary);
+}
+
+.form-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f8f9fa;
 }
 
 .inputs-group {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
   flex-wrap: wrap;
   align-items: flex-start;
 }
 
 .inputs-group .q-field {
   flex: 1;
+  min-width: 150px;
 }
 
-.inputs-group .q-field:has(textarea) {
-  min-width: 100%;
-  max-width: 100%;
+.full-width {
+  min-width: 100% !important;
+  max-width: 100% !important;
 }
 
-.advanced-settings {
-  border-radius: 8px;
-  margin-top: 0.75rem;
-  padding: 8px;
-}
-
-.loan-fields {
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 16px;
-}
-
-.early-repayment {
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.form-btn {
-  margin: 1rem;
+.settings-toggle {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
 }
 
 .settings-btn {
-  text-transform: none;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
 }
 
-@media (max-width: 850px) {
+.advanced-settings {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  border: 1px solid #e0e0e0;
+}
+
+.loan-section,
+.early-repayment {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  border: 1px solid #e0e0e0;
+}
+
+.submit-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.submit-btn {
+  min-width: 200px;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+:deep(.q-field--dense .q-field__control) {
+  min-height: 40px !important;
+  height: 40px;
+}
+
+:deep(.q-field--dense .q-field__label) {
+  font-size: 0.8rem;
+  top: 10px;
+}
+
+:deep(.q-field--dense .q-field__native) {
+  padding-top: 8px;
+  padding-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+:deep(.q-field--dense textarea.q-field__native) {
+  min-height: 60px;
+}
+
+:deep(.q-field--dense .q-field__marginal) {
+  height: 40px;
+}
+
+@media (max-width: 768px) {
+  .transaction-form-wrapper .q-pa-md {
+    padding: 0.5rem;
+  }
+
   .form-container {
-    min-width: 350px;
+    padding: 0.75rem;
+  }
+
+  .form-header {
+    padding: 0.5rem 0;
+    gap: 0.75rem;
+  }
+
+  .radio-section {
+    gap: 0.75rem;
+  }
+
+  .radio-group {
     flex-direction: column;
-    gap: 1rem;
-    padding: 0.8rem;
-    font-size: 10px;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .radio-label {
+    min-width: auto;
+    font-size: 0.85rem;
+  }
+
+  .radio-options {
+    gap: 0.75rem;
+  }
+
+  .form-title {
+    font-size: 1.1rem;
+  }
+
+  .form-subtitle {
+    font-size: 1rem;
+  }
+
+  .form-section {
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .inputs-group {
+    gap: 0.5rem;
+  }
+
+  .inputs-group .q-field {
+    min-width: calc(50% - 0.25rem);
+  }
+
+  .full-width {
+    min-width: 100% !important;
+  }
+
+  .settings-btn {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .advanced-settings,
+  .loan-section,
+  .early-repayment {
+    padding: 0.75rem;
+    margin: 0.75rem 0;
+  }
+
+  .submit-section {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+  }
+
+  .submit-btn {
+    min-width: 160px;
+    font-size: 0.85rem;
+  }
+
+  :deep(.q-field--dense .q-field__control) {
+    min-height: 36px !important;
+    height: 36px;
+  }
+
+  :deep(.q-field--dense .q-field__label) {
+    font-size: 0.75rem;
+    top: 8px;
+  }
+
+  :deep(.q-field--dense .q-field__native) {
+    padding-top: 6px;
+    padding-bottom: 2px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .transaction-form-wrapper .q-pa-md {
+    padding: 0.25rem;
+  }
+
+  .form-container {
+    padding: 0.5rem;
+  }
+
+  .inputs-group .q-field {
+    min-width: 100%;
+  }
+
+  .radio-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .submit-btn {
+    min-width: 140px;
+    font-size: 0.8rem;
+    width: 100%;
+    max-width: 200px;
   }
 }
 </style>

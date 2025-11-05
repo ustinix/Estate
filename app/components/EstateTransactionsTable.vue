@@ -143,7 +143,7 @@ const formatSum = (sum: string) => {
   margin-bottom: 20px;
   flex-wrap: wrap;
   h6 {
-    margin: 20px;
+    margin: 20px 0;
   }
 }
 
