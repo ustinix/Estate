@@ -20,13 +20,11 @@ const paginatedTransactions = computed(() => {
   return allTransactions.value.slice(start, end);
 });
 
-// Вычисляем общее количество страниц
 const totalPages = computed(() => {
   if (allTransactions.value.length === 0) return 0;
   return Math.ceil(allTransactions.value.length / itemsPerPage.value);
 });
 
-// Информация о записях
 const displayedRecordsInfo = computed(() => {
   if (allTransactions.value.length === 0) return '';
 
@@ -36,10 +34,8 @@ const displayedRecordsInfo = computed(() => {
   return `Показано ${start}-${end} из ${allTransactions.value.length} транзакций`;
 });
 
-// Загружаем все транзакции один раз
 const loadTransactions = async () => {
   await transactionsStore.getUserEstateTransactions(props.userId, props.estateId);
-  // Сбрасываем на первую страницу после загрузки
   currentPage.value = 1;
 };
 
@@ -55,7 +51,6 @@ const prevPage = () => {
   }
 };
 
-// Загружаем транзакции при монтировании
 onMounted(() => {
   loadTransactions();
 });
@@ -75,9 +70,8 @@ const formatSum = (sum: string) => {
 <template>
   <div class="estate-transactions-table">
     <div class="table-header">
-      <h3>Транзакции</h3>
+      <h6>Транзакции</h6>
 
-      <!-- Пагинация показывается только когда есть больше одной страницы -->
       <div class="pagination-controls" v-if="totalPages > 1 && !isLoading && !error">
         <button @click="prevPage" :disabled="currentPage === 1" class="pagination-btn">←</button>
 
@@ -89,15 +83,12 @@ const formatSum = (sum: string) => {
       </div>
     </div>
 
-    <!-- Индикатор загрузки -->
     <div v-if="isLoading" class="loading">Загрузка транзакций...</div>
 
-    <!-- Сообщение об ошибке -->
     <div v-else-if="error" class="error-message">
       {{ error }}
     </div>
 
-    <!-- Таблица -->
     <table v-else class="transactions-table">
       <thead>
         <tr>
@@ -131,12 +122,10 @@ const formatSum = (sum: string) => {
       </tbody>
     </table>
 
-    <!-- Информация о количестве записей -->
     <div class="records-info" v-if="!isLoading && !error && allTransactions.length > 0">
       {{ displayedRecordsInfo }}
     </div>
 
-    <!-- Сообщение о пустых данных -->
     <div v-if="!isLoading && !error && allTransactions.length === 0" class="no-data">
       Транзакции не найдены
     </div>
