@@ -3,24 +3,17 @@ import { useQuasar } from 'quasar';
 import { useDictionariesStore } from '~/stores/dictionariesStore';
 import EstateDetailCard from '~/components/EstateDetailCard.vue';
 import TransactionForm from '~/components/TransactionForm.vue';
+import EstateTransactionsTable from '~/components/EstateTransactionsTable.vue';
 
 const $q = useQuasar();
-const route = useRoute();
 const authStore = useAuthStore();
 const estateStore = useEstateStore();
+const transactionsStore = useTransactionsStore();
 const dictionariesStore = useDictionariesStore();
 
-const isMounted = ref(false);
-onMounted(async () => {
-  isMounted.value = true;
-  if (userId.value && estateId) {
-    await estateStore.getUserEstate(userId.value, estateId);
-    await authStore.getUserTransactions(userId.value);
-  }
-});
-
-const estateId = Number(route.params.id);
+const estateId = ref<number | null>(null);
 const userId = computed(() => authStore.user?.id);
+const isHydrated = ref(false);
 
 const isEditing = ref(false);
 const editForm = ref({
@@ -29,9 +22,20 @@ const editForm = ref({
   description: '',
 });
 
-const { estate, isLoading: pending, error } = storeToRefs(estateStore);
-const { userTransactions } = storeToRefs(authStore);
+const { estate, isLoading: estateLoading } = storeToRefs(estateStore);
+const { isLoading: transactionsLoading } = storeToRefs(transactionsStore);
 const estateTypeOptions = computed(() => dictionariesStore.estateTypeOptions);
+
+const isLoading = computed(() => estateLoading.value || transactionsLoading.value);
+
+onMounted(() => {
+  isHydrated.value = true;
+  estateId.value = estateStore.getCurrentEstateId();
+  if (authStore.user?.id && estateId.value) {
+    estateStore.getUserEstate(authStore.user.id, estateId.value);
+    transactionsStore.getUserEstateTransactions(authStore.user.id, estateId.value);
+  }
+});
 
 watchEffect(() => {
   if (estate.value) {
@@ -106,97 +110,104 @@ const goBack = () => {
       <button @click="goBack" class="btn-back">← Назад к портфелю</button>
     </div>
 
-    <div v-if="!isMounted" class="loading">Загрузка...</div>
-
-    <div v-else-if="error" class="error">
-      <div v-if="pending" class="loading">Загрузка данных недвижимости...</div>
-      <p>Ошибка: {{ error }}</p>
-      <button @click="goBack" class="btn-back">← Назад к портфелю</button>
+    <!-- Индикатор загрузки при первоначальной загрузке -->
+    <div v-if="!isHydrated" class="loading-container">
+      <q-spinner-oval color="secondary" size="50px" />
+      <div class="q-mt-md text-grey">Загрузка недвижимости...</div>
     </div>
 
-    <div v-else-if="estate" class="estate-content">
-      <div v-if="isEditing" class="edit-mode">
-        <q-form @submit="saveEditing" class="q-gutter-md">
-          <q-input
-            filled
-            v-model="editForm.name"
-            label="Название недвижимости"
-            :rules="[val => !!val || 'Введите название']"
+    <!-- Контент после гидратации -->
+    <template v-else>
+      <!-- Индикатор загрузки данных -->
+      <div v-if="isLoading" class="loading-container">
+        <q-spinner-oval color="secondary" size="50px" />
+        <div class="q-mt-md text-grey">Загрузка данных...</div>
+      </div>
+
+      <div v-else-if="!estateId" class="error-container">
+        <q-icon name="error_outline" size="50px" color="negative" />
+        <div class="q-mt-md text-negative">Не выбрана недвижимость</div>
+        <q-btn color="primary" label="Вернуться в портфель" @click="goBack" class="q-mt-md" />
+      </div>
+
+      <div v-else-if="estate" class="estate-content">
+        <div v-if="isEditing" class="edit-mode">
+          <q-form @submit="saveEditing" class="q-gutter-md">
+            <q-input
+              filled
+              v-model="editForm.name"
+              label="Название недвижимости"
+              :rules="[val => !!val || 'Введите название']"
+            />
+
+            <q-select
+              filled
+              v-model="editForm.estate_type_id"
+              :options="estateTypeOptions"
+              option-label="label"
+              option-value="value"
+              label="Тип недвижимости"
+              emit-value
+              map-options
+              class="edit-select"
+            >
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section avatar>
+                    <q-icon :name="scope.opt.icon" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.label }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+            <q-input
+              filled
+              v-model="editForm.description"
+              label="Описание недвижимости"
+              type="textarea"
+              autogrow
+              :rules="[val => !val || val.length <= 50 || 'Максимум 50 символов']"
+            >
+              <template v-slot:counter> {{ editForm.description?.length || 0 }}/500 </template>
+            </q-input>
+
+            <div class="edit-actions">
+              <q-btn flat label="Отмена" @click="cancelEditing" class="button" />
+              <q-btn label="Сохранить" type="submit" color="secondary" class="button" />
+            </div>
+          </q-form>
+        </div>
+
+        <div v-else>
+          <EstateDetailCard
+            :estate="estate"
+            :current-estate-type="currentEstateType"
+            :has-recoupment="hasRecoupment"
+            :has-description="hasDescription"
+            :on-edit="startEditing"
           />
-
-          <q-select
-            filled
-            v-model="editForm.estate_type_id"
-            :options="estateTypeOptions"
-            option-label="label"
-            option-value="value"
-            label="Тип недвижимости"
-            emit-value
-            map-options
-            class="edit-select"
-          >
-            <template v-slot:option="scope">
-              <q-item v-bind="scope.itemProps">
-                <q-item-section avatar>
-                  <q-icon :name="scope.opt.icon" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ scope.opt.label }}</q-item-label>
-                </q-item-section>
-              </q-item>
-            </template>
-          </q-select>
-          <q-input
-            filled
-            v-model="editForm.description"
-            label="Описание недвижимости"
-            type="textarea"
-            autogrow
-            :rules="[val => !val || val.length <= 50 || 'Максимум 50 символов']"
-          >
-            <template v-slot:counter> {{ editForm.description?.length || 0 }}/500 </template>
-          </q-input>
-
-          <div class="edit-actions">
-            <q-btn flat label="Отмена" @click="cancelEditing" class="button" />
-            <q-btn label="Сохранить" type="submit" color="secondary" class="button" />
-          </div>
-        </q-form>
-      </div>
-
-      <div v-else>
-        <EstateDetailCard
-          :estate="estate"
-          :current-estate-type="currentEstateType"
-          :has-recoupment="hasRecoupment"
-          :has-description="hasDescription"
-          :on-edit="startEditing"
-        />
-      </div>
-    </div>
-
-    <!-- <div class="charts">
-      <MainChart />
-    </div> -->
-    <!-- <div>
-      <div v-if="userTransactions?.length === 0" class="no-transactions">Нет транзакций</div>
-
-      <div class="transactions-list">
-        <div
-          v-for="transaction in userTransactions"
-          :key="transaction.transaction_id"
-          class="transaction-item"
-        >
-          <div>{{ new Date(transaction.date).toLocaleDateString() }}</div>
-          <div>{{ transaction.transaction_type_name }}</div>
-          <div>{{ transaction.comment }}</div>
-          <div>{{ transaction.sum }}</div>
         </div>
       </div>
+      <!-- <div class="charts">
+      <MainChart />
     </div> -->
-    <TransactionForm />
+      <!-- Дополнительные компоненты -->
+      <EstateTransactionsTable
+        v-if="authStore.user?.id && estateId && estate"
+        :user-id="authStore.user.id"
+        :estate-id="estateId"
+      />
+      <TransactionForm
+        v-if="authStore.user?.id && estateId && estate"
+        :estate-id="estateId"
+        :user-id="userId"
+      />
+    </template>
   </div>
 </template>
+
 <style scoped>
 .transaction-item {
   display: flex;
@@ -255,6 +266,83 @@ const goBack = () => {
   gap: 12px;
   justify-content: flex-end;
   margin-top: 20px;
+}
+
+.income {
+  border-left: 3px solid #10b981;
+}
+
+.expense {
+  border-left: 3px solid #ef4444;
+}
+
+.amount-income {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.amount-expense {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.direction-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.direction-badge.income {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.direction-badge.expense {
+  background-color: #fecaca;
+  color: #991b1b;
+}
+
+.regularity-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.comment {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.transactions-table th,
+.transactions-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 10px 0;
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
 }
 
 @media (max-width: 768px) {

@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
 import { useApi } from '~/composables/useApi';
 import type { Estate, EstateResponse } from '~/types/estate';
-import type { EstateTransaction } from '~/types/transactions';
 
 export const useEstateStore = defineStore('estate', () => {
   const estates = ref<Estate[]>([]);
@@ -9,8 +8,42 @@ export const useEstateStore = defineStore('estate', () => {
   const newEstate = ref<Estate | null>(null);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+  const selectedEstateId = ref<number | null>(null);
+
+  if (import.meta.client) {
+    const savedId = localStorage.getItem('selectedEstateId');
+    if (savedId) {
+      selectedEstateId.value = Number(savedId);
+    }
+  }
 
   const $api = useApi();
+
+  const getCurrentEstateId = (): number | null => {
+    if (import.meta.client) {
+      const savedId = localStorage.getItem('selectedEstateId');
+      if (savedId) {
+        const id = Number(savedId);
+
+        if (selectedEstateId.value !== id) {
+          selectedEstateId.value = id;
+        }
+        return id;
+      }
+    }
+    return selectedEstateId.value;
+  };
+
+  const initializeFromStorage = () => {
+    if (import.meta.client) {
+      const savedId = localStorage.getItem('selectedEstateId');
+      if (savedId) {
+        selectedEstateId.value = Number(savedId);
+      }
+    }
+  };
+
+  initializeFromStorage();
 
   const getUserEstates = async (userId: number): Promise<void> => {
     try {
@@ -85,16 +118,17 @@ export const useEstateStore = defineStore('estate', () => {
     }
   };
 
-  const addEstateTransactions = async (transactionsData: EstateTransaction): Promise<void> => {
-    try {
-      isLoading.value = true;
-      error.value = null;
-      await $api.post(`/transactions`, transactionsData);
-    } catch (err) {
-      error.value = String(err);
-      throw err;
-    } finally {
-      isLoading.value = false;
+  const setSelectedEstateId = (id: number) => {
+    selectedEstateId.value = id;
+    if (import.meta.client) {
+      localStorage.setItem('selectedEstateId', id.toString());
+    }
+  };
+
+  const clearSelectedEstateId = () => {
+    selectedEstateId.value = null;
+    if (import.meta.client) {
+      localStorage.removeItem('selectedEstateId');
     }
   };
 
@@ -103,10 +137,13 @@ export const useEstateStore = defineStore('estate', () => {
     estate,
     isLoading,
     error,
+    selectedEstateId,
     getUserEstates,
     getUserEstate,
     createUserEstate,
     updateUserEstate,
-    addEstateTransactions,
+    setSelectedEstateId,
+    clearSelectedEstateId,
+    getCurrentEstateId,
   };
 });

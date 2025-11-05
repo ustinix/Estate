@@ -25,10 +25,21 @@ export interface EstateTransactionResponse {
   sum: string;
   transaction_group_id: number;
   transaction_id: number;
-  transaction_type_direction: number;
+  transaction_type_direction: boolean;
   transaction_type_id: number;
   transaction_type_name: string;
-  transaction_type_regularity: number;
+  transaction_type_regularity: boolean;
+}
+
+export interface GetEstateTransactionsRequest {
+  estate_id: number;
+  estate_type_id?: number;
+  transaction_type_id?: number;
+  transaction_group_id?: number;
+  transaction_type_direction?: boolean;
+  transaction_type_regularity?: boolean;
+  limit?: number;
+  offset?: number;
 }
 
 export interface BaseTransaction {

@@ -9,7 +9,6 @@ import type {
 import { AUTH_CONSTANTS } from '~/constants/auth';
 import { handleApiError } from '~/utils/apiError';
 import { useApi } from '~/composables/useApi';
-import type { EstateTransactionResponse } from '~/types/transactions';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
@@ -18,7 +17,6 @@ export const useAuthStore = defineStore('auth', () => {
   const expiresAt = ref<number | null>(null);
   const isLoading = ref(false);
   const isInitialized = ref(false);
-  const userTransactions = ref<EstateTransactionResponse[] | null>(null);
 
   const $api = useApi();
 
@@ -271,19 +269,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
-  const getUserTransactions = async (userId: number): Promise<void> => {
-    if (!user.value?.id) return;
-
-    try {
-      const transactions = await $api.get<EstateTransactionResponse[]>(
-        `/users/${userId}/transactions`,
-      );
-      userTransactions.value = [...transactions];
-    } catch (error) {
-      console.error('Failed to fetch user data:', error);
-    }
-  };
-
   const changePassword = async (
     passwordData: ChangePasswordRequest,
     userId: number,
@@ -351,7 +336,6 @@ export const useAuthStore = defineStore('auth', () => {
     isTokenExpired,
     isInitialized,
     needsRefresh,
-    userTransactions,
     initAuth,
     getCurrentUser,
     login,
@@ -363,6 +347,5 @@ export const useAuthStore = defineStore('auth', () => {
     getNotificationSettings,
     updateNotificationSettings,
     isValidToken,
-    getUserTransactions,
   };
 });

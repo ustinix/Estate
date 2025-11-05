@@ -2,7 +2,7 @@
 import type { Estate } from '~/types/estate';
 
 const expanded = ref(false);
-
+const estateStore = useEstateStore();
 const props = defineProps<{
   estate: Estate;
 }>();
@@ -10,6 +10,7 @@ const props = defineProps<{
 const progressValue = computed(() => (props.estate.recoupment || 0) / 100);
 
 const handleClick = () => {
+  estateStore.setSelectedEstateId(props.estate.id);
   navigateTo(`/estate/${props.estate.id}`);
 };
 </script>

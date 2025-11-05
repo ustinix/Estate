@@ -6,10 +6,14 @@ import type {
   RegularIncomeFormData,
   RegularExpenseFormData,
 } from '~/types/transactions';
-import { useEstateStore } from '~/stores/estateStore';
 import { useDictionariesStore } from '~/stores/dictionariesStore';
 
-const estateStore = useEstateStore();
+const props = defineProps<{
+  userId: number | undefined;
+  estateId: number;
+}>();
+
+const transactionStore = useTransactionsStore();
 const dictionaryStore = useDictionariesStore();
 const { transactionTypes, transactionFrequencies, repaymentPlans } = storeToRefs(dictionaryStore);
 const $q = useQuasar();
@@ -23,7 +27,6 @@ const operationType = ref(true);
 const regularity = ref(false);
 const selectedCategory = ref<number | null>(null);
 const showAdvancedSettings = ref(false);
-const currentEstateId = estateStore.estate?.id;
 
 const categoryOptions = computed(() => {
   if (!isMounted.value || !transactionTypes.value.length) return [];
@@ -38,7 +41,7 @@ const categoryOptions = computed(() => {
 const showCategories = computed(() => isMounted.value && categoryOptions.value.length > 0);
 
 const oneTimeForm = ref<OneTimeFormData>({
-  estate_id: currentEstateId,
+  estate_id: props.estateId,
   transaction_type_id: null,
   amount: null,
   description: '',
@@ -47,7 +50,7 @@ const oneTimeForm = ref<OneTimeFormData>({
 });
 
 const regularIncomeForm = ref<RegularIncomeFormData>({
-  estate_id: currentEstateId,
+  estate_id: props.estateId,
   transaction_type_id: null,
   amount: null,
   description: '',
@@ -59,7 +62,7 @@ const regularIncomeForm = ref<RegularIncomeFormData>({
 });
 
 const regularExpenseForm = ref<RegularExpenseFormData>({
-  estate_id: currentEstateId,
+  estate_id: props.estateId,
   transaction_type_id: null,
   amount: null,
   description: '',
@@ -99,7 +102,7 @@ const isFormValid = computed(() => {
 });
 
 const onSubmit = async () => {
-  if (!currentEstateId) {
+  if (!props.estateId || !props.userId) {
     $q.notify({
       color: 'red-5',
       textColor: 'white',
@@ -111,7 +114,7 @@ const onSubmit = async () => {
 
   try {
     const transactionData: EstateTransaction = {
-      estate_id: currentEstateId,
+      estate_id: props.estateId,
       type_id: selectedCategory.value!,
       cost: 0,
       direction: operationType.value,
@@ -139,7 +142,7 @@ const onSubmit = async () => {
         });
       }
     }
-    await estateStore.addEstateTransactions(transactionData);
+    await transactionStore.addEstateTransactions(props.userId, transactionData);
 
     $q.notify({
       color: 'green-4',
@@ -162,7 +165,7 @@ const onSubmit = async () => {
 
 const resetForms = () => {
   oneTimeForm.value = {
-    estate_id: currentEstateId,
+    estate_id: props.estateId,
     transaction_type_id: null,
     amount: null,
     description: '',
@@ -170,7 +173,7 @@ const resetForms = () => {
     regularity: false,
   };
   regularIncomeForm.value = {
-    estate_id: currentEstateId,
+    estate_id: props.estateId,
     transaction_type_id: null,
     amount: null,
     description: '',
@@ -181,7 +184,7 @@ const resetForms = () => {
     contract_duration: 'short',
   };
   regularExpenseForm.value = {
-    estate_id: currentEstateId,
+    estate_id: props.estateId,
     transaction_type_id: null,
     amount: null,
     description: '',
