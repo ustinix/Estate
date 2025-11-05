@@ -110,15 +110,12 @@ const goBack = () => {
       <button @click="goBack" class="btn-back">← Назад к портфелю</button>
     </div>
 
-    <!-- Индикатор загрузки при первоначальной загрузке -->
     <div v-if="!isHydrated" class="loading-container">
       <q-spinner-oval color="secondary" size="50px" />
       <div class="q-mt-md text-grey">Загрузка недвижимости...</div>
     </div>
 
-    <!-- Контент после гидратации -->
     <template v-else>
-      <!-- Индикатор загрузки данных -->
       <div v-if="isLoading" class="loading-container">
         <q-spinner-oval color="secondary" size="50px" />
         <div class="q-mt-md text-grey">Загрузка данных...</div>
@@ -193,7 +190,6 @@ const goBack = () => {
       <!-- <div class="charts">
       <MainChart />
     </div> -->
-      <!-- Дополнительные компоненты -->
       <EstateTransactionsTable
         v-if="authStore.user?.id && estateId && estate"
         :user-id="authStore.user.id"
@@ -347,7 +343,7 @@ const goBack = () => {
 
 @media (max-width: 768px) {
   .estate-page {
-    padding: 16px;
+    padding: 5px;
   }
 
   .edit-mode {

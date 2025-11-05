@@ -89,6 +89,8 @@ const userName = computed(() => {
   color: var(--text-color);
   padding: 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .toolbar {
@@ -96,7 +98,8 @@ const userName = computed(() => {
   justify-content: space-between;
   align-items: center;
   margin: 0 auto;
-  padding: 0 3rem;
+  max-width: 100%;
+  padding: 0 1rem;
   gap: 1rem;
 }
 

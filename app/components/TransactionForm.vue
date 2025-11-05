@@ -573,14 +573,7 @@ watch([operationType, regularity], () => {
     flex-direction: column;
     gap: 1rem;
     padding: 0.8rem;
-  }
-}
-@media (max-width: 850px) {
-  .form-container {
-    min-width: 350px;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 0.8rem;
+    font-size: 10px;
   }
 }
 </style>

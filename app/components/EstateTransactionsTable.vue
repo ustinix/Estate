@@ -71,7 +71,6 @@ const formatSum = (sum: string) => {
   <div class="estate-transactions-table">
     <div class="table-header">
       <h6>Транзакции</h6>
-
       <div class="pagination-controls" v-if="totalPages > 1 && !isLoading && !error">
         <button @click="prevPage" :disabled="currentPage === 1" class="pagination-btn">←</button>
 
@@ -143,7 +142,9 @@ const formatSum = (sum: string) => {
   align-items: center;
   margin-bottom: 20px;
   flex-wrap: wrap;
-  gap: 15px;
+  h6 {
+    margin: 20px;
+  }
 }
 
 .pagination-controls {
@@ -256,11 +257,11 @@ const formatSum = (sum: string) => {
   color: #6b7280;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
   .table-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    gap: 0;
   }
 
   .pagination-controls {
@@ -269,7 +270,7 @@ const formatSum = (sum: string) => {
   }
 
   .transactions-table {
-    font-size: 14px;
+    font-size: 10px;
   }
 
   .transactions-table th,
