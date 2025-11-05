@@ -801,12 +801,6 @@ watch([operationType, regularity], () => {
     min-width: 100%;
   }
 
-  .radio-options {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-
   .submit-btn {
     min-width: 140px;
     font-size: 0.8rem;
