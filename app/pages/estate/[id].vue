@@ -211,7 +211,6 @@ const goBack = () => {
 }
 .estate-page {
   margin: 0 auto;
-  max-width: 600px;
   padding: 20px;
   display: flex;
   flex-direction: column;
