@@ -11,7 +11,11 @@ const estateStore = useEstateStore();
 const transactionsStore = useTransactionsStore();
 const dictionariesStore = useDictionariesStore();
 
-const estateId = ref<number | null>(null);
+const route = useRoute();
+const estateId = computed(() => {
+  const id = route.params.id;
+  return id ? Number(id) : null;
+});
 const userId = computed(() => authStore.user?.id);
 const isHydrated = ref(false);
 
@@ -30,12 +34,28 @@ const isLoading = computed(() => estateLoading.value || transactionsLoading.valu
 
 onMounted(() => {
   isHydrated.value = true;
-  estateId.value = estateStore.getCurrentEstateId();
+
   if (authStore.user?.id && estateId.value) {
+    estateStore.setSelectedEstateId(estateId.value);
     estateStore.getUserEstate(authStore.user.id, estateId.value);
     transactionsStore.getUserEstateTransactions(authStore.user.id, estateId.value);
   }
 });
+
+watch(
+  () => route.params.id,
+  newId => {
+    if (newId) {
+      const newEstateId = Number(newId);
+      estateStore.setSelectedEstateId(newEstateId);
+
+      if (authStore.user?.id) {
+        estateStore.getUserEstate(authStore.user.id, newEstateId);
+        transactionsStore.getUserEstateTransactions(authStore.user.id, newEstateId);
+      }
+    }
+  },
+);
 
 watchEffect(() => {
   if (estate.value) {

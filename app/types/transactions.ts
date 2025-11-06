@@ -15,7 +15,7 @@ export interface EstateTransaction {
   date_start: string;
 }
 
-export interface EstateTransactionResponse {
+export interface EstateTransactionForTable {
   comment: string;
   date: string;
   estate_id: number;
@@ -31,13 +31,23 @@ export interface EstateTransactionResponse {
   transaction_type_regularity: boolean;
 }
 
-export interface GetEstateTransactionsRequest {
-  estate_id: number;
+export interface EstateTransactionResponse {
+  data: EstateTransactionForTable[];
+  total_items: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface EstateTransactionsFilters {
+  estate_id?: number;
   estate_type_id?: number;
   transaction_type_id?: number;
   transaction_group_id?: number;
   transaction_type_direction?: boolean;
   transaction_type_regularity?: boolean;
+  start_date?: string;
+  end_date?: string;
   limit?: number;
   offset?: number;
 }

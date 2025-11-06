@@ -1,176 +1,279 @@
 <script setup lang="ts">
 import { useTransactionsStore } from '~/stores/transactions';
+import type { EstateTransactionsFilters } from '~/types/transactions';
 
-const props = defineProps<{
+interface Props {
   userId: number;
   estateId: number;
-}>();
+  pageSize?: number;
+}
 
-const transactionsStore = useTransactionsStore();
-const { userEstateTransactions, isLoading, error } = storeToRefs(transactionsStore);
-
-const currentPage = ref(1);
-const itemsPerPage = ref(10);
-
-const allTransactions = computed(() => userEstateTransactions.value);
-
-const paginatedTransactions = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value;
-  const end = start + itemsPerPage.value;
-  return allTransactions.value.slice(start, end);
+const props = withDefaults(defineProps<Props>(), {
+  pageSize: 10,
 });
 
-const totalPages = computed(() => {
-  if (allTransactions.value.length === 0) return 0;
-  return Math.ceil(allTransactions.value.length / itemsPerPage.value);
+const store = useTransactionsStore();
+const dictionariesStore = useDictionariesStore();
+
+const filters = ref<EstateTransactionsFilters>({
+  limit: props.pageSize,
+  offset: 0,
 });
 
-const displayedRecordsInfo = computed(() => {
-  if (allTransactions.value.length === 0) return '';
+const loadTransactions = async (page: number = 1) => {
+  try {
+    const offset = (page - 1) * (filters.value.limit || props.pageSize);
 
-  const start = (currentPage.value - 1) * itemsPerPage.value + 1;
-  const end = Math.min(currentPage.value * itemsPerPage.value, allTransactions.value.length);
-
-  return `Показано ${start}-${end} из ${allTransactions.value.length} транзакций`;
-});
-
-const loadTransactions = async () => {
-  await transactionsStore.getUserEstateTransactions(props.userId, props.estateId);
-  currentPage.value = 1;
-};
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
+    await store.getUserEstateTransactions(props.userId, props.estateId, {
+      ...filters.value,
+      offset,
+      limit: filters.value.limit || props.pageSize,
+    });
+  } catch (error) {
+    console.error('Ошибка загрузки транзакций:', error);
   }
 };
 
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-  }
+const handlePageChange = (page: number) => {
+  loadTransactions(page);
 };
 
-onMounted(() => {
-  loadTransactions();
-});
+const handleFilterChange = () => {
+  loadTransactions(1);
+};
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('ru-RU');
 };
 
-const formatSum = (sum: string) => {
-  return parseFloat(sum).toLocaleString('ru-RU', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+const formatCurrency = (amount: string) => {
+  const number = parseFloat(amount);
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'RUB',
+  }).format(number);
 };
+
+onMounted(() => {
+  loadTransactions();
+});
 </script>
 
 <template>
-  <div class="estate-transactions-table">
-    <div class="table-header">
-      <h6>Транзакции</h6>
-      <div class="pagination-controls" v-if="totalPages > 1 && !isLoading && !error">
-        <button @click="prevPage" :disabled="currentPage === 1" class="pagination-btn">←</button>
+  <div class="transactions-table">
+    <div class="filters-section">
+      <div class="filter-group">
+        <label>Тип транзакции:</label>
+        <select v-model="filters.transaction_type_id" @change="handleFilterChange">
+          <option :value="undefined">Все</option>
+          <option
+            v-for="type in dictionariesStore.transactionTypes"
+            :key="type.id"
+            :value="type.id"
+          >
+            {{ type.name }}
+          </option>
+        </select>
+      </div>
 
-        <span class="pagination-info"> Страница {{ currentPage }} из {{ totalPages }} </span>
+      <div class="filter-group">
+        <label>Направление:</label>
+        <select v-model="filters.transaction_type_direction" @change="handleFilterChange">
+          <option :value="undefined">Все</option>
+          <option :value="true">Доход</option>
+          <option :value="false">Расход</option>
+        </select>
+      </div>
 
-        <button @click="nextPage" :disabled="currentPage === totalPages" class="pagination-btn">
-          →
-        </button>
+      <div class="filter-group">
+        <label>Регулярность:</label>
+        <select v-model="filters.transaction_type_regularity" @change="handleFilterChange">
+          <option :value="undefined">Все</option>
+          <option :value="true">Регулярные</option>
+          <option :value="false">Разовые</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Дата с:</label>
+        <input type="date" v-model="filters.start_date" @change="handleFilterChange" />
+      </div>
+
+      <div class="filter-group">
+        <label>Дата по:</label>
+        <input type="date" v-model="filters.end_date" @change="handleFilterChange" />
       </div>
     </div>
 
-    <div v-if="isLoading" class="loading">Загрузка транзакций...</div>
-
-    <div v-else-if="error" class="error-message">
-      {{ error }}
-    </div>
-
-    <table v-else class="transactions-table">
-      <thead>
-        <tr>
-          <th>Дата</th>
-          <th>Тип</th>
-          <th>Сумма</th>
-          <th>Комментарий</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="transaction in paginatedTransactions"
-          :key="transaction.transaction_id"
-          :class="{
-            income: transaction.transaction_type_direction,
-            expense: !transaction.transaction_type_direction,
-          }"
-        >
-          <td>{{ formatDate(transaction.date) }}</td>
-          <td>{{ transaction.transaction_type_name }}</td>
-          <td
+    <div class="table-container">
+      <table v-if="!store.isLoading && store.userEstateTransactions.length">
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Тип транзакции</th>
+            <th>Сумма</th>
+            <th>Комментарий</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="transaction in store.userEstateTransactions"
+            :key="transaction.transaction_id"
             :class="{
-              'amount-income': transaction.transaction_type_direction,
-              'amount-expense': !transaction.transaction_type_direction,
+              income: transaction.transaction_type_direction,
+              expense: !transaction.transaction_type_direction,
             }"
           >
-            {{ transaction.transaction_type_direction ? '+' : '-' }}{{ formatSum(transaction.sum) }}
-          </td>
-          <td class="comment">{{ transaction.comment || '-' }}</td>
-        </tr>
-      </tbody>
-    </table>
+            <td>{{ formatDate(transaction.date) }}</td>
+            <td>{{ transaction.transaction_type_name }}</td>
+            <td :class="transaction.transaction_type_direction ? 'text-green' : 'text-red'">
+              {{ formatCurrency(transaction.sum) }}
+            </td>
+            <td>{{ transaction.comment || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
 
-    <div class="records-info" v-if="!isLoading && !error && allTransactions.length > 0">
-      {{ displayedRecordsInfo }}
+      <div v-if="store.isLoading" class="loading">Загрузка данных...</div>
+
+      <div v-if="!store.isLoading && !store.userEstateTransactions.length" class="empty-state">
+        Транзакции не найдены
+      </div>
     </div>
 
-    <div v-if="!isLoading && !error && allTransactions.length === 0" class="no-data">
-      Транзакции не найдены
+    <div v-if="store.pagination.total_pages > 1" class="pagination">
+      <button
+        :disabled="store.pagination.page === 1 || store.isLoading"
+        @click="handlePageChange(store.pagination.page - 1)"
+        class="pagination-btn"
+      >
+        Назад
+      </button>
+
+      <span class="pagination-info">
+        Страница {{ store.pagination.page }} из {{ store.pagination.total_pages }} (всего:
+        {{ store.pagination.total_items }})
+      </span>
+
+      <button
+        :disabled="store.pagination.page === store.pagination.total_pages || store.isLoading"
+        @click="handlePageChange(store.pagination.page + 1)"
+        class="pagination-btn"
+      >
+        Вперед
+      </button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.estate-transactions-table {
-  margin: 20px 0;
+.transactions-table {
+  max-width: 800px;
+  padding-top: 2rem;
+  width: 100%;
+  margin: 0 auto;
 }
 
-.table-header {
+.filters-section {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: center;
+  gap: 16px;
   margin-bottom: 20px;
   flex-wrap: wrap;
-  h6 {
-    margin: 20px 0;
-  }
 }
 
-.pagination-controls {
+.filter-group {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}
+
+.table-container {
+  min-height: 200px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th,
+td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.income {
+  background-color: #f0f9f0;
+}
+
+.expense {
+  background-color: #fef0f0;
+}
+
+.text-green {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.text-red {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.loading,
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 14px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 15px;
-  background: #f8f9fa;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  margin-top: 20px;
 }
 
 .pagination-btn {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
   background: white;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  padding: 6px 12px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   transition: all 0.2s;
 }
-
 .pagination-btn:hover:not(:disabled) {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
+  background: #f3f4f6;
+  border-color: #9ca3af;
 }
 
 .pagination-btn:disabled {
@@ -179,103 +282,110 @@ const formatSum = (sum: string) => {
 }
 
 .pagination-info {
-  font-size: 14px;
-  color: #6c757d;
-  font-weight: 500;
-}
-
-.records-info {
-  margin-top: 15px;
-  text-align: center;
-  font-size: 14px;
-  color: #6c757d;
-  padding: 10px;
-  background: #f8f9fa;
-  border-radius: 6px;
-}
-
-.income {
-  border-left: 3px solid #10b981;
-}
-
-.expense {
-  border-left: 3px solid #ef4444;
-}
-
-.amount-income {
-  color: #10b981;
-  font-weight: bold;
-}
-
-.amount-expense {
-  color: #ef4444;
-  font-weight: bold;
-}
-
-.comment {
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.transactions-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 15px;
-}
-
-.transactions-table th,
-.transactions-table td {
-  padding: 10px 12px;
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.transactions-table th {
-  background: #f8f9fa;
-  font-weight: 600;
-  color: #495057;
-}
-
-.loading,
-.error-message,
-.no-data {
-  text-align: center;
-  padding: 40px;
-  margin: 20px 0;
-}
-
-.error-message {
-  color: #ef4444;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 4px;
-}
-
-.no-data {
+  font-size: 13px;
   color: #6b7280;
+  text-align: center;
 }
 
 @media (max-width: 768px) {
-  .table-header {
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-  }
-
-  .pagination-controls {
-    align-self: stretch;
-    justify-content: center;
-  }
-
   .transactions-table {
+    padding-top: 1rem;
+    max-width: 100%;
+  }
+
+  .filters-section {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .filter-group {
+    min-width: calc(50% - 12px);
+    flex: none;
+  }
+
+  .filter-group label {
+    font-size: 11px;
+  }
+
+  .filter-group select,
+  .filter-group input {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  table {
+    font-size: 13px;
+  }
+
+  th,
+  td {
+    padding: 8px 6px;
+  }
+
+  th {
+    font-size: 12px;
+  }
+
+  .pagination {
+    gap: 12px;
+  }
+
+  .pagination-info {
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+
+  .pagination-btn {
+    padding: 6px 12px;
     font-size: 10px;
   }
+}
 
-  .transactions-table th,
-  .transactions-table td {
-    padding: 8px 6px;
+@media (max-width: 480px) {
+  .transactions-table {
+    padding: 0.5rem;
+  }
+
+  .filters-section {
+    gap: 8px;
+  }
+
+  .filter-group {
+    min-width: 100%;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th,
+  td {
+    padding: 6px 4px;
+  }
+
+  th {
+    font-size: 11px;
+  }
+
+  .loading,
+  .empty-state {
+    padding: 20px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 360px) {
+  .transactions-table {
+    padding: 0.25rem;
+  }
+
+  table {
+    font-size: 11px;
+  }
+
+  th,
+  td {
+    padding: 4px 3px;
   }
 }
 </style>

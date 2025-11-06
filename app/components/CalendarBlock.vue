@@ -582,9 +582,6 @@ const getEventTypeClass = (type: string) => {
 
   .estate-selector {
     justify-content: space-between;
-    /* display: flex;
-  align-items: center;
-  gap: 10px; */
   }
 
   .estate-selector select {
