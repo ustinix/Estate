@@ -18,6 +18,11 @@ export const useTransactionsStore = defineStore('transactions', () => {
     total_pages: 0,
   });
 
+  const defaultPaginationParams: EstateTransactionsFilters = {
+    limit: 10,
+    offset: 0,
+  };
+
   // временно пока бэк не починит страницы (пока количество отдается на 1 меньше)
   const fixedPagination = computed(() => ({
     ...pagination.value,
@@ -56,6 +61,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
       const requestBody: EstateTransactionsFilters = {
         estate_id: estateId,
+        ...defaultPaginationParams,
         ...filters,
       };
 

@@ -13,6 +13,12 @@ export interface EstateTransaction {
   type_id: number;
   cost: number;
   date_start: string;
+  name?: string;
+  frequency_id?: number;
+  payday?: number;
+  payday_on_workday?: boolean;
+  loan_term?: number;
+  interest_rate?: number;
 }
 
 export interface EstateTransactionForTable {

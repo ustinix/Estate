@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { transactionOptions, regularityOptions } from '~/constants/transactions ';
-import type {
-  EstateTransaction,
-  OneTimeFormData,
-  RegularIncomeFormData,
-  RegularExpenseFormData,
-} from '~/types/transactions';
+import type { EstateTransaction } from '~/types/transactions';
 import { useDictionariesStore } from '~/stores/dictionariesStore';
 
 const props = defineProps<{
@@ -15,7 +10,7 @@ const props = defineProps<{
 
 const transactionStore = useTransactionsStore();
 const dictionaryStore = useDictionariesStore();
-const { transactionTypes, transactionFrequencies, repaymentPlans } = storeToRefs(dictionaryStore);
+const { transactionTypes, transactionFrequencies } = storeToRefs(dictionaryStore);
 const $q = useQuasar();
 
 const isMounted = ref(false);
@@ -26,7 +21,6 @@ onMounted(() => {
 const operationType = ref(true);
 const regularity = ref(false);
 const selectedCategory = ref<number | null>(null);
-const showAdvancedSettings = ref(false);
 
 const categoryOptions = computed(() => {
   if (!isMounted.value || !transactionTypes.value.length) return [];
@@ -40,64 +34,71 @@ const categoryOptions = computed(() => {
 
 const showCategories = computed(() => isMounted.value && categoryOptions.value.length > 0);
 
-const oneTimeForm = ref<OneTimeFormData>({
-  estate_id: props.estateId,
-  transaction_type_id: null,
-  amount: null,
-  description: '',
-  date: '',
-  regularity: false,
-});
-
-const regularIncomeForm = ref<RegularIncomeFormData>({
-  estate_id: props.estateId,
-  transaction_type_id: null,
-  amount: null,
-  description: '',
-  start_date: '',
-  payment_day: null,
-  regularity: true,
-  direction: true,
-  contract_duration: 'short',
-});
-
-const regularExpenseForm = ref<RegularExpenseFormData>({
-  estate_id: props.estateId,
-  transaction_type_id: null,
-  amount: null,
-  description: '',
-  start_date: '',
-  payment_day: null,
-  regularity: true,
-  direction: false,
-});
-
 const isCreditCategory = computed(() => {
   if (!selectedCategory.value) return false;
   const category = transactionTypes.value.find(type => type.id === selectedCategory.value);
   if (!category) return false;
 
-  const creditKeywords = ['ипотека', 'кредит', 'рассрочка', 'заем', 'займ'];
+  const creditKeywords = ['ипотека', 'кредит', 'заем', 'займ', 'рассрочка'];
   return creditKeywords.some(keyword =>
     category.name.toLowerCase().includes(keyword.toLowerCase()),
   );
 });
 
+const isInstallmentCategory = computed(() => {
+  if (!selectedCategory.value) return false;
+  const category = transactionTypes.value.find(type => type.id === selectedCategory.value);
+  return category?.name.toLowerCase().includes('рассрочка');
+});
+
+const isCreditOrInstallment = computed(() => isCreditCategory.value || isInstallmentCategory.value);
+
+const oneTimeForm = ref({
+  amount: null as number | null,
+  description: '',
+  date: '',
+});
+
+const regularIncomeForm = ref({
+  amount: null as number | null,
+  description: '',
+  start_date: '',
+  payment_day: null as number | null,
+  frequency_id: undefined as number | undefined,
+});
+
+const regularExpenseForm = ref({
+  amount: null as number | null,
+  description: '',
+  start_date: '',
+  payment_day: null as number | null,
+  frequency_id: undefined as number | undefined,
+  loan_term: null as number | null,
+  interest_rate: null as number | null,
+});
+
 const showRegularIncomeForm = computed(() => operationType.value && regularity.value);
 const showRegularExpenseForm = computed(() => !operationType.value && regularity.value);
 const showOneTimeForm = computed(() => !regularity.value);
-const currentRegularForm = computed(() => {
-  return operationType.value ? regularIncomeForm.value : regularExpenseForm.value;
-});
 
 const isFormValid = computed(() => {
   if (!selectedCategory.value) return false;
 
   if (!regularity.value) {
     return !!oneTimeForm.value.amount && !!oneTimeForm.value.date;
+  } else if (operationType.value) {
+    const form = regularIncomeForm.value;
+    return !!form.amount && !!form.start_date && !!form.payment_day && !!form.frequency_id;
   } else {
-    const form = currentRegularForm.value;
-    return !!form.amount && !!form.start_date && !!form.payment_day;
+    const form = regularExpenseForm.value;
+    const hasBasicFields =
+      !!form.amount && !!form.start_date && !!form.payment_day && !!form.frequency_id;
+
+    if (isCreditOrInstallment.value) {
+      return hasBasicFields && !!form.loan_term;
+    }
+
+    return hasBasicFields;
   }
 });
 
@@ -113,35 +114,49 @@ const onSubmit = async () => {
   }
 
   try {
+    const selectedCategoryData = transactionTypes.value.find(
+      type => type.id === selectedCategory.value,
+    );
+    const categoryName = selectedCategoryData?.name || '';
+
     const transactionData: EstateTransaction = {
       estate_id: props.estateId,
       type_id: selectedCategory.value!,
+      name: categoryName,
       cost: 0,
       direction: operationType.value,
       regularity: regularity.value,
       date_start: '',
       comment: '',
+      payday_on_workday: false,
     };
 
     if (!regularity.value) {
       transactionData.cost = Number(oneTimeForm.value.amount) || 0;
       transactionData.comment = oneTimeForm.value.description || '';
       transactionData.date_start = String(oneTimeForm.value.date);
-    } else {
-      const form = currentRegularForm.value;
+    } else if (operationType.value) {
+      const form = regularIncomeForm.value;
       transactionData.cost = Number(form.amount) || 0;
       transactionData.comment = form.description || '';
       transactionData.date_start = String(form.start_date);
-
-      // Для регулярных операций можно добавить дополнительные поля (пока бэк не принимает регулярные, потом поправить)
-      if (!operationType.value && isCreditCategory.value) {
-        console.log('Кредитные данные:', {
-          loan_amount: regularExpenseForm.value.loan_amount,
-          loan_term: regularExpenseForm.value.loan_term,
-          interest_rate: regularExpenseForm.value.interest_rate,
-        });
+      transactionData.payday = Number(form.payment_day) || undefined;
+      transactionData.frequency_id = form.frequency_id;
+    } else {
+      const form = regularExpenseForm.value;
+      transactionData.cost = Number(form.amount) || 0;
+      transactionData.comment = form.description || '';
+      transactionData.date_start = String(form.start_date);
+      transactionData.payday = Number(form.payment_day) || undefined;
+      transactionData.frequency_id = form.frequency_id;
+      if (isCreditOrInstallment.value) {
+        transactionData.loan_term = form.loan_term || undefined;
+        if (isCreditCategory.value && !isInstallmentCategory.value) {
+          transactionData.interest_rate = form.interest_rate || undefined;
+        }
       }
     }
+
     await transactionStore.addEstateTransactions(props.userId, transactionData);
 
     $q.notify({
@@ -149,9 +164,11 @@ const onSubmit = async () => {
       textColor: 'white',
       icon: 'cloud_done',
       message: 'Транзакция успешно добавлена!',
+      timeout: 3000,
+      position: 'center',
     });
 
-    resetForms();
+    await new Promise(resolve => setTimeout(resolve, 3000));
   } catch (error) {
     console.error('Ошибка при добавлении транзакции:', error);
     $q.notify({
@@ -165,40 +182,32 @@ const onSubmit = async () => {
 
 const resetForms = () => {
   oneTimeForm.value = {
-    estate_id: props.estateId,
-    transaction_type_id: null,
     amount: null,
     description: '',
     date: '',
-    regularity: false,
   };
   regularIncomeForm.value = {
-    estate_id: props.estateId,
-    transaction_type_id: null,
     amount: null,
     description: '',
     start_date: '',
     payment_day: null,
-    regularity: true,
-    direction: true,
-    contract_duration: 'short',
+    frequency_id: undefined,
   };
   regularExpenseForm.value = {
-    estate_id: props.estateId,
-    transaction_type_id: null,
     amount: null,
     description: '',
     start_date: '',
     payment_day: null,
-    regularity: true,
-    direction: false,
+    frequency_id: undefined,
+    loan_term: null,
+    interest_rate: null,
   };
   selectedCategory.value = null;
-  showAdvancedSettings.value = false;
 };
 
 watch([operationType, regularity], () => {
   selectedCategory.value = null;
+  resetForms();
 });
 </script>
 <template>
@@ -252,7 +261,7 @@ watch([operationType, regularity], () => {
           </div>
 
           <div class="form-details">
-            <div v-if="showOneTimeForm && selectedCategory" class="form-section">
+            <div v-if="showOneTimeForm" class="form-section">
               <h6 class="form-subtitle">Разовая операция</h6>
               <div class="inputs-group">
                 <q-input
@@ -283,9 +292,8 @@ watch([operationType, regularity], () => {
               </div>
             </div>
 
-            <div v-if="showRegularIncomeForm && selectedCategory" class="form-section">
+            <div v-if="showRegularIncomeForm" class="form-section">
               <h6 class="form-subtitle">Регулярный доход</h6>
-
               <div class="inputs-group">
                 <q-input
                   filled
@@ -295,7 +303,6 @@ watch([operationType, regularity], () => {
                   :rules="[val => !!val || 'Введите сумму']"
                   dense
                 />
-
                 <q-input
                   filled
                   v-model="regularIncomeForm.start_date"
@@ -304,7 +311,6 @@ watch([operationType, regularity], () => {
                   :rules="[val => !!val || 'Введите дату начала']"
                   dense
                 />
-
                 <q-input
                   filled
                   v-model="regularIncomeForm.payment_day"
@@ -315,7 +321,18 @@ watch([operationType, regularity], () => {
                   :rules="[val => !!val || 'Введите день платежа']"
                   dense
                 />
-
+                <q-select
+                  filled
+                  v-model="regularIncomeForm.frequency_id"
+                  :options="transactionFrequencies"
+                  label="Периодичность *"
+                  option-label="name"
+                  option-value="id"
+                  emit-value
+                  map-options
+                  :rules="[val => !!val || 'Выберите периодичность']"
+                  dense
+                />
                 <q-input
                   filled
                   v-model="regularIncomeForm.description"
@@ -326,70 +343,24 @@ watch([operationType, regularity], () => {
                   dense
                 />
               </div>
-
-              <div class="settings-toggle">
-                <q-btn
-                  flat
-                  :label="
-                    showAdvancedSettings ? 'Скрыть доп. настройки' : 'Показать доп. настройки'
-                  "
-                  @click="showAdvancedSettings = !showAdvancedSettings"
-                  color="indigo-10"
-                  no-caps
-                  class="settings-btn"
-                  dense
-                />
-              </div>
-
-              <div v-if="showAdvancedSettings" class="advanced-settings">
-                <h6 class="form-subtitle">Дополнительные настройки</h6>
-                <div class="inputs-group">
-                  <q-select
-                    filled
-                    v-model="regularIncomeForm.frequency_id"
-                    :options="transactionFrequencies"
-                    label="Периодичность платежа"
-                    option-label="name"
-                    option-value="id"
-                    emit-value
-                    map-options
-                    dense
-                  />
-                  <q-input
-                    filled
-                    v-model="regularIncomeForm.indexation_rate"
-                    label="Процент индексации"
-                    type="number"
-                    dense
-                  />
-                  <q-select
-                    filled
-                    v-model="regularIncomeForm.indexation_frequency_id"
-                    :options="transactionFrequencies"
-                    label="Периодичность индексации"
-                    option-label="name"
-                    option-value="id"
-                    emit-value
-                    map-options
-                    dense
-                  />
-                </div>
-              </div>
             </div>
 
-            <div v-if="showRegularExpenseForm && selectedCategory" class="form-section">
-              <h6 class="form-subtitle">Регулярный расход</h6>
-
+            <div v-if="showRegularExpenseForm" class="form-section">
+              <h6 class="form-subtitle">
+                Регулярный расход
+                <span v-if="isCreditOrInstallment" class="credit-badge">
+                  ({{ categoryOptions.find(c => c.id === selectedCategory)?.name }})
+                </span>
+              </h6>
               <div class="inputs-group">
                 <q-input
                   filled
                   v-model="regularExpenseForm.amount"
-                  label="Сумма платежа"
+                  :label="isCreditOrInstallment ? 'Сумма кредита' : 'Сумма платежа'"
                   type="number"
-                  :rules="[val => !!val || 'Введите сумму платежа']"
+                  :rules="[val => !!val || 'Введите сумму']"
                   dense
                 />
-
                 <q-input
                   filled
                   v-model="regularExpenseForm.start_date"
@@ -398,7 +369,6 @@ watch([operationType, regularity], () => {
                   :rules="[val => !!val || 'Введите дату начала']"
                   dense
                 />
-
                 <q-input
                   filled
                   v-model="regularExpenseForm.payment_day"
@@ -409,105 +379,49 @@ watch([operationType, regularity], () => {
                   :rules="[val => !!val || 'Введите день платежа']"
                   dense
                 />
-              </div>
+                <q-select
+                  filled
+                  v-model="regularExpenseForm.frequency_id"
+                  :options="transactionFrequencies"
+                  label="Периодичность *"
+                  option-label="name"
+                  option-value="id"
+                  emit-value
+                  map-options
+                  :rules="[val => !!val || 'Выберите периодичность']"
+                  dense
+                />
 
-              <div v-if="isCreditCategory" class="loan-section">
-                <h6 class="form-subtitle">Параметры кредита</h6>
-                <div class="inputs-group">
-                  <q-input
-                    filled
-                    v-model="regularExpenseForm.loan_amount"
-                    label="Сумма кредита"
-                    type="number"
-                    dense
-                  />
+                <template v-if="isCreditOrInstallment">
                   <q-input
                     filled
                     v-model="regularExpenseForm.loan_term"
-                    label="Срок кредита (месяцев)"
+                    label="Срок (месяцев) *"
                     type="number"
+                    :rules="[val => !!val || 'Введите срок']"
                     dense
                   />
+
                   <q-input
+                    v-if="isCreditCategory && !isInstallmentCategory"
                     filled
                     v-model="regularExpenseForm.interest_rate"
                     label="Процентная ставка (%)"
                     type="number"
+                    step="0.1"
                     dense
                   />
-                  <q-select
-                    filled
-                    v-model="regularExpenseForm.repayment_plan_id"
-                    :options="repaymentPlans"
-                    label="План погашения"
-                    option-label="name"
-                    option-value="id"
-                    emit-value
-                    map-options
-                    dense
-                  />
-                  <q-input
-                    filled
-                    v-model="regularExpenseForm.description"
-                    label="Описание"
-                    type="textarea"
-                    rows="2"
-                    class="full-width"
-                    dense
-                  />
-                </div>
-              </div>
+                </template>
 
-              <div class="settings-toggle">
-                <q-btn
-                  flat
-                  :label="
-                    showAdvancedSettings ? 'Скрыть доп. настройки' : 'Показать доп. настройки'
-                  "
-                  @click="showAdvancedSettings = !showAdvancedSettings"
-                  color="indigo-10"
-                  no-caps
-                  class="settings-btn"
+                <q-input
+                  filled
+                  v-model="regularExpenseForm.description"
+                  label="Описание"
+                  type="textarea"
+                  rows="2"
+                  class="full-width"
                   dense
                 />
-              </div>
-
-              <div v-if="showAdvancedSettings" class="advanced-settings">
-                <h6 class="form-subtitle">Дополнительные настройки</h6>
-
-                <div class="inputs-group">
-                  <q-select
-                    filled
-                    v-model="regularExpenseForm.frequency_id"
-                    :options="transactionFrequencies"
-                    label="Периодичность платежа"
-                    option-label="name"
-                    option-value="id"
-                    emit-value
-                    map-options
-                    dense
-                  />
-                </div>
-
-                <div v-if="isCreditCategory" class="early-repayment">
-                  <h6 class="form-subtitle">Досрочное погашение</h6>
-                  <div class="inputs-group">
-                    <q-input
-                      filled
-                      v-model="regularExpenseForm.early_repayment_date"
-                      label="Дата досрочного погашения"
-                      type="date"
-                      dense
-                    />
-                    <q-input
-                      filled
-                      v-model="regularExpenseForm.early_repayment_amount"
-                      label="Сумма досрочного погашения"
-                      type="number"
-                      dense
-                    />
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -623,6 +537,23 @@ watch([operationType, regularity], () => {
 .full-width {
   min-width: 100% !important;
   max-width: 100% !important;
+  flex: none !important;
+}
+
+:deep(.q-field--textarea .q-field__control) {
+  min-height: 80px;
+  resize: vertical;
+  overflow: auto;
+}
+
+:deep(.q-field--textarea .q-field__native) {
+  min-height: 60px;
+  resize: vertical;
+  overflow: auto;
+}
+
+:deep(.q-field--textarea) {
+  resize: vertical;
 }
 
 .settings-toggle {
@@ -666,10 +597,9 @@ watch([operationType, regularity], () => {
   font-weight: 500;
   font-size: 0.9rem;
 }
-
 :deep(.q-field--dense .q-field__control) {
   min-height: 40px !important;
-  height: 40px;
+  height: auto;
 }
 
 :deep(.q-field--dense .q-field__label) {
@@ -685,6 +615,8 @@ watch([operationType, regularity], () => {
 
 :deep(.q-field--dense textarea.q-field__native) {
   min-height: 60px;
+  resize: vertical;
+  overflow: auto;
 }
 
 :deep(.q-field--dense .q-field__marginal) {
@@ -743,10 +675,6 @@ watch([operationType, regularity], () => {
 
   .inputs-group .q-field {
     min-width: calc(50% - 0.25rem);
-  }
-
-  .full-width {
-    min-width: 100% !important;
   }
 
   .settings-btn {

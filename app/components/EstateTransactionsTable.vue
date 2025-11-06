@@ -13,7 +13,6 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const store = useTransactionsStore();
-const dictionariesStore = useDictionariesStore();
 
 const filters = ref<EstateTransactionsFilters>({
   limit: props.pageSize,
@@ -53,10 +52,6 @@ const formatCurrency = (amount: string) => {
     currency: 'RUB',
   }).format(number);
 };
-
-onMounted(() => {
-  loadTransactions();
-});
 </script>
 
 <template>
