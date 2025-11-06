@@ -45,6 +45,13 @@ const isCreditCategory = computed(() => {
   );
 });
 
+const isRentCategory = computed(() => {
+  if (!selectedCategory.value) return false;
+  const category = transactionTypes.value.find(type => type.id === selectedCategory.value);
+  const rentKeywords = ['аренда', 'арендная', 'арендный'];
+  return rentKeywords.some(keyword => category?.name.toLowerCase().includes(keyword.toLowerCase()));
+});
+
 const isInstallmentCategory = computed(() => {
   if (!selectedCategory.value) return false;
   const category = transactionTypes.value.find(type => type.id === selectedCategory.value);
@@ -65,6 +72,7 @@ const regularIncomeForm = ref({
   start_date: '',
   payment_day: null as number | null,
   frequency_id: undefined as number | undefined,
+  loan_term: null as number | null,
 });
 
 const regularExpenseForm = ref({
@@ -88,13 +96,20 @@ const isFormValid = computed(() => {
     return !!oneTimeForm.value.amount && !!oneTimeForm.value.date;
   } else if (operationType.value) {
     const form = regularIncomeForm.value;
-    return !!form.amount && !!form.start_date && !!form.payment_day && !!form.frequency_id;
+    const hasBasicFields =
+      !!form.amount && !!form.start_date && !!form.payment_day && !!form.frequency_id;
+
+    if (isRentCategory.value) {
+      return hasBasicFields && !!form.loan_term;
+    }
+
+    return hasBasicFields;
   } else {
     const form = regularExpenseForm.value;
     const hasBasicFields =
       !!form.amount && !!form.start_date && !!form.payment_day && !!form.frequency_id;
 
-    if (isCreditOrInstallment.value) {
+    if (isRentCategory.value || isCreditOrInstallment.value) {
       return hasBasicFields && !!form.loan_term;
     }
 
@@ -142,6 +157,10 @@ const onSubmit = async () => {
       transactionData.date_start = String(form.start_date);
       transactionData.payday = Number(form.payment_day) || undefined;
       transactionData.frequency_id = form.frequency_id;
+
+      if (isRentCategory.value) {
+        transactionData.loan_term = Number(form.loan_term) || undefined;
+      }
     } else {
       const form = regularExpenseForm.value;
       transactionData.cost = Number(form.amount) || 0;
@@ -149,9 +168,10 @@ const onSubmit = async () => {
       transactionData.date_start = String(form.start_date);
       transactionData.payday = Number(form.payment_day) || undefined;
       transactionData.frequency_id = form.frequency_id;
-      if (isCreditOrInstallment.value) {
+      if (isRentCategory.value || isCreditOrInstallment.value) {
         transactionData.loan_term = Number(form.loan_term) || undefined;
-        if (isCreditCategory.value && !isInstallmentCategory.value) {
+
+        if (isCreditCategory.value && !isInstallmentCategory.value && !isRentCategory.value) {
           transactionData.interest_rate = Number(form.interest_rate) || undefined;
         }
       }
@@ -192,6 +212,7 @@ const resetForms = () => {
     start_date: '',
     payment_day: null,
     frequency_id: undefined,
+    loan_term: null,
   };
   regularExpenseForm.value = {
     amount: null,
@@ -291,14 +312,18 @@ watch([operationType, regularity], () => {
                 />
               </div>
             </div>
-
             <div v-if="showRegularIncomeForm" class="form-section">
-              <h6 class="form-subtitle">Регулярный доход</h6>
+              <h6 class="form-subtitle">
+                Регулярный доход
+                <span v-if="isRentCategory" class="credit-badge">
+                  ({{ categoryOptions.find(c => c.id === selectedCategory)?.name }})
+                </span>
+              </h6>
               <div class="inputs-group">
                 <q-input
                   filled
                   v-model="regularIncomeForm.amount"
-                  label="Сумма дохода"
+                  :label="isRentCategory ? 'Сумма аренды' : 'Сумма дохода'"
                   type="number"
                   :rules="[val => !!val || 'Введите сумму']"
                   dense
@@ -333,6 +358,17 @@ watch([operationType, regularity], () => {
                   :rules="[val => !!val || 'Выберите периодичность']"
                   dense
                 />
+
+                <q-input
+                  v-if="isRentCategory"
+                  filled
+                  v-model="regularIncomeForm.loan_term"
+                  label="Срок договора (месяцев) *"
+                  type="number"
+                  :rules="[val => !!val || 'Введите срок договора']"
+                  dense
+                />
+
                 <q-input
                   filled
                   v-model="regularIncomeForm.description"
@@ -348,7 +384,7 @@ watch([operationType, regularity], () => {
             <div v-if="showRegularExpenseForm" class="form-section">
               <h6 class="form-subtitle">
                 Регулярный расход
-                <span v-if="isCreditOrInstallment" class="credit-badge">
+                <span v-if="isRentCategory || isCreditOrInstallment" class="credit-badge">
                   ({{ categoryOptions.find(c => c.id === selectedCategory)?.name }})
                 </span>
               </h6>
@@ -356,7 +392,9 @@ watch([operationType, regularity], () => {
                 <q-input
                   filled
                   v-model="regularExpenseForm.amount"
-                  :label="isCreditOrInstallment ? 'Сумма кредита' : 'Сумма платежа'"
+                  :label="
+                    isRentCategory || isCreditOrInstallment ? 'Сумма договора' : 'Сумма платежа'
+                  "
                   type="number"
                   :rules="[val => !!val || 'Введите сумму']"
                   dense
@@ -392,26 +430,25 @@ watch([operationType, regularity], () => {
                   dense
                 />
 
-                <template v-if="isCreditOrInstallment">
+                <template v-if="isRentCategory || isCreditOrInstallment">
                   <q-input
                     filled
                     v-model="regularExpenseForm.loan_term"
-                    label="Срок (месяцев) *"
+                    label="Срок договора (месяцев) *"
                     type="number"
-                    :rules="[val => !!val || 'Введите срок']"
-                    dense
-                  />
-
-                  <q-input
-                    v-if="isCreditCategory && !isInstallmentCategory"
-                    filled
-                    v-model="regularExpenseForm.interest_rate"
-                    label="Процентная ставка (%)"
-                    type="number"
-                    step="0.1"
+                    :rules="[val => !!val || 'Введите срок договора']"
                     dense
                   />
                 </template>
+                <q-input
+                  v-if="isCreditCategory && !isInstallmentCategory && !isRentCategory"
+                  filled
+                  v-model="regularExpenseForm.interest_rate"
+                  label="Процентная ставка (%)"
+                  type="number"
+                  step="0.1"
+                  dense
+                />
 
                 <q-input
                   filled
