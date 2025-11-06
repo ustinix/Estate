@@ -150,9 +150,9 @@ const onSubmit = async () => {
       transactionData.payday = Number(form.payment_day) || undefined;
       transactionData.frequency_id = form.frequency_id;
       if (isCreditOrInstallment.value) {
-        transactionData.loan_term = form.loan_term || undefined;
+        transactionData.loan_term = Number(form.loan_term) || undefined;
         if (isCreditCategory.value && !isInstallmentCategory.value) {
-          transactionData.interest_rate = form.interest_rate || undefined;
+          transactionData.interest_rate = Number(form.interest_rate) || undefined;
         }
       }
     }
