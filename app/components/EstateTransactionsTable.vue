@@ -63,20 +63,6 @@ onMounted(() => {
   <div class="transactions-table">
     <div class="filters-section">
       <div class="filter-group">
-        <label>Тип транзакции:</label>
-        <select v-model="filters.transaction_type_id" @change="handleFilterChange">
-          <option :value="undefined">Все</option>
-          <option
-            v-for="type in dictionariesStore.transactionTypes"
-            :key="type.id"
-            :value="type.id"
-          >
-            {{ type.name }}
-          </option>
-        </select>
-      </div>
-
-      <div class="filter-group">
         <label>Направление:</label>
         <select v-model="filters.transaction_type_direction" @change="handleFilterChange">
           <option :value="undefined">Все</option>
@@ -186,6 +172,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 150px;
 }
 
 .filter-group label {
@@ -260,6 +247,7 @@ th {
   justify-content: center;
   align-items: center;
   margin-top: 20px;
+  gap: 1rem;
 }
 
 .pagination-btn {
