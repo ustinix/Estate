@@ -26,7 +26,6 @@ export const useAuthStore = defineStore('auth', () => {
     secure: false,
     sameSite: 'lax',
     domain: import.meta.dev ? 'localhost' : undefined,
-    httpOnly: true,
   });
 
   const refreshTokenCookie = useCookie<string | null>('refresh-token', {
@@ -34,7 +33,6 @@ export const useAuthStore = defineStore('auth', () => {
     secure: false,
     sameSite: 'lax',
     domain: import.meta.dev ? 'localhost' : undefined,
-    httpOnly: true,
   });
 
   const expiresAtCookie = useCookie<number | null>('expires-at', {
@@ -42,7 +40,6 @@ export const useAuthStore = defineStore('auth', () => {
     secure: false,
     sameSite: 'lax',
     domain: import.meta.dev ? 'localhost' : undefined,
-    httpOnly: true,
   });
 
   const isAuthenticated = computed(() => {

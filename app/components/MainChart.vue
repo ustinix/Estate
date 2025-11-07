@@ -1,8 +1,133 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { formatCurrency } from '~/utils/formatCurrency';
 
 const isMounted = ref(false);
 const VueApexCharts = ref();
+const isLoading = ref(false);
+
+const startDate = ref('2025-03-01');
+const endDate = ref('2025-08-31');
+
+// пока моковые для графика
+const allChartData = {
+  categories: [
+    'Янв 2025',
+    'Фев 2025',
+    'Мар 2025',
+    'Апр 2025',
+    'Май 2025',
+    'Июн 2025',
+    'Июл 2025',
+    'Авг 2025',
+  ],
+  series: [
+    { name: 'Доход', data: [70000, 75000, 80000, 120000, 150000, 130000, 140000, 90000] },
+    { name: 'Расход', data: [35000, 40000, 40000, 60000, 75000, 65000, 70000, 45000] },
+    { name: 'Месячный баланс', data: [35000, 35000, 40000, 60000, 75000, 65000, 70000, 45000] },
+    {
+      name: 'Накопительный баланс',
+      data: [35000, 70000, 110000, 170000, 245000, 310000, 380000, 425000],
+    },
+  ],
+};
+
+const monthToDateMap: Record<string, string> = {
+  'Янв 2025': '2025-01-01',
+  'Фев 2025': '2025-02-01',
+  'Мар 2025': '2025-03-01',
+  'Апр 2025': '2025-04-01',
+  'Май 2025': '2025-05-01',
+  'Июн 2025': '2025-06-01',
+  'Июл 2025': '2025-07-01',
+  'Авг 2025': '2025-08-01',
+};
+
+const getDateForCategory = (category: string): Date | null => {
+  const dateStr = monthToDateMap[category];
+  return dateStr ? new Date(dateStr) : null;
+};
+
+const filteredChartData = computed(() => {
+  const start = new Date(startDate.value);
+  const end = new Date(endDate.value);
+
+  const filteredIndices = allChartData.categories
+    .map((category, index) => ({ category, index, date: getDateForCategory(category) }))
+    .filter(({ date }) => {
+      return date && date >= start && date <= end;
+    });
+
+  if (filteredIndices.length === 0) {
+    return {
+      categories: [],
+      series: allChartData.series.map(s => ({ ...s, data: [] })),
+    };
+  }
+
+  return {
+    categories: filteredIndices.map(item => item.category),
+    series: allChartData.series.map(series => ({
+      ...series,
+      data: filteredIndices.map(item => series.data[item.index]),
+    })),
+  };
+});
+
+// Проверяем есть ли данные для выбранного периода
+const hasData = computed(() => filteredChartData.value.categories.length > 0);
+
+// Обработчик изменения дат (будет делать запрос к API)
+const handleDateChange = async () => {
+  isLoading.value = true;
+
+  // В реальном приложении здесь будет запрос к API:
+  // const response = await $fetch('/api/financial-stats', {
+  //   params: {
+  //     start_date: startDate.value,
+  //     end_date: endDate.value
+  //   }
+  // });
+  // allChartData = response.data;
+
+  // Имитация загрузки
+  await new Promise(resolve => setTimeout(resolve, 500));
+  isLoading.value = false;
+};
+
+const chartOptions = {
+  chart: {
+    type: 'line' as const,
+    height: 400,
+    toolbar: {
+      show: true,
+      tools: {
+        download: true,
+        selection: false,
+        zoom: false,
+        zoomin: false,
+        zoomout: false,
+        pan: false,
+        reset: false,
+      },
+    },
+  },
+  colors: ['#00E396', '#FF4560', '#FEB019', '#008FFB'],
+  stroke: { curve: 'smooth' as const, width: 3 },
+  markers: { size: 5 },
+  xaxis: { categories: filteredChartData.value.categories },
+  yaxis: {
+    labels: {
+      formatter: formatCurrency,
+    },
+  },
+  legend: { position: 'top' as const },
+  tooltip: {
+    y: {
+      formatter: formatCurrency,
+    },
+  },
+};
 
 onMounted(async () => {
   if (import.meta.client) {
@@ -11,66 +136,63 @@ onMounted(async () => {
     isMounted.value = true;
   }
 });
-
-// пока моковые для графика
-const chartData = {
-  categories: ['Мар 2024', 'Апр 2024', 'Май 2024', 'Июн 2024', 'Июл 2024', 'Авг 2024'],
-  series: [
-    { name: 'Доход', data: [80000, 120000, 150000, 130000, 140000, 90000] },
-    { name: 'Расход', data: [40000, 60000, 75000, 65000, 70000, 45000] },
-    { name: 'Месячный баланс', data: [40000, 60000, 75000, 65000, 70000, 45000] },
-    { name: 'Накопительный баланс', data: [40000, 100000, 175000, 240000, 310000, 355000] },
-  ],
-};
-
-const chartOptions = {
-  chart: { type: 'line' as const, height: 400, toolbar: { show: true } },
-  colors: ['#00E396', '#FF4560', '#FEB019', '#008FFB'],
-  stroke: { curve: 'smooth' as const, width: 3 },
-  markers: { size: 5 },
-  xaxis: { categories: chartData.categories },
-  yaxis: {
-    labels: {
-      formatter: (value: number) =>
-        new Intl.NumberFormat('ru-RU', {
-          style: 'currency',
-          currency: 'RUB',
-          minimumFractionDigits: 0,
-        }).format(value),
-    },
-  },
-  legend: { position: 'top' as const },
-  tooltip: {
-    y: {
-      formatter: (value: number) =>
-        new Intl.NumberFormat('ru-RU', {
-          style: 'currency',
-          currency: 'RUB',
-          minimumFractionDigits: 0,
-        }).format(value),
-    },
-  },
-};
 </script>
 <template>
   <ClientOnly>
     <div class="financial-chart">
       <div class="chart-header">
         <h3>Аналитика доходов</h3>
-        <div class="date-range">
-          <span class="date-label">Период: 2024-03-15 - 2024-08-20</span>
+        <div class="date-controls">
+          <div class="date-input-group">
+            <label for="start-date">С:</label>
+            <input
+              id="start-date"
+              type="date"
+              v-model="startDate"
+              @change="handleDateChange"
+              class="date-input"
+              :max="endDate"
+            />
+          </div>
+          <div class="date-input-group">
+            <label for="end-date">По:</label>
+            <input
+              id="end-date"
+              type="date"
+              v-model="endDate"
+              @change="handleDateChange"
+              class="date-input"
+              :min="startDate"
+            />
+          </div>
         </div>
       </div>
 
-      <div class="chart-container" v-if="isMounted && VueApexCharts">
+      <!-- Состояние загрузки -->
+      <div v-if="isLoading" class="chart-placeholder">
+        <div class="loading-text">Загрузка данных...</div>
+      </div>
+
+      <!-- Нет данных -->
+      <div v-else-if="!hasData" class="chart-placeholder">
+        <div class="no-data">
+          <q-icon name="bar_chart" size="48px" color="grey" />
+          <div class="no-data-text">Нет данных за выбранный период</div>
+          <div class="no-data-hint">Попробуйте выбрать другой период</div>
+        </div>
+      </div>
+
+      <!-- Есть данные и график готов -->
+      <div v-else-if="isMounted && VueApexCharts && hasData" class="chart-container">
         <component
           :is="VueApexCharts"
-          type="line"
           height="400"
           :options="chartOptions"
-          :series="chartData.series"
+          :series="filteredChartData.series"
         />
       </div>
+
+      <!-- Загрузка графика -->
       <div v-else class="chart-placeholder">
         <div class="loading-text">Загрузка графика...</div>
       </div>

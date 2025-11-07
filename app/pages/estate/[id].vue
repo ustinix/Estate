@@ -208,8 +208,8 @@ const goBack = () => {
         </div>
       </div>
       <!-- <div class="charts">
-      <MainChart />
-    </div> -->
+        <MainChart />
+      </div> -->
       <EstateTransactionsTable
         v-if="authStore.user?.id && estateId && estate"
         :user-id="authStore.user.id"
