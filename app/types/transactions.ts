@@ -90,3 +90,19 @@ export interface RegularExpense extends BaseTransaction {
   repayment_plan_id?: number;
   frequency_id?: number;
 }
+
+export interface FinancialStatsResponse {
+  categories: string[];
+  income_data: number[];
+  expense_data: number[];
+  monthly_balance_data: number[];
+  cumulative_balance_data: number[];
+}
+
+export interface ChartData {
+  categories: string[];
+  series: {
+    name: string;
+    data: number[];
+  }[];
+}

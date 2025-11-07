@@ -4,6 +4,7 @@ import { useDictionariesStore } from '~/stores/dictionariesStore';
 import EstateDetailCard from '~/components/EstateDetailCard.vue';
 import TransactionForm from '~/components/TransactionForm.vue';
 import EstateTransactionsTable from '~/components/EstateTransactionsTable.vue';
+import type { ChartData } from '~/types/transactions';
 
 const $q = useQuasar();
 const authStore = useAuthStore();
@@ -31,6 +32,32 @@ const { isLoading: transactionsLoading } = storeToRefs(transactionsStore);
 const estateTypeOptions = computed(() => dictionariesStore.estateTypeOptions);
 
 const isLoading = computed(() => estateLoading.value || transactionsLoading.value);
+const chartData = ref<ChartData>({
+  categories: [],
+  series: [
+    { name: 'Доход', data: [] },
+    { name: 'Расход', data: [] },
+    { name: 'Месячный баланс', data: [] },
+    { name: 'Накопительный баланс', data: [] },
+  ],
+});
+const isChartLoading = ref(false);
+const startDate = ref('2025-04-01');
+const endDate = ref('2025-07-31');
+
+const loadChartData = async () => {
+  if (!userId.value || !estateId.value) return;
+
+  isChartLoading.value = true;
+  try {
+    const data = await transactionsStore.getFinancialStats(startDate.value, endDate.value);
+    chartData.value = data;
+  } catch (error) {
+    console.error('Ошибка загрузки аналитики:', error);
+  } finally {
+    isChartLoading.value = false;
+  }
+};
 
 onMounted(() => {
   isHydrated.value = true;
@@ -39,6 +66,7 @@ onMounted(() => {
     estateStore.setSelectedEstateId(estateId.value);
     estateStore.getUserEstate(authStore.user.id, estateId.value);
     transactionsStore.getUserEstateTransactions(authStore.user.id, estateId.value);
+    loadChartData();
   }
 });
 
@@ -207,9 +235,35 @@ const goBack = () => {
           />
         </div>
       </div>
-      <!-- <div class="charts">
-        <MainChart />
-      </div> -->
+      <div class="charts">
+        <div class="date-controls-container">
+          <div class="date-controls">
+            <div class="date-input-group">
+              <label for="start-date">С:</label>
+              <input
+                id="start-date"
+                type="date"
+                v-model="startDate"
+                @change="loadChartData"
+                class="date-input"
+                :max="endDate"
+              />
+            </div>
+            <div class="date-input-group">
+              <label for="end-date">По:</label>
+              <input
+                id="end-date"
+                type="date"
+                v-model="endDate"
+                @change="loadChartData"
+                class="date-input"
+                :min="startDate"
+              />
+            </div>
+          </div>
+        </div>
+        <MainChart :chart-data="chartData" :is-loading="isChartLoading" />
+      </div>
       <EstateTransactionsTable
         v-if="authStore.user?.id && estateId && estate"
         :user-id="authStore.user.id"
@@ -282,6 +336,39 @@ const goBack = () => {
   justify-content: flex-end;
   margin-top: 20px;
 }
+.date-controls-container {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px var(--box-shadow);
+}
+
+.date-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.date-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-input-group label {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.date-input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+}
 
 @media (max-width: 768px) {
   .estate-page {
@@ -290,6 +377,14 @@ const goBack = () => {
 
   .edit-mode {
     padding: 16px;
+  }
+  .date-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-input-group {
+    justify-content: space-between;
   }
 }
 </style>
