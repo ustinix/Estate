@@ -104,7 +104,7 @@ watch(showModal, newVal => {
         </q-form>
       </q-card-section>
 
-      <q-card-actions align="right">
+      <q-card-actions class="actions" align="right">
         <q-btn flat label="Отмена" @click="closeModal" />
         <q-btn
           label="Создать"
@@ -118,4 +118,8 @@ watch(showModal, newVal => {
   </q-dialog>
 </template>
 
-<style scoped></style>
+<style scoped>
+.actions {
+  padding: 0 20px 20px 0;
+}
+</style>

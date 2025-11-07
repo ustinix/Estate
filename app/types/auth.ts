@@ -51,5 +51,4 @@ export interface ChangePasswordRequest {
 export interface NotificationSettingsRequest {
   emailNotifications: boolean;
   smsNotifications: boolean;
-  telegramNotifications: boolean;
 }

@@ -295,21 +295,18 @@ export const useAuthStore = defineStore('auth', () => {
           : {
               emailNotifications: true,
               smsNotifications: false,
-              telegramNotifications: true,
             };
       } catch (error) {
         console.error('Ошибка загрузки настроек уведомлений', error);
         return {
           emailNotifications: true,
           smsNotifications: false,
-          telegramNotifications: true,
         };
       }
     }
     return {
       emailNotifications: true,
       smsNotifications: false,
-      telegramNotifications: true,
     };
   };
 

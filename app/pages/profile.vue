@@ -17,8 +17,7 @@ definePageMeta({
 
 const $q = useQuasar();
 const authStore = useAuthStore();
-
-const activeTab = useLocalStorage('profile-active-tab', 'profile');
+const activeTab = ref('profile');
 const isNotificationsLoading = ref(true);
 const userId = computed(() => authStore.user?.id);
 const userEmail = computed(() => authStore.user?.email);
@@ -37,7 +36,6 @@ const passwordData = ref<ChangePasswordRequest>({
 const notificationsData = ref<NotificationSettingsRequest>({
   emailNotifications: false,
   smsNotifications: false,
-  telegramNotifications: false,
 });
 
 watchEffect(() => {

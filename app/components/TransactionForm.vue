@@ -483,7 +483,6 @@ watch([operationType, regularity], () => {
 .transaction-form-wrapper {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
 }
 
 .form-container {
@@ -501,7 +500,6 @@ watch([operationType, regularity], () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1rem 0;
 }
 
 .radio-section {
@@ -580,7 +578,6 @@ watch([operationType, regularity], () => {
 :deep(.q-field--textarea .q-field__control) {
   min-height: 80px;
   resize: vertical;
-  overflow: auto;
 }
 
 :deep(.q-field--textarea .q-field__native) {
@@ -591,6 +588,7 @@ watch([operationType, regularity], () => {
 
 :deep(.q-field--textarea) {
   resize: vertical;
+  overflow: auto;
 }
 
 .settings-toggle {
@@ -710,8 +708,8 @@ watch([operationType, regularity], () => {
     gap: 0.5rem;
   }
 
-  .inputs-group .q-field {
-    min-width: calc(50% - 0.25rem);
+  .inputs-group .q-field:last-of-type {
+    overflow: hidden;
   }
 
   .settings-btn {
@@ -754,6 +752,10 @@ watch([operationType, regularity], () => {
 }
 
 @media (max-width: 480px) {
+  .inputs-group .q-field:last-of-type {
+    margin-top: 1rem;
+    overflow: hidden;
+  }
   .transaction-form-wrapper .q-pa-md {
     padding: 0.25rem;
   }
