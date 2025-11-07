@@ -70,7 +70,7 @@ onMounted(async () => {
   <ClientOnly>
     <div class="financial-chart">
       <div class="chart-header">
-        <h3>Аналитика доходов</h3>
+        <h3>Аналитика доходов (пока тестовые данные)</h3>
       </div>
 
       <div v-if="isLoading" class="chart-placeholder">
@@ -235,24 +235,122 @@ onMounted(async () => {
 .summary-value.balance {
   color: #008ffb;
 }
+@media (max-width: 1024px) {
+  .financial-chart {
+    min-width: 600px;
+    max-width: 900px;
+    padding: 16px;
+  }
+
+  .chart-header h3 {
+    font-size: 1.3rem;
+  }
+
+  .chart-container {
+    margin: 16px 0;
+  }
+}
 
 @media (max-width: 768px) {
   .financial-chart {
-    padding: 15px;
+    min-width: 500px;
+    max-width: 700px;
+    padding: 12px;
   }
 
   .chart-header {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .chart-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .chart-container {
+    margin: 12px 0;
+  }
+
+  .chart-placeholder {
+    height: 350px;
   }
 
   .chart-legend {
-    gap: 15px;
+    gap: 20px;
+    margin: 16px 0;
+  }
+
+  .legend-item {
+    font-size: 0.85rem;
   }
 
   .financial-summary {
     grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .summary-card {
+    padding: 16px;
+  }
+
+  .summary-value {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .financial-chart {
+    min-width: 300px;
+    max-width: 100%;
+    padding: 10px;
+    margin: 0 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .chart-header {
+    gap: 8px;
+    margin-bottom: 12px;
+    min-width: 500px;
+  }
+
+  .chart-header h3 {
+    font-size: 1.1rem;
+    text-align: center;
+  }
+
+  .chart-container {
+    margin: 10px 0;
+    min-width: 500px;
+  }
+
+  .chart-placeholder {
+    height: 300px;
+    min-width: 500px;
+  }
+
+  .chart-legend {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    margin: 12px 0;
+    min-width: 500px;
+  }
+
+  .legend-item {
+    font-size: 0.8rem;
+  }
+
+  .loading-text {
+    font-size: 1rem;
+  }
+
+  .no-data-text {
+    font-size: 0.9rem;
+    text-align: center;
   }
 }
 </style>
