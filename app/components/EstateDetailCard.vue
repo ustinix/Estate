@@ -60,7 +60,7 @@ defineProps<Props>();
 
 <style scoped>
 .estate-card {
-  background: white;
+  background: var(--bg-color-light);
   border-radius: 12px;
   box-shadow: 0 2px 8px var(--box-shadow);
   overflow: hidden;

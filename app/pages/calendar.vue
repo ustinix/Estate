@@ -8,7 +8,7 @@ const estateStore = useEstateStore();
 const { estates } = storeToRefs(estateStore);
 const userEstates = computed(() => estates.value ?? []);
 
-if (authStore.user) {
+if (authStore.isAuthenticated && authStore.user) {
   estateStore.getUserEstates(authStore.user.id);
 }
 
@@ -37,8 +37,10 @@ watch(
         </NuxtLink>
       </div>
     </div>
-    <div v-if="estates.length > 0"><CalendarBlock :user-estates="userEstates" /></div>
-    <div v-else class="layout default-block-container">
+    <div
+      v-else-if="authStore.isAuthenticated && estates.length === 0"
+      class="layout default-block-container"
+    >
       <div class="text-center q-pa-lg default-block">
         <NuxtLink to="/portfolio">
           <q-btn
@@ -48,6 +50,10 @@ watch(
           />
         </NuxtLink>
       </div>
+    </div>
+
+    <div v-else-if="authStore.isAuthenticated && estates.length > 0">
+      <CalendarBlock :user-estates="userEstates" />
     </div>
   </section>
 </template>
