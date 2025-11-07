@@ -62,7 +62,7 @@ defineProps<Props>();
 .estate-card {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--box-shadow);
   overflow: hidden;
 }
 
@@ -75,8 +75,8 @@ defineProps<Props>();
   align-items: center;
   justify-content: space-between;
   padding: 20px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
+  background: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .main-info {
@@ -94,14 +94,14 @@ defineProps<Props>();
 }
 
 .estate-type {
-  color: #666;
+  color: var(--label);
   font-size: 12px;
   margin-bottom: 4px;
 }
 
 .estate-title {
   font-size: 18px;
-  color: #333;
+  color: var(--text-color-black);
   margin: 0;
   font-weight: 600;
   line-height: 1.3;
@@ -118,8 +118,8 @@ defineProps<Props>();
   align-items: center;
   gap: 4px;
   padding: 6px 10px;
-  background: #e8f5e8;
-  color: #2e7d32;
+  background: var(--income-bg);
+  color: var(--income);
   border-radius: 12px;
   font-weight: 500;
   font-size: 12px;
@@ -131,8 +131,8 @@ defineProps<Props>();
   align-items: center;
   gap: 4px;
   padding: 6px 10px;
-  background: #f5f5f5;
-  color: #666;
+  background: var(--bg-color);
+  color: var(--label);
   border-radius: 12px;
   font-weight: 500;
   font-size: 12px;
@@ -150,7 +150,7 @@ defineProps<Props>();
 .estate-description {
   font-size: 14px;
   line-height: 1.5;
-  color: #666;
+  color: var(--label);
   margin: 0;
 }
 
@@ -159,7 +159,7 @@ defineProps<Props>();
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: #666;
+  color: var(--label);
 }
 
 @media (max-width: 768px) {

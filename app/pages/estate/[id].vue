@@ -245,7 +245,7 @@ const goBack = () => {
 
 .btn-back {
   background: none;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
@@ -253,7 +253,7 @@ const goBack = () => {
 }
 
 .btn-back:hover {
-  background: #f5f5f5;
+  background: var(--bg-color);
 }
 
 .loading,
@@ -263,11 +263,11 @@ const goBack = () => {
 }
 
 .error {
-  color: #d32f2f;
+  color: var(--error);
 }
 
 .edit-mode {
-  background: #f8f9fa;
+  background: var(--bg-color);
   padding: 20px;
   border-radius: 12px;
 }
@@ -281,83 +281,6 @@ const goBack = () => {
   gap: 12px;
   justify-content: flex-end;
   margin-top: 20px;
-}
-
-.income {
-  border-left: 3px solid #10b981;
-}
-
-.expense {
-  border-left: 3px solid #ef4444;
-}
-
-.amount-income {
-  color: #10b981;
-  font-weight: bold;
-}
-
-.amount-expense {
-  color: #ef4444;
-  font-weight: bold;
-}
-
-.direction-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.direction-badge.income {
-  background-color: #dcfce7;
-  color: #166534;
-}
-
-.direction-badge.expense {
-  background-color: #fecaca;
-  color: #991b1b;
-}
-
-.regularity-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  background-color: #e0e7ff;
-  color: #3730a3;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.comment {
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.transactions-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.transactions-table th,
-.transactions-table td {
-  padding: 8px 12px;
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding: 10px 0;
-}
-
-.no-data {
-  text-align: center;
-  padding: 40px;
-  color: #6b7280;
 }
 
 @media (max-width: 768px) {

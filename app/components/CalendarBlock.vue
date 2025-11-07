@@ -303,9 +303,9 @@ const getEventTypeClass = (type: string) => {
 
 .estate-selector select {
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: white;
+  background: var(--bg-color-light);
 }
 
 .stats-info {
@@ -313,22 +313,22 @@ const getEventTypeClass = (type: string) => {
 }
 
 .stats-card {
-  background: white;
+  background: var(--bg-color-light);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 12px var(--box-shadow);
+  border: 1px solid var(--border-color);
 }
 
 .stats-header {
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #f5f5f5;
+  border-bottom: 2px solid var(--border-color);
 }
 
 .stats-header h5 {
   margin: 0;
-  color: #333;
+  color: var(--text-color-black);
   font-size: 16px;
   font-weight: 600;
 }
@@ -342,7 +342,7 @@ const getEventTypeClass = (type: string) => {
 .stat-item {
   padding: 16px;
   border-radius: 8px;
-  background: #f8f9fa;
+  background: var(--bg-color);
   text-align: center;
   transition: transform 0.2s ease;
 }
@@ -352,28 +352,28 @@ const getEventTypeClass = (type: string) => {
 }
 
 .stat-item.income {
-  background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
-  border: 1px solid #4caf50;
+  background: var(--income-bg);
+  border: 1px solid var(--income-border);
 }
 
 .stat-item.expense {
-  background: linear-gradient(135deg, #ffebee, #ffcdd2);
-  border: 1px solid #f44336;
+  background: var(--expense-bg);
+  border: 1px solid var(--expense-border);
 }
 
 .stat-item.balance.positive {
-  background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
-  border: 1px solid #4caf50;
+  background: var(--income-bg);
+  border: 1px solid var(--income-border);
 }
 
 .stat-item.balance.negative {
-  background: linear-gradient(135deg, #ffebee, #ffcdd2);
-  border: 1px solid #f44336;
+  background: var(--expense-bg);
+  border: 1px solid var(--expense-border);
 }
 
 .stat-label {
   font-size: 12px;
-  color: #666;
+  color: var(--label);
   font-weight: 500;
   margin-bottom: 6px;
   text-transform: uppercase;
@@ -383,32 +383,32 @@ const getEventTypeClass = (type: string) => {
 .stat-value {
   font-size: 18px;
   font-weight: 700;
-  color: #333;
+  color: var(--text-color-black);
 }
 
 .stat-item.income .stat-value {
-  color: #2e7d32;
+  color: var(--income);
 }
 
 .stat-item.expense .stat-value {
-  color: #c62828;
+  color: var(--expense);
 }
 
 .stat-item.balance.positive .stat-value {
-  color: #2e7d32;
+  color: var(--income);
 }
 
 .stat-item.balance.negative .stat-value {
-  color: #c62828;
+  color: var(--expense);
 }
 
 .calendar-container {
   overflow-x: auto;
   overflow-y: hidden;
-  background: white;
+  background: var(--bg-color-light);
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px var(--box-shadow);
 }
 
 .calendar-loading {
@@ -416,19 +416,19 @@ const getEventTypeClass = (type: string) => {
   justify-content: center;
   align-items: center;
   height: 400px;
-  background: #f5f5f5;
+  background: var(--bg-color);
   border-radius: 8px;
-  color: #666;
+  color: var(--label);
 }
 
 :deep(.outlook-style .vc-day) {
   min-height: 120px;
-  border: 1px solid #e0e0e0;
-  background: white;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color-light);
 }
 
 :deep(.outlook-style .vc-day:not(.vc-disabled):hover) {
-  background: #f8f9fa;
+  background: var(--bg-color);
 }
 
 :deep(.outlook-style .vc-day-content) {
@@ -446,7 +446,7 @@ const getEventTypeClass = (type: string) => {
   font-size: 12px;
   font-weight: bold;
   margin-bottom: 4px;
-  color: #333;
+  color: var(--text-color-black);
 }
 
 .events-list {
@@ -470,17 +470,17 @@ const getEventTypeClass = (type: string) => {
 
 .event-line:hover {
   transform: translateX(2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--box-shadow);
 }
 
 .event-line.income {
-  background: rgba(76, 175, 80, 0.1);
-  border-left-color: #4caf50;
+  background: var(--income-bg);
+  border-left-color: var(--income-border);
 }
 
 .event-line.expense {
-  background: rgba(244, 67, 54, 0.1);
-  border-left-color: #f44336;
+  background: var(--expense-bg);
+  border-left-color: var(--expense-border);
 }
 
 .event-title {
@@ -497,11 +497,11 @@ const getEventTypeClass = (type: string) => {
 }
 
 .event-line.income .event-amount {
-  color: #2e7d32;
+  color: var(--income);
 }
 
 .event-line.expense .event-amount {
-  color: #c62828;
+  color: var(--expense);
 }
 
 .event-modal {
@@ -511,7 +511,7 @@ const getEventTypeClass = (type: string) => {
 
 .modal-header {
   padding-bottom: 16px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modal-title {
@@ -522,7 +522,7 @@ const getEventTypeClass = (type: string) => {
 
 .operation-type {
   font-size: 14px;
-  color: #666;
+  color: var(--label);
   margin: 0;
   font-style: italic;
 }
@@ -547,7 +547,7 @@ const getEventTypeClass = (type: string) => {
 
 .detail-label {
   font-weight: 600;
-  color: #666;
+  color: var(--label);
   min-width: 100px;
   flex-shrink: 0;
 }
@@ -557,18 +557,33 @@ const getEventTypeClass = (type: string) => {
 }
 
 .detail-value.income {
-  color: #2e7d32;
+  color: var(--income);
   font-weight: bold;
 }
 
 .detail-value.expense {
-  color: #c62828;
+  color: var(--expense);
   font-weight: bold;
 }
 
 .detail-value.description {
   line-height: 1.4;
-  color: #555;
+  color: var(--label);
+}
+:deep(.vc-day:first-of-type) {
+  margin-left: 0 !important;
+}
+
+:deep(.vc-day:last-of-type) {
+  margin-right: 0 !important;
+}
+
+:deep(.on-left) {
+  margin-right: 0 !important;
+}
+
+:deep(.on-right) {
+  margin-left: 0 !important;
 }
 
 @media (max-width: 768px) {
@@ -587,9 +602,9 @@ const getEventTypeClass = (type: string) => {
   .estate-selector select {
     width: 120px;
     padding: 8px 0px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    background: white;
+    background: var(--bg-color-light);
   }
 
   .stats-grid {

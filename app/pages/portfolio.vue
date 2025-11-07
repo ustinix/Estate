@@ -132,7 +132,7 @@ const createEstate = async (estateData: { estate_type_id: number; name: string }
   width: 100%;
 }
 .add-card {
-  border: 2px dashed #ccc;
+  border: 2px dashed var(--border-color);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -142,12 +142,12 @@ const createEstate = async (estateData: { estate_type_id: number; name: string }
 
 .add-card:hover {
   border-color: var(--text-color);
-  background-color: #f5f5f5;
+  background-color: var(--bg-color);
 }
 
 .add-text {
   margin-top: 12px;
-  color: #666;
+  color: var(--label);
   font-weight: 500;
 }
 .cards-container {

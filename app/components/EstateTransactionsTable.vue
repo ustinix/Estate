@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useTransactionsStore } from '~/stores/transactions';
 import type { EstateTransactionsFilters } from '~/types/transactions';
+import { formatDate } from '~/utils/formatDate';
+import { formatCurrency } from '~/utils/formatCurrency';
 
 interface Props {
   userId: number;
@@ -39,18 +41,6 @@ const handlePageChange = (page: number) => {
 
 const handleFilterChange = () => {
   loadTransactions(1);
-};
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('ru-RU');
-};
-
-const formatCurrency = (amount: string) => {
-  const number = parseFloat(amount);
-  return new Intl.NumberFormat('ru-RU', {
-    style: 'currency',
-    currency: 'RUB',
-  }).format(number);
 };
 </script>
 
@@ -173,16 +163,33 @@ const formatCurrency = (amount: string) => {
 .filter-group label {
   font-size: 12px;
   font-weight: 500;
-  color: #666;
+  color: var(--label);
+  height: 20px;
+  display: flex;
+  align-items: center;
 }
 
-.filter-group select,
-.filter-group input {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
+.filter-group select {
+  padding: 8px 28px 8px 12px;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 14px;
-  background: white;
+  background: var(--bg-color-light);
+  height: 36px;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='%23666' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 10px;
+}
+
+.filter-group input {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--bg-color-light);
+  height: 36px;
 }
 
 .table-container {
@@ -200,32 +207,32 @@ th,
 td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 th {
-  background-color: #f5f5f5;
+  background-color: var(--bg-color);
   font-weight: 600;
-  color: #333;
+  color: var(--text-color-black);
   font-size: 13px;
   white-space: nowrap;
 }
 
 .income {
-  background-color: #f0f9f0;
+  background-color: var(--income-bg);
 }
 
 .expense {
-  background-color: #fef0f0;
+  background-color: var(--expense-bg);
 }
 
 .text-green {
-  color: #22c55e;
+  color: var(--income);
   font-weight: 600;
 }
 
 .text-red {
-  color: #ef4444;
+  color: var(--expense);
   font-weight: 600;
 }
 
@@ -233,7 +240,7 @@ th {
 .empty-state {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: var(--label);
   font-size: 14px;
 }
 
@@ -247,16 +254,16 @@ th {
 
 .pagination-btn {
   padding: 8px 16px;
-  border: 1px solid #ddd;
-  background: white;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color-light);
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
 }
 .pagination-btn:hover:not(:disabled) {
-  background: #f3f4f6;
-  border-color: #9ca3af;
+  background: var(--bg-color);
+  border-color: var(--border-color);
 }
 
 .pagination-btn:disabled {
@@ -266,7 +273,7 @@ th {
 
 .pagination-info {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--label);
   text-align: center;
 }
 

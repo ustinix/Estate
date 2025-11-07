@@ -156,7 +156,7 @@ onUnmounted(() => {
   max-width: 300px;
   height: 100vh;
   background: var(--bg-color-light);
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 10px var(--box-shadow);
   transition: left 0.3s ease;
   z-index: 1000;
   overflow-y: auto;

@@ -52,7 +52,7 @@ import { FOOTER_PAGE } from '~/constants/footer';
   background: var(--bg-color);
   color: var(--text-color);
   padding: 2rem 1rem 1rem;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 -4px 12px var(--box-shadow);
   border-top: 1px solid var(--border-color);
   margin-top: auto;
 }
@@ -168,7 +168,7 @@ import { FOOTER_PAGE } from '~/constants/footer';
 @media (max-width: 768px) {
   .footer {
     padding: 1.5rem 1rem 1rem;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 -2px 8px var(--box-shadow);
   }
 
   .footer-content {

@@ -9,14 +9,22 @@
   -moz-osx-font-smoothing: grayscale;
 
   --text-color: #1a237e;
+  --text-color-black: #333;
   --bg-color: #f8f9fa;
   --bg-color-light: #ffffff;
   --primary: #2e7d32;
   --secondary: #ff6f00;
   --accent: #7b1fa2;
   --success: #388e3c;
+  --income-border: #4caf50;
+  --income-bg: #e8f5e8;
+  --expense-bg: #ffebee;
+  --expense-border: #f44336;
+  --income: #2e7d32;
+  --expense: #c62828;
   --warning: #f57c00;
   --error: #d32f2f;
+  --label: #666;
 
   --link-color: #1a237e;
   --link-hover: #2e7d32;

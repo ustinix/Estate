@@ -76,7 +76,7 @@ const handleClick = () => {
 
 .my-card:hover {
   border-color: var(--text-color);
-  background-color: #f5f5f5;
+  background-color: var(--bg-color);
 }
 
 .clickable-area {

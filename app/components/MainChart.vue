@@ -97,7 +97,7 @@ const chartOptions = {
   padding: 20px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px var(--box-shadow);
 }
 
 .chart-header {

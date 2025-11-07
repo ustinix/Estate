@@ -4,7 +4,7 @@ import { HOME_TEXT } from '~/constants/homePage';
 
 <template>
   <div class="layout home-page">
-    <section class="hero bg-primary text-white">
+    <section class="hero">
       <div class="container">
         <h1>{{ HOME_TEXT.hero.title }}</h1>
         <p>{{ HOME_TEXT.hero.subtitle }}</p>
@@ -47,7 +47,7 @@ import { HOME_TEXT } from '~/constants/homePage';
 </template>
 <style lang="scss" scoped>
 .hero {
-  background: linear-gradient(135deg, var(--primary) 0%, #1b5e20 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--income) 100%);
   color: white;
   padding: 120px 0 80px;
   text-align: center;
@@ -121,14 +121,14 @@ import { HOME_TEXT } from '~/constants/homePage';
 
     &:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 25px rgba(46, 125, 50, 0.15);
+      box-shadow: 0 8px 25px var(--box-shadow);
     }
 
     .benefit-icon {
       width: 80px;
       height: 80px;
       margin: 0 auto 1.5rem;
-      background: linear-gradient(135deg, var(--primary), #4caf50);
+      background: linear-gradient(135deg, var(--primary), var(--income-border));
       border-radius: 50%;
       display: flex;
       align-items: center;

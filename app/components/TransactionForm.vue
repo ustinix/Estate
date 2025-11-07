@@ -556,7 +556,7 @@ watch([operationType, regularity], () => {
   margin-bottom: 1.5rem;
   padding: 1rem;
   border-radius: 8px;
-  background: #f8f9fa;
+  background: var(--bg-color);
 }
 
 .inputs-group {
@@ -609,7 +609,7 @@ watch([operationType, regularity], () => {
   border-radius: 8px;
   padding: 1rem;
   margin-top: 1rem;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
 }
 
 .loan-section,
@@ -618,7 +618,7 @@ watch([operationType, regularity], () => {
   border-radius: 8px;
   padding: 1rem;
   margin: 1rem 0;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
 }
 
 .submit-section {
@@ -626,7 +626,7 @@ watch([operationType, regularity], () => {
   justify-content: center;
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border-color);
 }
 
 .submit-btn {
