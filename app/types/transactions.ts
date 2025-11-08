@@ -54,8 +54,8 @@ export interface EstateTransactionsFilters {
   transaction_type_regularity?: boolean;
   start_date?: string;
   end_date?: string;
+  page?: number;
   limit?: number;
-  offset?: number;
 }
 
 export interface BaseTransaction {

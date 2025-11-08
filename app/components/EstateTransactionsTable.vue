@@ -7,28 +7,21 @@ import { formatCurrency } from '~/utils/formatCurrency';
 interface Props {
   userId: number;
   estateId: number;
-  pageSize?: number;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  pageSize: 10,
-});
+const props = defineProps<Props>();
 
 const store = useTransactionsStore();
 
 const filters = ref<EstateTransactionsFilters>({
-  limit: props.pageSize,
-  offset: 0,
+  page: 1,
 });
 
 const loadTransactions = async (page: number = 1) => {
   try {
-    const offset = (page - 1) * (filters.value.limit || props.pageSize);
-
     await store.getUserEstateTransactions(props.userId, props.estateId, {
       ...filters.value,
-      offset,
-      limit: filters.value.limit || props.pageSize,
+      page,
     });
   } catch (error) {
     console.error('Ошибка загрузки транзакций:', error);
@@ -36,10 +29,12 @@ const loadTransactions = async (page: number = 1) => {
 };
 
 const handlePageChange = (page: number) => {
+  filters.value.page = page;
   loadTransactions(page);
 };
 
 const handleFilterChange = () => {
+  filters.value.page = 1;
   loadTransactions(1);
 };
 </script>

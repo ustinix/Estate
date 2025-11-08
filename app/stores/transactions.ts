@@ -4,7 +4,6 @@ import type {
   EstateTransactionForTable,
   EstateTransactionResponse,
   EstateTransactionsFilters,
-  FinancialStatsResponse,
   ChartData,
 } from '~/types/transactions';
 
@@ -16,21 +15,15 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const error = ref<string | null>(null);
   const pagination = ref({
     page: 1,
-    page_size: 15,
+    page_size: 10,
     total_items: 0,
     total_pages: 0,
   });
 
-  const defaultPaginationParams: EstateTransactionsFilters = {
+  const defaultPaginationParams = {
+    page: 1,
     limit: 10,
-    offset: 0,
   };
-
-  // временно пока бэк не починит страницы (пока количество отдается на 1 меньше)
-  const fixedPagination = computed(() => ({
-    ...pagination.value,
-    total_pages: pagination.value.total_pages + 1,
-  }));
 
   const $api = useApi();
 
@@ -52,8 +45,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
       return {
         data: [],
         total_items: 0,
-        page: 1,
-        page_size: 15,
+        page: defaultPaginationParams.page,
+        page_size: defaultPaginationParams.limit,
         total_pages: 0,
       };
     }
@@ -89,21 +82,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     } finally {
       isLoading.value = false;
     }
-  };
-
-  const changePage = async (
-    userId: number,
-    estateId: number,
-    page: number,
-    filters: EstateTransactionsFilters = {},
-  ) => {
-    const offset = (page - 1) * (filters.limit || pagination.value.page_size);
-
-    return await getUserEstateTransactions(userId, estateId, {
-      ...filters,
-      offset,
-      limit: filters.limit || pagination.value.page_size,
-    });
   };
 
   const addEstateTransactions = async (
@@ -247,8 +225,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
   };
 
   return {
-    // pagination,
-    pagination: fixedPagination,
+    pagination,
     userTransactions,
     userEstateTransactions,
     financialStats,
@@ -258,7 +235,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     clearTransactions,
     getUserTransactions,
     addEstateTransactions,
-    changePage,
     getFinancialStats,
     clearFinancialStats,
   };
