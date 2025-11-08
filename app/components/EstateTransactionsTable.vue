@@ -15,7 +15,20 @@ const store = useTransactionsStore();
 
 const filters = ref<EstateTransactionsFilters>({
   page: 1,
+  sort_by: 'date',
+  sort_order: 'ASC',
 });
+
+const sortOptions = [
+  { value: 'date', label: 'По дате' },
+  { value: 'sum', label: 'По сумме' },
+  { value: 'transaction_type_name', label: 'По типу транзакции' },
+];
+
+const sortOrderOptions = [
+  { value: 'DESC', label: 'По убыванию' },
+  { value: 'ASC', label: 'По возрастанию' },
+];
 
 const loadTransactions = async (page: number = 1) => {
   try {
@@ -34,6 +47,11 @@ const handlePageChange = (page: number) => {
 };
 
 const handleFilterChange = () => {
+  filters.value.page = 1;
+  loadTransactions(1);
+};
+
+const handleSortChange = () => {
   filters.value.page = 1;
   loadTransactions(1);
 };
@@ -68,6 +86,23 @@ const handleFilterChange = () => {
       <div class="filter-group">
         <label>Дата по:</label>
         <input type="date" v-model="filters.end_date" @change="handleFilterChange" />
+      </div>
+      <div class="filter-group">
+        <label>Сортировать по:</label>
+        <select v-model="filters.sort_by" @change="handleSortChange">
+          <option v-for="option in sortOptions" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Порядок:</label>
+        <select v-model="filters.sort_order" @change="handleSortChange">
+          <option v-for="option in sortOrderOptions" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
       </div>
     </div>
 

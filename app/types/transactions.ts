@@ -56,6 +56,9 @@ export interface EstateTransactionsFilters {
   end_date?: string;
   page?: number;
   limit?: number;
+  page_size?: number;
+  sort_by?: string;
+  sort_order?: 'ASC' | 'DESC';
 }
 
 export interface BaseTransaction {
