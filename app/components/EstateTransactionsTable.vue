@@ -51,9 +51,21 @@ const handleFilterChange = () => {
   loadTransactions(1);
 };
 
-const handleSortChange = () => {
+const handleSort = (field: string) => {
+  if (filters.value.sort_by === field) {
+    filters.value.sort_order = filters.value.sort_order === 'ASC' ? 'DESC' : 'ASC';
+  } else {
+    filters.value.sort_by = field;
+    filters.value.sort_order = 'ASC';
+  }
+
   filters.value.page = 1;
   loadTransactions(1);
+};
+
+const getSortIcon = (field: string) => {
+  if (filters.value.sort_by !== field) return 'sort-inactive';
+  return filters.value.sort_order === 'ASC' ? 'sort-asc' : 'sort-desc';
 };
 </script>
 
@@ -87,32 +99,26 @@ const handleSortChange = () => {
         <label>Дата по:</label>
         <input type="date" v-model="filters.end_date" @change="handleFilterChange" />
       </div>
-      <div class="filter-group">
-        <label>Сортировать по:</label>
-        <select v-model="filters.sort_by" @change="handleSortChange">
-          <option v-for="option in sortOptions" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label>Порядок:</label>
-        <select v-model="filters.sort_order" @change="handleSortChange">
-          <option v-for="option in sortOrderOptions" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </div>
     </div>
 
     <div class="table-container">
       <table v-if="!store.isLoading && store.userEstateTransactions.length">
         <thead>
           <tr>
-            <th>Дата</th>
-            <th>Тип транзакции</th>
-            <th>Сумма</th>
+            <th class="sortable" @click="handleSort('date')" :class="getSortIcon('date')">
+              Дата <span class="sort-arrow"></span>
+            </th>
+            <th
+              class="sortable"
+              @click="handleSort('transaction_type_name')"
+              :class="getSortIcon('transaction_type_name')"
+            >
+              Тип транзакции
+              <span class="sort-arrow"></span>
+            </th>
+            <th class="sortable" @click="handleSort('sum')" :class="getSortIcon('sum')">
+              Сумма <span class="sort-arrow"></span>
+            </th>
             <th>Комментарий</th>
           </tr>
         </thead>
@@ -246,6 +252,44 @@ th {
   color: var(--text-color-black);
   font-size: 13px;
   white-space: nowrap;
+  position: relative;
+}
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+  padding-right: 30px !important;
+}
+
+.sortable:hover {
+  background-color: var(--bg-color-light);
+}
+
+.sort-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  transition: all 0.2s;
+}
+
+.sort-inactive .sort-arrow {
+  border-top: 4px solid #ccc;
+  border-bottom: none;
+}
+
+.sort-asc .sort-arrow {
+  border-bottom: 4px solid var(--primary);
+  border-top: none;
+}
+
+.sort-desc .sort-arrow {
+  border-top: 4px solid var(--primary);
+  border-bottom: none;
 }
 
 .income {
@@ -346,6 +390,14 @@ th {
     font-size: 12px;
   }
 
+  .sortable {
+    padding-right: 25px !important;
+  }
+
+  .sort-arrow {
+    right: 8px;
+  }
+
   .pagination {
     gap: 12px;
   }
@@ -385,6 +437,14 @@ th {
 
   th {
     font-size: 11px;
+  }
+
+  .sortable {
+    padding-right: 20px !important;
+  }
+
+  .sort-arrow {
+    right: 6px;
   }
 
   .loading,
