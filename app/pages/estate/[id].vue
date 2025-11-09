@@ -54,7 +54,12 @@ const loadChartData = async () => {
 
   isChartLoading.value = true;
   try {
-    const data = await transactionsStore.getFinancialStats(startDate.value, endDate.value);
+    const data = await transactionsStore.getFinancialStats(
+      userId.value,
+      estateId.value,
+      startDate.value,
+      endDate.value,
+    );
     chartData.value = data;
   } catch (error) {
     console.error('Ошибка загрузки аналитики:', error);
