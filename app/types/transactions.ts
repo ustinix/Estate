@@ -52,8 +52,8 @@ export interface EstateTransactionsFilters {
   transaction_group_id?: number;
   transaction_type_direction?: boolean;
   transaction_type_regularity?: boolean;
-  start_date?: string;
-  end_date?: string;
+  date_start?: string;
+  date_end?: string;
   page?: number;
   limit?: number;
   page_size?: number;
@@ -71,7 +71,7 @@ export interface BaseTransaction {
 export interface RegularIncome extends BaseTransaction {
   regularity: true;
   direction: true;
-  start_date: string;
+  date_start: string;
   payment_day: number;
   contract_duration: 'short' | 'long';
   indexation_rate?: number;
@@ -83,7 +83,7 @@ export interface RegularIncome extends BaseTransaction {
 export interface RegularExpense extends BaseTransaction {
   regularity: true;
   direction: false;
-  start_date: string;
+  date_start: string;
   payment_day: number;
   loan_amount?: number;
   loan_term?: number;

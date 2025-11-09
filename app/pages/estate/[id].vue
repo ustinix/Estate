@@ -42,8 +42,12 @@ const chartData = ref<ChartData>({
   ],
 });
 const isChartLoading = ref(false);
-const startDate = ref('2025-04-01');
-const endDate = ref('2025-07-31');
+const forEndDate = new Date();
+forEndDate.setMonth(forEndDate.getMonth() - 12);
+const currentDate = new Date();
+
+const startDate = ref(forEndDate.toLocaleDateString('en-CA'));
+const endDate = ref(currentDate.toLocaleDateString('en-CA'));
 
 const loadChartData = async () => {
   if (!userId.value || !estateId.value) return;

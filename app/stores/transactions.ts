@@ -92,7 +92,10 @@ export const useTransactionsStore = defineStore('transactions', () => {
       isLoading.value = true;
       error.value = null;
       await $api.post(`/transactions`, transactionData);
-
+      await $api.post(`/users/${userId}/estates/${transactionData.estate_id}/values/recalculate`, {
+        estate_id: transactionData.estate_id,
+        date_start: transactionData.date_start,
+      });
       await getUserEstateTransactions(userId, transactionData.estate_id);
     } catch (err) {
       error.value = String(err);
@@ -120,8 +123,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
   //       `/users/${userId}/estates/${estateId}/financial-stats/chart`,
   //       {
   //         params: {
-  //           start_date: startDate,
-  //           end_date: endDate,
+  //           date_start: startDate,
+  //           date_end: endDate,
   //         },
   //       },
   //     );

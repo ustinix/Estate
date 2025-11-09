@@ -19,17 +19,6 @@ const filters = ref<EstateTransactionsFilters>({
   sort_order: 'ASC',
 });
 
-const sortOptions = [
-  { value: 'date', label: 'По дате' },
-  { value: 'sum', label: 'По сумме' },
-  { value: 'transaction_type_name', label: 'По типу транзакции' },
-];
-
-const sortOrderOptions = [
-  { value: 'DESC', label: 'По убыванию' },
-  { value: 'ASC', label: 'По возрастанию' },
-];
-
 const loadTransactions = async (page: number = 1) => {
   try {
     await store.getUserEstateTransactions(props.userId, props.estateId, {
@@ -92,12 +81,12 @@ const getSortIcon = (field: string) => {
 
       <div class="filter-group">
         <label>Дата с:</label>
-        <input type="date" v-model="filters.start_date" @change="handleFilterChange" />
+        <input type="date" v-model="filters.date_start" @change="handleFilterChange" />
       </div>
 
       <div class="filter-group">
         <label>Дата по:</label>
-        <input type="date" v-model="filters.end_date" @change="handleFilterChange" />
+        <input type="date" v-model="filters.date_end" @change="handleFilterChange" />
       </div>
     </div>
 

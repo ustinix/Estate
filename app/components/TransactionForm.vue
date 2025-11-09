@@ -69,7 +69,7 @@ const oneTimeForm = ref({
 const regularIncomeForm = ref({
   amount: null as number | null,
   description: '',
-  start_date: '',
+  date_start: '',
   payment_day: null as number | null,
   frequency_id: undefined as number | undefined,
   loan_term: null as number | null,
@@ -78,7 +78,7 @@ const regularIncomeForm = ref({
 const regularExpenseForm = ref({
   amount: null as number | null,
   description: '',
-  start_date: '',
+  date_start: '',
   payment_day: null as number | null,
   frequency_id: undefined as number | undefined,
   loan_term: null as number | null,
@@ -97,7 +97,7 @@ const isFormValid = computed(() => {
   } else if (operationType.value) {
     const form = regularIncomeForm.value;
     const hasBasicFields =
-      !!form.amount && !!form.start_date && !!form.payment_day && !!form.frequency_id;
+      !!form.amount && !!form.date_start && !!form.payment_day && !!form.frequency_id;
 
     if (isRentCategory.value) {
       return hasBasicFields && !!form.loan_term;
@@ -107,7 +107,7 @@ const isFormValid = computed(() => {
   } else {
     const form = regularExpenseForm.value;
     const hasBasicFields =
-      !!form.amount && !!form.start_date && !!form.payment_day && !!form.frequency_id;
+      !!form.amount && !!form.date_start && !!form.payment_day && !!form.frequency_id;
 
     if (isRentCategory.value || isCreditOrInstallment.value) {
       return hasBasicFields && !!form.loan_term;
@@ -154,7 +154,7 @@ const onSubmit = async () => {
       const form = regularIncomeForm.value;
       transactionData.cost = Number(form.amount) || 0;
       transactionData.comment = form.description || '';
-      transactionData.date_start = String(form.start_date);
+      transactionData.date_start = String(form.date_start);
       transactionData.payday = Number(form.payment_day) || undefined;
       transactionData.frequency_id = form.frequency_id;
 
@@ -165,7 +165,7 @@ const onSubmit = async () => {
       const form = regularExpenseForm.value;
       transactionData.cost = Number(form.amount) || 0;
       transactionData.comment = form.description || '';
-      transactionData.date_start = String(form.start_date);
+      transactionData.date_start = String(form.date_start);
       transactionData.payday = Number(form.payment_day) || undefined;
       transactionData.frequency_id = form.frequency_id;
       if (isRentCategory.value || isCreditOrInstallment.value) {
@@ -209,7 +209,7 @@ const resetForms = () => {
   regularIncomeForm.value = {
     amount: null,
     description: '',
-    start_date: '',
+    date_start: '',
     payment_day: null,
     frequency_id: undefined,
     loan_term: null,
@@ -217,7 +217,7 @@ const resetForms = () => {
   regularExpenseForm.value = {
     amount: null,
     description: '',
-    start_date: '',
+    date_start: '',
     payment_day: null,
     frequency_id: undefined,
     loan_term: null,
@@ -330,7 +330,7 @@ watch([operationType, regularity], () => {
                 />
                 <q-input
                   filled
-                  v-model="regularIncomeForm.start_date"
+                  v-model="regularIncomeForm.date_start"
                   label="Дата начала"
                   type="date"
                   :rules="[val => !!val || 'Введите дату начала']"
@@ -401,7 +401,7 @@ watch([operationType, regularity], () => {
                 />
                 <q-input
                   filled
-                  v-model="regularExpenseForm.start_date"
+                  v-model="regularExpenseForm.date_start"
                   label="Дата начала"
                   type="date"
                   :rules="[val => !!val || 'Введите дату начала']"
