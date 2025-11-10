@@ -6,12 +6,14 @@ import TransactionForm from '~/components/TransactionForm.vue';
 import EstateTransactionsTable from '~/components/EstateTransactionsTable.vue';
 import type { ChartData } from '~/types/transactions';
 import { formatChartData } from '~/utils/formatCurrency';
+import { useErrorHandler } from '~/composables/useErrorHandler';
 
 const $q = useQuasar();
 const authStore = useAuthStore();
 const estateStore = useEstateStore();
 const transactionsStore = useTransactionsStore();
 const dictionariesStore = useDictionariesStore();
+const { executeAsync, clearError, isLoading: isActionLoading } = useErrorHandler();
 
 const route = useRoute();
 const estateId = computed(() => {
@@ -32,7 +34,9 @@ const { estate, isLoading: estateLoading } = storeToRefs(estateStore);
 const { isLoading: transactionsLoading } = storeToRefs(transactionsStore);
 const estateTypeOptions = computed(() => dictionariesStore.estateTypeOptions);
 
-const isLoading = computed(() => estateLoading.value || transactionsLoading.value);
+const isLoading = computed(
+  () => estateLoading.value || transactionsLoading.value || isActionLoading.value,
+);
 const chartData = ref<ChartData>({
   categories: [],
   series: [],
@@ -64,15 +68,29 @@ const loadChartData = async () => {
   }
 };
 
+const loadInitialData = async () => {
+  if (!authStore.user?.id || !estateId.value) return;
+
+  clearError();
+
+  await executeAsync(
+    async () => {
+      estateStore.setSelectedEstateId(estateId.value!);
+      await Promise.all([
+        estateStore.getUserEstate(authStore.user!.id, estateId.value!),
+        transactionsStore.getUserEstateTransactions(authStore.user!.id, estateId.value!),
+        loadChartData(),
+      ]);
+    },
+    {
+      fallbackMessage: 'Не удалось загрузить данные недвижимости',
+    },
+  );
+};
+
 onMounted(() => {
   isHydrated.value = true;
-
-  if (authStore.user?.id && estateId.value) {
-    estateStore.setSelectedEstateId(estateId.value);
-    estateStore.getUserEstate(authStore.user.id, estateId.value);
-    transactionsStore.getUserEstateTransactions(authStore.user.id, estateId.value);
-    loadChartData();
-  }
+  loadInitialData();
 });
 
 watch(
@@ -82,9 +100,9 @@ watch(
       const newEstateId = Number(newId);
       estateStore.setSelectedEstateId(newEstateId);
 
-      if (authStore.user?.id) {
-        estateStore.getUserEstate(authStore.user.id, newEstateId);
-        transactionsStore.getUserEstateTransactions(authStore.user.id, newEstateId);
+      const currentUserId = authStore.user?.id;
+      if (currentUserId) {
+        loadInitialData();
       }
     }
   },
@@ -116,30 +134,30 @@ const cancelEditing = () => {
 };
 
 const saveEditing = async () => {
-  if (!estate.value || !userId) return;
+  const currentUserId = userId.value;
+  const currentEstate = estate.value;
 
-  try {
-    if (userId.value) {
-      await estateStore.updateUserEstate(userId.value, estate.value.id, editForm.value);
-    }
+  if (!currentEstate || !currentUserId) return;
 
-    isEditing.value = false;
+  clearError();
 
-    $q.notify({
-      color: 'green-4',
-      textColor: 'white',
-      icon: 'cloud_done',
-      message: 'Данные обновлены!',
-    });
-  } catch (error) {
-    console.error('Ошибка обновления:', error);
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'error',
-      message: 'Ошибка при обновлении',
-    });
-  }
+  await executeAsync(
+    async () => {
+      await estateStore.updateUserEstate(currentUserId, currentEstate.id, editForm.value);
+
+      isEditing.value = false;
+
+      $q.notify({
+        color: 'green-4',
+        textColor: 'white',
+        icon: 'cloud_done',
+        message: 'Данные обновлены!',
+      });
+    },
+    {
+      fallbackMessage: 'Не удалось обновить данные недвижимости',
+    },
+  );
 };
 
 const hasRecoupment = computed(() => !!(estate.value?.recoupment && estate.value.recoupment > 0));

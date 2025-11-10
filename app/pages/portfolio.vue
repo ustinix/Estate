@@ -6,25 +6,46 @@ import { useAuthStore } from '~/stores/authStore';
 import { storeToRefs } from 'pinia';
 import ModalWindow from '~/components/ModalWindow.vue';
 import { useDictionariesStore } from '~/stores/dictionariesStore';
+import { useErrorHandler } from '~/composables/useErrorHandler';
 
 const dictionariesStore = useDictionariesStore();
-const estateTypes = computed(() => dictionariesStore.estateTypes);
 const authStore = useAuthStore();
 const estateStore = useEstateStore();
-const { estates, isLoading } = storeToRefs(estateStore);
+const { executeAsync, clearError, isLoading: isActionLoading } = useErrorHandler();
+
+const estateTypes = computed(() => dictionariesStore.estateTypes);
+const { estates, isLoading: isEstatesLoading } = storeToRefs(estateStore);
 
 const showAddModal = ref(false);
 const selectedType = ref('все');
 
+const isLoading = computed(() => isEstatesLoading.value || isActionLoading.value);
+
+const loadEstates = async () => {
+  const currentUserId = authStore.user?.id;
+  if (!currentUserId) return;
+
+  clearError();
+
+  await executeAsync(
+    async () => {
+      await estateStore.getUserEstates(currentUserId);
+    },
+    {
+      fallbackMessage: 'Не удалось загрузить недвижимость',
+    },
+  );
+};
+
 if (authStore.user) {
-  estateStore.getUserEstates(authStore.user.id);
+  loadEstates();
 }
 
 watch(
   () => authStore.user,
   newUser => {
     if (newUser) {
-      estateStore.getUserEstates(newUser.id);
+      loadEstates();
     }
   },
 );
@@ -57,17 +78,28 @@ const filteredEstates = computed(() => {
 });
 
 const createEstate = async (estateData: { estate_type_id: number; name: string }) => {
-  if (!authStore.user?.id) {
+  const currentUserId = authStore.user?.id;
+  if (!currentUserId) {
     showError('Пользователь не авторизован');
     return;
   }
 
-  try {
-    await estateStore.createUserEstate(authStore.user.id, estateData);
-  } catch (error) {
-    console.error('Ошибка создания недвижимости:', error);
-    throw error;
-  }
+  clearError();
+
+  await executeAsync(
+    async () => {
+      await estateStore.createUserEstate(currentUserId, estateData);
+      showAddModal.value = false;
+    },
+    {
+      fallbackMessage: 'Не удалось создать недвижимость',
+    },
+  );
+};
+
+const handleModalClose = () => {
+  showAddModal.value = false;
+  clearError();
 };
 </script>
 
@@ -109,7 +141,12 @@ const createEstate = async (estateData: { estate_type_id: number; name: string }
           <PropertyCard v-for="estate in filteredEstates" :key="estate.id" :estate="estate" />
         </div>
       </div>
-      <ModalWindow v-model="showAddModal" :estate-types="estateTypes" @create="createEstate" />
+      <ModalWindow
+        v-model="showAddModal"
+        :estate-types="estateTypes"
+        @create="createEstate"
+        @update:model-value="handleModalClose"
+      />
     </ClientOnly>
   </section>
 </template>
