@@ -35,12 +35,7 @@ const estateTypeOptions = computed(() => dictionariesStore.estateTypeOptions);
 const isLoading = computed(() => estateLoading.value || transactionsLoading.value);
 const chartData = ref<ChartData>({
   categories: [],
-  series: [
-    { name: 'Доход', data: [] },
-    { name: 'Расход', data: [] },
-    { name: 'Месячный баланс', data: [] },
-    { name: 'Накопительный баланс', data: [] },
-  ],
+  series: [],
 });
 const isChartLoading = ref(false);
 const forEndDate = new Date();
@@ -346,9 +341,15 @@ const goBack = () => {
   justify-content: flex-end;
   margin-top: 20px;
 }
+.charts {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 .date-controls-container {
   background: white;
-  padding: 20px;
+  padding: 16px 20px;
   border-radius: 12px;
   margin-bottom: 20px;
   box-shadow: 0 2px 10px var(--box-shadow);
@@ -356,20 +357,27 @@ const goBack = () => {
 
 .date-controls {
   display: flex;
-  gap: 15px;
+  gap: 16px;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .date-input-group {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  flex: 1;
+  max-width: 250px;
 }
 
-.date-input-group label {
+.date-label {
   font-size: 0.9rem;
   color: #666;
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .date-input {
@@ -378,9 +386,16 @@ const goBack = () => {
   border-radius: 6px;
   font-size: 0.9rem;
   background: white;
+  min-width: 0;
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
+  .charts {
+    padding: 0 10px;
+  }
   .estate-page {
     padding: 5px;
   }
@@ -388,13 +403,58 @@ const goBack = () => {
   .edit-mode {
     padding: 16px;
   }
+  .date-controls-container {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+
   .date-controls {
+    gap: 12px;
     flex-direction: column;
     align-items: stretch;
   }
 
   .date-input-group {
+    max-width: none;
+    flex-direction: row;
     justify-content: space-between;
+  }
+
+  .date-input {
+    flex: 0 1 150px;
+    min-width: 120px;
+  }
+}
+@media (max-width: 480px) {
+  .date-controls-container {
+    padding: 10px 12px;
+  }
+
+  .date-input-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .date-label {
+    font-size: 0.85rem;
+  }
+
+  .date-input {
+    flex: none;
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .date-controls {
+    gap: 8px;
+  }
+
+  .date-input {
+    min-width: 100px;
   }
 }
 </style>

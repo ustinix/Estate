@@ -116,7 +116,6 @@ onMounted(async () => {
   min-width: 800px;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 10px var(--box-shadow);
@@ -239,7 +238,6 @@ onMounted(async () => {
   .financial-chart {
     min-width: 600px;
     max-width: 900px;
-    padding: 16px;
   }
 
   .chart-header h3 {
@@ -255,7 +253,6 @@ onMounted(async () => {
   .financial-chart {
     min-width: 500px;
     max-width: 700px;
-    padding: 12px;
   }
 
   .chart-header {
@@ -305,8 +302,6 @@ onMounted(async () => {
   .financial-chart {
     min-width: 300px;
     max-width: 100%;
-    padding: 10px;
-    margin: 0 10px;
     overflow-x: auto;
     overflow-y: hidden;
   }
