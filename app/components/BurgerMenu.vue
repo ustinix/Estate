@@ -2,8 +2,19 @@
 import { useRoute } from '#imports';
 import type { NavLink } from '~/types/navlink';
 
+const $q = useQuasar();
 const authStore = useAuthStore();
-const { isAuthenticated } = storeToRefs(authStore);
+const { user, isAuthenticated } = storeToRefs(authStore);
+
+const userName = computed(() => {
+  if (user?.value?.name && user.value?.name.trim() !== '') {
+    return user.value?.name;
+  }
+  if (user?.value?.email) {
+    return getUserNameFromEmail(user.value?.email);
+  }
+  return 'Пользователь';
+});
 
 const route = useRoute();
 
@@ -64,6 +75,27 @@ onUnmounted(() => {
   document.removeEventListener('click', closeOnClickOutside);
   document.removeEventListener('keydown', closeOnEscape);
 });
+
+const { executeAsync, isLoading: isLoggingOut } = useErrorHandler();
+
+const handleLogout = async () => {
+  closeDrawer();
+  await executeAsync(async () => {
+    await authStore.logout();
+    await authStore.initAuth();
+
+    $q.notify({
+      color: 'green-4',
+      textColor: 'white',
+      icon: 'cloud_done',
+      message: 'Выход выполнен успешно',
+    });
+    return true;
+  });
+};
+const handleProfileClick = () => {
+  closeDrawer();
+};
 </script>
 
 <template>
@@ -115,6 +147,26 @@ onUnmounted(() => {
               @click="closeDrawer"
             />
           </NuxtLink>
+        </div>
+      </template>
+      <template v-else>
+        <div class="user-menu">
+          <NuxtLink
+            to="/profile"
+            class="nav-link profile-link"
+            title="Профиль"
+            @click="handleProfileClick"
+          >
+            <q-icon name="person" class="nav-icon" />
+            <span class="nav-text">{{ userName }}</span>
+          </NuxtLink>
+          <q-btn
+            class="header-btn button"
+            color="negative"
+            label="Выйти"
+            @click="handleLogout"
+            :loading="isLoggingOut"
+          />
         </div>
       </template>
     </div>
@@ -244,5 +296,12 @@ onUnmounted(() => {
     width: 100%;
     justify-content: center;
   }
+}
+.user-menu {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
 }
 </style>

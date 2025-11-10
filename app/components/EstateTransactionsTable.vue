@@ -3,6 +3,7 @@ import { useTransactionsStore } from '~/stores/transactions';
 import type { EstateTransactionsFilters } from '~/types/transactions';
 import { formatDate } from '~/utils/formatDate';
 import { formatCurrency } from '~/utils/formatCurrency';
+import { useErrorHandler } from '~/composables/useErrorHandler';
 
 interface Props {
   userId: number;
@@ -12,6 +13,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const store = useTransactionsStore();
+const { executeAsync, clearError } = useErrorHandler();
 
 const filters = ref<EstateTransactionsFilters>({
   page: 1,
@@ -20,14 +22,19 @@ const filters = ref<EstateTransactionsFilters>({
 });
 
 const loadTransactions = async (page: number = 1) => {
-  try {
-    await store.getUserEstateTransactions(props.userId, props.estateId, {
-      ...filters.value,
-      page,
-    });
-  } catch (error) {
-    console.error('Ошибка загрузки транзакций:', error);
-  }
+  clearError();
+
+  await executeAsync(
+    async () => {
+      await store.getUserEstateTransactions(props.userId, props.estateId, {
+        ...filters.value,
+        page,
+      });
+    },
+    {
+      fallbackMessage: 'Не удалось загрузить транзакции',
+    },
+  );
 };
 
 const handlePageChange = (page: number) => {

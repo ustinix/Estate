@@ -7,14 +7,16 @@ import { getUserNameFromEmail } from '~/utils/getUserName';
 import { useAuthStore } from '~/stores/authStore';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
+import { useErrorHandler } from '~/composables/useErrorHandler';
 
 const $q = useQuasar();
 
 const authStore = useAuthStore();
-const { user, isAuthenticated, isLoading } = storeToRefs(authStore);
+const { user, isAuthenticated, isLoading: authLoading } = storeToRefs(authStore);
+const { executeAsync, isLoading: isLoggingOut } = useErrorHandler();
 
 const handleLogout = async () => {
-  try {
+  await executeAsync(async () => {
     await authStore.logout();
     await authStore.initAuth();
 
@@ -24,9 +26,8 @@ const handleLogout = async () => {
       icon: 'cloud_done',
       message: 'Выход выполнен успешно',
     });
-  } catch (error) {
-    console.error('Ошибка при выходе:', error);
-  }
+    return true;
+  });
 };
 
 const userName = computed(() => {
@@ -38,6 +39,8 @@ const userName = computed(() => {
   }
   return 'Пользователь';
 });
+
+const isLoading = computed(() => authLoading.value || isLoggingOut.value);
 </script>
 
 <template>
@@ -75,7 +78,13 @@ const userName = computed(() => {
               <q-icon name="person" class="nav-icon" />
               <span class="nav-text">{{ userName }}</span>
             </NuxtLink>
-            <q-btn class="header-btn button" color="negative" label="Выйти" @click="handleLogout" />
+            <q-btn
+              class="header-btn button"
+              color="negative"
+              label="Выйти"
+              @click="handleLogout"
+              :loading="isLoggingOut"
+            />
           </div>
         </template>
       </div>

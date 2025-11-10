@@ -7,11 +7,11 @@ import { visibilityStates, toggleVisibility } from '~/utils/toggleVisibility';
 import { useAuthStore } from '~/stores/authStore';
 import { getUserNameFromEmail } from '~/utils/getUserName';
 import { storeToRefs } from 'pinia';
+import { useErrorHandler } from '~/composables/useErrorHandler';
 
 const authStore = useAuthStore();
-const { isLoading } = storeToRefs(authStore);
 const $q = useQuasar();
-const errorMessage = ref('');
+const { executeAsync, clearError, error: errorState, isLoading } = useErrorHandler();
 
 const formData = ref({
   email: '',
@@ -24,16 +24,19 @@ const validateConfirmPassword = (val: string) => {
 };
 
 async function onSubmit() {
-  errorMessage.value = '';
+  clearError();
 
-  try {
-    const response = await authStore.register({
+  const response = await executeAsync(async () => {
+    const result = await authStore.register({
       email: formData.value.email,
       password: formData.value.password,
     });
 
     await authStore.initAuth();
+    return result;
+  });
 
+  if (response) {
     const userName = response?.user?.name
       ? response.user.name
       : getUserNameFromEmail(formData.value.email);
@@ -44,20 +47,9 @@ async function onSubmit() {
       icon: 'cloud_done',
       message: `Регистрация успешна! Добро пожаловать, ${userName}!`,
     });
+
     await nextTick();
     await navigateTo('/profile');
-  } catch (error: any) {
-    console.error('Registration error:', error);
-
-    const message = error.data?.message || error.message || 'Ошибка регистрации';
-    errorMessage.value = message;
-
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'error',
-      message: message,
-    });
   }
 }
 
@@ -67,16 +59,16 @@ function onReset() {
     password: '',
     confirmPassword: '',
   };
-  errorMessage.value = '';
+  clearError();
   visibilityStates.password = false;
   visibilityStates.confirmPassword = false;
 }
 </script>
 <template>
   <div class="register-form q-pa-md">
-    <div v-if="errorMessage" class="error-message q-mb-md">
+    <div v-if="errorState" class="error-message q-mb-md">
       <q-icon name="error" color="red" />
-      {{ errorMessage }}
+      {{ errorState.message }}
     </div>
     <q-form @submit="onSubmit" @reset="onReset" class="q-gutter-md">
       <q-input

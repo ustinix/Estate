@@ -1,9 +1,69 @@
-import type { AppError, ErrorHandlerOptions } from '~/types/errors';
+import type {
+  AppError,
+  ErrorHandlerOptions,
+  ErrorWithCode,
+  ErrorWithStatus,
+  HttpError,
+} from '~/types/errors';
+
+const isErrorWithCode = (error: unknown): error is ErrorWithCode => {
+  return error instanceof Error && 'code' in error;
+};
+
+const isErrorWithStatus = (error: unknown): error is ErrorWithStatus => {
+  return error instanceof Error && 'status' in error;
+};
+
+const isHttpError = (error: unknown): error is HttpError => {
+  return typeof error === 'object' && error !== null && 'response' in error;
+};
+
+const isAppError = (error: unknown): error is AppError => {
+  return typeof error === 'object' && error !== null && 'message' in error;
+};
 
 export const useErrorHandler = () => {
   const error: Ref<AppError | null> = ref(null);
   const isLoading = ref(false);
   const $q = useQuasar();
+
+  const normalizeError = (err: unknown): AppError => {
+    if (isAppError(err)) {
+      return err;
+    }
+
+    if (isHttpError(err)) {
+      return {
+        message: err.response?.data?.message || err.message || 'HTTP ошибка',
+        status: err.response?.status,
+      };
+    }
+    if (isErrorWithCode(err)) {
+      return {
+        message: err.message,
+        code: err.code,
+      };
+    }
+
+    if (isErrorWithStatus(err)) {
+      return {
+        message: err.message,
+        status: err.status,
+      };
+    }
+
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+      };
+    }
+
+    if (typeof err === 'string') {
+      return { message: err };
+    }
+
+    return { message: 'Неизвестная ошибка' };
+  };
 
   const handleError = (err: unknown, options: ErrorHandlerOptions = {}): void => {
     const { showNotification = true, fallbackMessage = 'Произошла непредвиденная ошибка' } =
@@ -56,31 +116,6 @@ export const useErrorHandler = () => {
     clearError,
   };
 };
-
-function normalizeError(err: unknown): AppError {
-  if (err instanceof Error) {
-    return {
-      message: err.message,
-      code: (err as any).code,
-      status: (err as any).status,
-    };
-  }
-
-  if (typeof err === 'string') {
-    return { message: err };
-  }
-
-  if (typeof err === 'object' && err !== null) {
-    const errorObj = err as any;
-    return {
-      message: errorObj.message || 'Неизвестная ошибка',
-      code: errorObj.code,
-      status: errorObj.status,
-    };
-  }
-
-  return { message: 'Неизвестная ошибка' };
-}
 
 function getErrorMessage(error: AppError): string {
   if (error.status) {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useDictionariesStore } from '~/stores/dictionariesStore';
+import { useErrorHandler } from '~/composables/useErrorHandler';
 
 interface Props {
   modelValue: boolean;
@@ -14,12 +15,13 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const dictionariesStore = useDictionariesStore();
+const { executeAsync, clearError, isLoading } = useErrorHandler();
 
-const isLoading = ref(false);
 const form = ref({
   estate_type_id: null as number | null,
   name: '',
 });
+
 const showModal = computed({
   get: () => props.modelValue,
   set: value => emit('update:modelValue', value),
@@ -28,25 +30,38 @@ const showModal = computed({
 const estateTypeOptions = computed(() => dictionariesStore.estateTypeOptions);
 
 const handleSubmit = async () => {
-  if (!form.value.estate_type_id || !form.value.name) {
+  const estateTypeId = form.value.estate_type_id;
+  const name = form.value.name;
+
+  if (!estateTypeId || !name) {
     return;
   }
 
-  isLoading.value = true;
-  try {
-    await emit('create', { estate_type_id: form.value.estate_type_id, name: form.value.name });
+  clearError();
+
+  const success = await executeAsync(
+    async () => {
+      emit('create', {
+        estate_type_id: estateTypeId,
+        name: name,
+      });
+      return true;
+    },
+    {
+      fallbackMessage: 'Не удалось создать недвижимость',
+    },
+  );
+
+  if (success) {
     resetForm();
     closeModal();
-  } catch (error) {
-    console.error('Ошибка в модалке:', error);
-  } finally {
-    isLoading.value = false;
   }
 };
 
 const closeModal = () => {
   showModal.value = false;
   resetForm();
+  clearError();
 };
 
 const resetForm = () => {
@@ -59,9 +74,11 @@ const resetForm = () => {
 watch(showModal, newVal => {
   if (!newVal) {
     resetForm();
+    clearError();
   }
 });
 </script>
+
 <template>
   <q-dialog v-model="showModal" persistent>
     <q-card style="width: 400px; max-width: 90vw">

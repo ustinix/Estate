@@ -70,7 +70,7 @@ onMounted(async () => {
   <ClientOnly>
     <div class="financial-chart">
       <div class="chart-header">
-        <h3>Аналитика доходов (пока тестовые данные)</h3>
+        <h3>Аналитика доходов</h3>
       </div>
 
       <div v-if="isLoading" class="chart-placeholder">
@@ -113,6 +113,7 @@ onMounted(async () => {
 
 <style scoped>
 .financial-chart {
+  padding: 16px 20px;
   min-width: 800px;
   max-width: 1200px;
   margin: 0 auto;

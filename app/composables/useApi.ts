@@ -33,10 +33,9 @@ export function useApi() {
       if (error.status === 401) {
         authStore.logout();
         await navigateTo('/login');
-        throw new Error('Сессия истекла. Пожалуйста, войдите снова.');
+        throw new Error('Пользователь не авторизован.');
       }
-      const message = error.data?.message || error.message || 'Произошла ошибка';
-      throw new Error(message);
+      throw error;
     }
   }
 
