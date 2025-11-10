@@ -2,6 +2,9 @@
 import { useRoute } from '#imports';
 import type { NavLink } from '~/types/navlink';
 
+const authStore = useAuthStore();
+const { isAuthenticated } = storeToRefs(authStore);
+
 const route = useRoute();
 
 const { navLinks } = defineProps<{
@@ -99,19 +102,21 @@ onUnmounted(() => {
         </NuxtLink>
       </nav>
 
-      <div class="burger-actions">
-        <NuxtLink to="/login">
-          <q-btn color="primary" label="Войти" class="auth-btn" @click="closeDrawer" />
-        </NuxtLink>
-        <NuxtLink to="/register">
-          <q-btn
-            color="secondary"
-            label="Зарегистрироваться"
-            class="auth-btn"
-            @click="closeDrawer"
-          />
-        </NuxtLink>
-      </div>
+      <template v-if="!isAuthenticated">
+        <div class="burger-actions">
+          <NuxtLink to="/login">
+            <q-btn color="primary" label="Войти" class="auth-btn" @click="closeDrawer" />
+          </NuxtLink>
+          <NuxtLink to="/register">
+            <q-btn
+              color="secondary"
+              label="Зарегистрироваться"
+              class="auth-btn"
+              @click="closeDrawer"
+            />
+          </NuxtLink>
+        </div>
+      </template>
     </div>
   </div>
 </template>

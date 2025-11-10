@@ -120,7 +120,7 @@ export const useAuthStore = defineStore('auth', () => {
             clearAuth();
           }
         } catch (error) {
-          console.error('❌ Failed to parse user from localStorage:', error);
+          console.error('Failed to parse user from localStorage:', error);
           clearAuth();
           return;
         }
@@ -140,7 +140,7 @@ export const useAuthStore = defineStore('auth', () => {
           clearAuth();
         }
       } catch (error) {
-        console.error('❌ Refresh token failed:', error);
+        console.error('Refresh token failed:', error);
         clearAuth();
       }
 
