@@ -107,5 +107,6 @@ export interface ChartData {
   series: {
     name: string;
     data: number[];
+    formatType?: 'currency' | 'percent';
   }[];
 }

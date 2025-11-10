@@ -5,6 +5,7 @@ import EstateDetailCard from '~/components/EstateDetailCard.vue';
 import TransactionForm from '~/components/TransactionForm.vue';
 import EstateTransactionsTable from '~/components/EstateTransactionsTable.vue';
 import type { ChartData } from '~/types/transactions';
+import { formatChartData } from '~/utils/formatCurrency';
 
 const $q = useQuasar();
 const authStore = useAuthStore();
@@ -60,7 +61,7 @@ const loadChartData = async () => {
       startDate.value,
       endDate.value,
     );
-    chartData.value = data;
+    chartData.value = formatChartData(data);
   } catch (error) {
     console.error('Ошибка загрузки аналитики:', error);
   } finally {

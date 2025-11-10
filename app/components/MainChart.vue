@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatCurrency } from '~/utils/formatCurrency';
+import { createYAxisFormatter, createTooltipFormatter } from '~/utils/formatCurrency';
 
 interface Props {
   chartData: {
@@ -44,13 +44,13 @@ const chartOptions = computed(() => ({
   },
   yaxis: {
     labels: {
-      formatter: formatCurrency,
+      formatter: createYAxisFormatter(props.chartData.series),
     },
   },
   legend: { position: 'top' as const },
   tooltip: {
     y: {
-      formatter: formatCurrency,
+      formatter: createTooltipFormatter(props.chartData.series),
     },
   },
 }));
