@@ -359,8 +359,7 @@ const goBack = () => {
   display: flex;
   gap: 16px;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
+  justify-content: start;
 }
 
 .date-input-group {
@@ -393,9 +392,6 @@ const goBack = () => {
 }
 
 @media (max-width: 768px) {
-  .charts {
-    padding: 0 10px;
-  }
   .estate-page {
     padding: 5px;
   }
@@ -410,19 +406,6 @@ const goBack = () => {
 
   .date-controls {
     gap: 12px;
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .date-input-group {
-    max-width: none;
-    flex-direction: row;
-    justify-content: space-between;
-  }
-
-  .date-input {
-    flex: 0 1 150px;
-    min-width: 120px;
   }
 }
 @media (max-width: 480px) {
@@ -435,26 +418,11 @@ const goBack = () => {
     align-items: stretch;
     gap: 4px;
   }
-
-  .date-label {
-    font-size: 0.85rem;
-  }
-
-  .date-input {
-    flex: none;
-    width: 100%;
-    padding: 6px 10px;
-    font-size: 0.85rem;
-  }
 }
 
 @media (max-width: 360px) {
   .date-controls {
     gap: 8px;
-  }
-
-  .date-input {
-    min-width: 100px;
   }
 }
 </style>
