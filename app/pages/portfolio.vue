@@ -41,15 +41,6 @@ if (authStore.user) {
   loadEstates();
 }
 
-watch(
-  () => authStore.user,
-  newUser => {
-    if (newUser) {
-      loadEstates();
-    }
-  },
-);
-
 const typeOptions = computed(() => {
   const allOption = 'все';
   const apiTypes = estateTypes.value.map(type => type.name);

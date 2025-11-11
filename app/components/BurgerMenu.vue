@@ -5,6 +5,13 @@ import type { NavLink } from '~/types/navlink';
 const $q = useQuasar();
 const authStore = useAuthStore();
 const { user, isAuthenticated } = storeToRefs(authStore);
+const route = useRoute();
+const { navLinks } = defineProps<{
+  navLinks: NavLink[];
+}>();
+const drawer = ref(false);
+const burgerBtn = ref<HTMLElement>();
+const burgerMenu = ref<HTMLElement>();
 
 const userName = computed(() => {
   if (user?.value?.name && user.value?.name.trim() !== '') {
@@ -15,23 +22,6 @@ const userName = computed(() => {
   }
   return 'Пользователь';
 });
-
-const route = useRoute();
-
-const { navLinks } = defineProps<{
-  navLinks: NavLink[];
-}>();
-
-const drawer = ref(false);
-const burgerBtn = ref<HTMLElement>();
-const burgerMenu = ref<HTMLElement>();
-
-watch(
-  () => route.path,
-  () => {
-    drawer.value = false;
-  },
-);
 
 const toggleDrawer = () => {
   drawer.value = !drawer.value;
