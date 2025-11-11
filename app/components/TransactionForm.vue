@@ -196,9 +196,6 @@ const onSubmit = async () => {
         position: 'center',
       });
 
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      resetForms();
-
       return true;
     },
     {

@@ -37,6 +37,19 @@ const loadTransactions = async (page: number = 1) => {
   );
 };
 
+const handleDeleteTransaction = async (transactionId: number) => {
+  await executeAsync(
+    async () => {
+      await store.deleteEstateTransactions(transactionId, props.userId, props.estateId);
+      loadTransactions(filters.value.page);
+    },
+    {
+      showNotification: true,
+      fallbackMessage: 'Не удалось удалить транзакцию',
+    },
+  );
+};
+
 const handlePageChange = (page: number) => {
   filters.value.page = page;
   loadTransactions(page);
@@ -116,6 +129,7 @@ const getSortIcon = (field: string) => {
               Сумма <span class="sort-arrow"></span>
             </th>
             <th>Комментарий</th>
+            <th class="actions-header">Удалить</th>
           </tr>
         </thead>
         <tbody>
@@ -133,6 +147,16 @@ const getSortIcon = (field: string) => {
               {{ formatCurrency(transaction.sum) }}
             </td>
             <td>{{ transaction.comment || '-' }}</td>
+            <td class="actions-cell">
+              <button
+                class="delete-btn"
+                @click="handleDeleteTransaction(transaction.transaction_id)"
+                title="Удалить транзакцию"
+                :disabled="store.isLoading"
+              >
+                <q-icon name="close" size="16px" />
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -250,6 +274,34 @@ th {
   white-space: nowrap;
   position: relative;
 }
+.actions-cell {
+  text-align: center;
+  padding: 8px;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  color: var(--label);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: var(--expense-bg);
+  color: var(--expense);
+}
+
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .sortable {
   cursor: pointer;
   user-select: none;

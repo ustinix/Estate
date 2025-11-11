@@ -83,7 +83,6 @@ const itemsByDate = computed(() => {
       grouped[dateKey].push(item);
     }
   });
-  console.log('Группировка по дате:', grouped);
 
   return grouped;
 });
@@ -231,7 +230,6 @@ const getPriorityClass = (item: CalendarItem) => {
           <div class="modal-title">
             <div>
               <h5>{{ selectedItem.title }}</h5>
-              <p class="operation-type">{{ getItemTypeText(selectedItem) }}</p>
             </div>
             <q-btn
               v-if="selectedItem.source === 'meeting'"
@@ -508,6 +506,7 @@ const getPriorityClass = (item: CalendarItem) => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 11px;
   font-weight: 500;
 }
 

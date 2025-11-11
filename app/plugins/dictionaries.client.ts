@@ -3,8 +3,8 @@ export default defineNuxtPlugin(async () => {
 
   try {
     await dictionariesStore.initializeDictionaries();
-    console.log('✅ Dictionaries loaded successfully');
+    console.log('Dictionaries loaded successfully');
   } catch (error) {
-    console.error('❌ Failed to load dictionaries:', error);
+    console.error('Failed to load dictionaries:', error);
   }
 });

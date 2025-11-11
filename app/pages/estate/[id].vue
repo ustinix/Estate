@@ -344,6 +344,7 @@ const goBack = () => {
 }
 
 .edit-mode {
+  min-width: 600px;
   background: var(--bg-color);
   padding: 20px;
   border-radius: 12px;
@@ -415,6 +416,7 @@ const goBack = () => {
   }
 
   .edit-mode {
+    min-width: 340px;
     padding: 16px;
   }
   .date-controls-container {

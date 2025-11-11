@@ -112,8 +112,22 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
-  const clearTransactions = () => {
-    userEstateTransactions.value = [];
+  const deleteEstateTransactions = async (
+    transactionId: number,
+    userId: number,
+    estateId: number,
+  ): Promise<void> => {
+    try {
+      isLoading.value = true;
+      error.value = null;
+      await $api.delete(`/transactions/${transactionId}`);
+      await getUserEstateTransactions(userId, estateId);
+    } catch (err) {
+      error.value = String(err);
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
   };
 
   const getFinancialStats = async (
@@ -145,10 +159,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
-  const clearFinancialStats = () => {
-    financialStats.value = null;
-  };
-
   return {
     pagination,
     userTransactions,
@@ -157,10 +167,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
     isLoading,
     error,
     getUserEstateTransactions,
-    clearTransactions,
     getUserTransactions,
     addEstateTransactions,
     getFinancialStats,
-    clearFinancialStats,
+    deleteEstateTransactions,
   };
 });

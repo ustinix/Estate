@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { HOME_TEXT } from '~/constants/homePage';
+import { useAuthStore } from '~/stores/authStore';
+
+const authStore = useAuthStore();
 </script>
 
 <template>
@@ -9,9 +12,16 @@ import { HOME_TEXT } from '~/constants/homePage';
         <h1>{{ HOME_TEXT.hero.title }}</h1>
         <p>{{ HOME_TEXT.hero.subtitle }}</p>
         <div class="actions">
-          <NuxtLink to="/register">
-            <q-btn class="hero-btn button" color="secondary" :label="HOME_TEXT.hero.btn" />
-          </NuxtLink>
+          <div v-if="!authStore.isAuthenticated">
+            <NuxtLink to="/register">
+              <q-btn class="hero-btn button" color="secondary" :label="HOME_TEXT.hero.btn" />
+            </NuxtLink>
+          </div>
+          <div v-else>
+            <NuxtLink to="/portfolio">
+              <q-btn class="hero-btn button" color="secondary" :label="HOME_TEXT.hero.btn" />
+            </NuxtLink>
+          </div>
         </div>
       </div>
     </section>
