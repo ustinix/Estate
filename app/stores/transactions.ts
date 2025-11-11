@@ -130,6 +130,25 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   };
 
+  const updateEstateTransactions = async (
+    userId: number,
+    estateId: number,
+    transactionId: number,
+    updateData: { sum: number; date: string; comment: string },
+  ): Promise<void> => {
+    try {
+      isLoading.value = true;
+      error.value = null;
+      await $api.put(`/transactions/${transactionId}`, updateData);
+      await getUserEstateTransactions(userId, estateId);
+    } catch (err) {
+      error.value = String(err);
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   const getFinancialStats = async (
     userId: number,
     estateId: number,
@@ -171,5 +190,6 @@ export const useTransactionsStore = defineStore('transactions', () => {
     addEstateTransactions,
     getFinancialStats,
     deleteEstateTransactions,
+    updateEstateTransactions,
   };
 });

@@ -4,6 +4,7 @@ import type { EstateTransactionsFilters } from '~/types/transactions';
 import { formatDate } from '~/utils/formatDate';
 import { formatCurrency } from '~/utils/formatCurrency';
 import { useErrorHandler } from '~/composables/useErrorHandler';
+import type { EstateTransaction } from '~/types/transactions';
 
 interface Props {
   userId: number;
@@ -11,15 +12,56 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
 const store = useTransactionsStore();
 const { executeAsync, clearError } = useErrorHandler();
+
+const editDialog = ref(false);
+const editingTransactionId = ref<number | null>(null);
+const editForm = ref({
+  sum: 0,
+  date: '',
+  comment: '',
+});
 
 const filters = ref<EstateTransactionsFilters>({
   page: 1,
   sort_by: 'date',
   sort_order: 'ASC',
 });
+
+const handleEditTransaction = (transaction: any) => {
+  editingTransactionId.value = transaction.transaction_id;
+  editForm.value = {
+    sum: transaction.sum,
+    date: transaction.date,
+    comment: transaction.comment || '',
+  };
+  editDialog.value = true;
+};
+
+const handleSaveTransaction = async () => {
+  const transactionId = editingTransactionId.value;
+  if (!transactionId) return;
+
+  await executeAsync(
+    async () => {
+      const updateData = {
+        sum: Number(editForm.value.sum),
+        date: editForm.value.date,
+        comment: editForm.value.comment,
+      };
+
+      await store.updateEstateTransactions(props.userId, props.estateId, transactionId, updateData);
+
+      editDialog.value = false;
+      await loadTransactions(filters.value.page);
+    },
+    {
+      showNotification: true,
+      fallbackMessage: 'Не удалось обновить транзакцию',
+    },
+  );
+};
 
 const loadTransactions = async (page: number = 1) => {
   clearError();
@@ -129,7 +171,7 @@ const getSortIcon = (field: string) => {
               Сумма <span class="sort-arrow"></span>
             </th>
             <th>Комментарий</th>
-            <th class="actions-header">Удалить</th>
+            <th class="actions-header">Действия</th>
           </tr>
         </thead>
         <tbody>
@@ -148,6 +190,14 @@ const getSortIcon = (field: string) => {
             </td>
             <td>{{ transaction.comment || '-' }}</td>
             <td class="actions-cell">
+              <button
+                class="edit-btn"
+                @click="handleEditTransaction(transaction)"
+                title="Редактировать транзакцию"
+                :disabled="store.isLoading"
+              >
+                <q-icon name="edit" size="16px" />
+              </button>
               <button
                 class="delete-btn"
                 @click="handleDeleteTransaction(transaction.transaction_id)"
@@ -190,6 +240,61 @@ const getSortIcon = (field: string) => {
         Вперед
       </button>
     </div>
+    <q-dialog v-model="editDialog" persistent>
+      <q-card class="edit-dialog">
+        <q-card-section class="dialog-header">
+          <h6>Редактировать транзакцию</h6>
+        </q-card-section>
+
+        <q-card-section class="dialog-content">
+          <div class="form-fields">
+            <q-input
+              filled
+              v-model="editForm.sum"
+              label="Сумма"
+              type="number"
+              :rules="[val => !!val || 'Введите сумму']"
+              dense
+            />
+            <q-input
+              filled
+              v-model="editForm.date"
+              label="Дата"
+              type="date"
+              :rules="[val => !!val || 'Введите дату']"
+              dense
+            />
+            <q-input
+              filled
+              v-model="editForm.comment"
+              label="Комментарий"
+              type="textarea"
+              rows="3"
+              dense
+            />
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="dialog-actions">
+          <q-btn
+            flat
+            label="Отмена"
+            color="secondary"
+            class="button"
+            @click="editDialog = false"
+            :disabled="store.isLoading"
+          />
+          <q-btn
+            label="Сохранить"
+            color="secondary"
+            class="button"
+            @click="handleSaveTransaction"
+            :loading="store.isLoading"
+            :disable="!editForm.sum || !editForm.date"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -275,8 +380,33 @@ th {
   position: relative;
 }
 .actions-cell {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 8px;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  color: var(--primary);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn:hover:not(:disabled) {
+  background: var(--primary-light);
+}
+
+.edit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .delete-btn {
@@ -398,6 +528,43 @@ th {
   color: var(--label);
   text-align: center;
 }
+.edit-dialog {
+  width: 100%;
+  max-width: 500px;
+  border-radius: 12px;
+}
+
+.dialog-header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+  background: var(--bg-color);
+  border-radius: 12px 12px 0 0;
+}
+
+.dialog-header h6 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color-black);
+}
+
+.dialog-content {
+  padding: 20px;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dialog-actions {
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border-color);
+  gap: 8px;
+  background: var(--bg-color-light);
+  border-radius: 0 0 12px 12px;
+}
 
 @media (max-width: 768px) {
   .transactions-table {
@@ -446,6 +613,15 @@ th {
     right: 8px;
   }
 
+  .actions-cell {
+    gap: 4px;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    padding: 4px;
+  }
+
   .pagination {
     gap: 12px;
   }
@@ -458,6 +634,18 @@ th {
   .pagination-btn {
     padding: 6px 12px;
     font-size: 10px;
+  }
+  .edit-dialog {
+    margin: 20px;
+    max-width: calc(100vw - 40px);
+  }
+
+  .dialog-content {
+    padding: 16px;
+  }
+
+  .form-fields {
+    gap: 12px;
   }
 }
 
@@ -502,6 +690,38 @@ th {
   }
 }
 
+@media (max-width: 360px) {
+  .transactions-table {
+    padding: 0.25rem;
+  }
+
+  table {
+    font-size: 11px;
+  }
+
+  th,
+  td {
+    padding: 4px 3px;
+  }
+  .edit-dialog {
+    margin: 10px;
+    max-width: calc(100vw - 20px);
+  }
+
+  .dialog-content {
+    padding: 12px;
+  }
+
+  .actions-cell {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    margin: 0;
+  }
+}
 @media (max-width: 360px) {
   .transactions-table {
     padding: 0.25rem;
