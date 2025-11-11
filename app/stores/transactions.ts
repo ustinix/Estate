@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import type {
   EstateTransaction,
+  CalendarTransaction,
   EstateTransactionForTable,
   EstateTransactionResponse,
   EstateTransactionsFilters,
@@ -8,7 +9,7 @@ import type {
 } from '~/types/transactions';
 
 export const useTransactionsStore = defineStore('transactions', () => {
-  const userTransactions = ref<EstateTransaction[]>([]);
+  const userTransactions = ref<CalendarTransaction[]>([]);
   const userEstateTransactions = ref<EstateTransactionForTable[]>([]);
   const financialStats = ref<ChartData | null>(null);
   const isLoading = ref(false);
@@ -27,12 +28,22 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
   const $api = useApi();
 
-  const getUserTransactions = async (userId: number): Promise<void> => {
+  const getUserTransactions = async (userId: number): Promise<CalendarTransaction[]> => {
     try {
-      const transactions = await $api.get<EstateTransaction[]>(`/users/${userId}/transactions`);
-      userTransactions.value = [...transactions];
+      const response = await $api.get<{
+        data: CalendarTransaction[];
+        total_items: number;
+        page: number;
+        limit: number;
+        total_pages: number;
+      }>(`/users/${userId}/transactions`);
+
+      userTransactions.value = response.data || [];
+      return userTransactions.value;
     } catch (error) {
-      console.error('Failed to fetch user data:', error);
+      console.error('Failed to fetch transactions:', error);
+      userTransactions.value = [];
+      throw error;
     }
   };
 
@@ -118,10 +129,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
       const response = await $api.post<ChartData>(
         `/users/${userId}/estates/${estateId}/values/filter`,
         {
-          params: {
-            date_start: startDate,
-            date_end: endDate,
-          },
+          date_start: startDate,
+          date_end: endDate,
         },
       );
 

@@ -1,272 +1,290 @@
 <script setup lang="ts">
 import type { Estate } from '~/types/estate';
-import type { Event } from '~/types/events';
+import type { CalendarItem, CreateMeetingData } from '~/types/calendar-item';
+import { useMeetingsStore } from '~/stores/meetingsStore';
+import type { CalendarTransaction } from '~/types/transactions';
+import CreateMeetingModal from '~/components/CreateMeetingModal.vue';
+import { formatCurrency } from '~/utils/formatCurrency';
 
-const props = defineProps<{
+interface Props {
   userEstates: Estate[];
-}>();
+  transactions: CalendarTransaction[];
+}
+
+const props = defineProps<Props>();
 
 const selectedEstateId = ref('all');
-const currentDate = new Date();
-const selectedEvent = ref<Event | null>(null);
-const showEventModal = ref(false);
+const selectedItem = ref<CalendarItem | null>(null);
+const showItemModal = ref(false);
+const showCreateMeetingModal = ref(false);
+const meetingsStore = useMeetingsStore();
 
-// Моковые данные статистики (будет приходить с бэка)
-const mockStats = {
-  totalIncome: 108000,
-  totalExpense: 45000,
-  balance: 63000,
-  totalEvents: 8,
-  period: 'Январь 2024',
-};
+const isMounted = ref(false);
 
-const getEstateName = (estateId: number): string => {
-  const estate = props.userEstates.find(e => e.id === estateId);
-  return estate?.name || 'Неизвестная недвижимость';
-};
-
-// Моковые события (будет приходить с бэка)
-const generateMockEvents = (estates: Estate[]): Event[] => {
-  const events: Event[] = [];
-
-  estates.forEach(estate => {
-    const estateId = estate.id;
-
-    if (estateId === 1) {
-      events.push({
-        id: `${estateId}_mortgage`,
-        estateId,
-        title: 'Ипотека',
-        type: 'Расход',
-        amount: 15000,
-        date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 10),
-        repeat: 'monthly',
-        description: 'Ежемесячный платеж по ипотеке за гараж',
-      });
-    }
-
-    if (estateId === 2 || estateId === 10) {
-      events.push({
-        id: `${estateId}_rent`,
-        estateId,
-        title: 'Аренда',
-        type: 'Доход',
-        amount: estateId === 2 ? 45000 : 35000,
-        date: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
-        repeat: 'monthly',
-        description: `Поступление арендной платы за ${estate.name}`,
-      });
-
-      events.push({
-        id: `${estateId}_utilities`,
-        estateId,
-        title: 'Коммунальные',
-        type: 'Расход',
-        amount: estateId === 2 ? 8000 : 7000,
-        date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 15),
-        repeat: 'monthly',
-        description: 'Оплата жилищно-коммунальных услуг',
-      });
-    }
-
-    if (estateId === 6) {
-      events.push({
-        id: `${estateId}_income`,
-        estateId,
-        title: 'Сдача в аренду',
-        type: 'Доход',
-        amount: 28000,
-        date: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 5),
-        repeat: 'monthly',
-        description: 'Арендный доход от новой квартиры',
-      });
-    }
-
-    if (estateId % 3 === 0) {
-      events.push({
-        id: `${estateId}_service_income`,
-        estateId,
-        title: 'Обслуживание',
-        type: 'Доход',
-        amount: 8000,
-        date: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 8),
-        repeat: 'monthly',
-        description: 'Доход от технического обслуживания',
-      });
-    }
-  });
-
-  return events;
-};
-
-const filteredEvents = computed(() => {
-  const allEvents = generateMockEvents(props.userEstates);
-  if (selectedEstateId.value === 'all') return allEvents;
-
-  return allEvents.filter(event => event.estateId === Number(selectedEstateId.value));
+onMounted(() => {
+  isMounted.value = true;
+  meetingsStore.loadMeetings();
 });
 
-const eventsByDate = computed(() => {
-  const grouped: Record<string, Event[]> = {};
+const transformTransactionToCalendarItem = (transaction: CalendarTransaction): CalendarItem => ({
+  id: `transaction_${transaction.transaction_id}`,
+  title: transaction.transaction_type_name,
+  date: new Date(transaction.date),
+  type: 'transaction',
+  amount: parseFloat(transaction.sum),
+  direction: transaction.transaction_type_direction,
+  description: transaction.comment || `Транзакция по ${transaction.estate_name}`,
+  estateId: transaction.estate_id,
+  color: transaction.transaction_type_direction ? 'green' : 'red',
+  source: 'transaction',
+});
 
-  filteredEvents.value.forEach(event => {
-    const dateKey = event.date.toISOString().split('T')[0];
+const calendarItems = computed(() => {
+  const transactions = props.transactions.map(transformTransactionToCalendarItem);
+  const meetings = meetingsStore.meetings;
+  return [...transactions, ...meetings].sort((a, b) => a.date.getTime() - b.date.getTime());
+});
+
+const filteredItems = computed(() => {
+  if (selectedEstateId.value === 'all') return calendarItems.value;
+  return calendarItems.value.filter(
+    item => item.source === 'meeting' || item.estateId === Number(selectedEstateId.value),
+  );
+});
+
+const stats = computed(() => {
+  const transactions = filteredItems.value.filter(item => item.source === 'transaction');
+  const incomeTransactions = transactions.filter(t => t.direction);
+  const expenseTransactions = transactions.filter(t => !t.direction);
+
+  const totalIncome = incomeTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+  const totalExpense = expenseTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+  const balance = totalIncome - totalExpense;
+
+  return {
+    totalTransactions: transactions.length,
+    totalMeetings: filteredItems.value.filter(item => item.source === 'meeting').length,
+    totalIncome,
+    totalExpense,
+    balance,
+    period: 'Текущий период',
+  };
+});
+
+const itemsByDate = computed(() => {
+  const grouped: Record<string, CalendarItem[]> = {};
+
+  filteredItems.value.forEach(item => {
+    const dateKey = item.date.toISOString().split('T')[0];
     if (dateKey) {
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
       }
-      grouped[dateKey].push(event);
+      grouped[dateKey].push(item);
     }
   });
+  console.log('Группировка по дате:', grouped);
 
   return grouped;
 });
 
-const getEventsForDay = (day: any) => {
-  return eventsByDate.value[day.id] || [];
+const getItemsForDay = (day: any) => {
+  const items = itemsByDate.value[day.id] || [];
+  return items;
 };
 
-const handleEventClick = (event: Event) => {
-  selectedEvent.value = event;
-  showEventModal.value = true;
+const handleItemClick = (item: CalendarItem) => {
+  selectedItem.value = item;
+  showItemModal.value = true;
 };
 
-const formatAmount = (amount: number) => {
-  return amount.toLocaleString() + '₽';
+const handleCreateMeeting = (meetingData: CreateMeetingData) => {
+  meetingsStore.createMeeting(meetingData);
+  showCreateMeetingModal.value = false;
 };
-const getEventTypeClass = (type: string) => {
-  return type.toLowerCase() === 'доход' ? 'income' : 'expense';
+
+const handleDeleteMeeting = (meetingId: string) => {
+  meetingsStore.deleteMeeting(meetingId);
+  if (selectedItem.value?.id === meetingId) {
+    showItemModal.value = false;
+  }
+};
+
+const getItemTypeClass = (item: CalendarItem) => {
+  if (item.source === 'transaction') {
+    return item.direction ? 'income' : 'expense';
+  }
+  return item.type;
+};
+
+const getEstateName = (estateId?: number): string => {
+  if (!estateId) return '';
+  const estate = props.userEstates.find(e => e.id === estateId);
+  return estate?.name || 'Неизвестная недвижимость';
+};
+
+const getItemTypeText = (item: CalendarItem) => {
+  if (item.source === 'transaction') {
+    return item.direction ? 'Доход' : 'Расход';
+  }
+  return 'Событие';
+};
+
+const getPriorityClass = (item: CalendarItem) => {
+  if (item.source === 'meeting' && item.priority) {
+    return `priority-${item.priority}`;
+  }
+  return '';
 };
 </script>
 
 <template>
   <div class="calendar-block">
     <div class="calendar-header">
-      <h4>Календарь платежей</h4>
-      <div class="estate-selector">
-        <label for="estate-select">Выберите недвижимость:</label>
-        <select id="estate-select" v-model="selectedEstateId">
-          <option value="all">Все объекты</option>
-          <option v-for="estate in userEstates" :key="estate.id" :value="estate.id">
-            {{ estate.name }}
-          </option>
-        </select>
+      <h4>Календарь платежей и событий</h4>
+      <div class="header-controls">
+        <div class="estate-selector">
+          <label for="estate-select">Недвижимость:</label>
+          <select id="estate-select" v-model="selectedEstateId">
+            <option value="all">Все объекты</option>
+            <option v-for="estate in userEstates" :key="estate.id" :value="estate.id">
+              {{ estate.name }}
+            </option>
+          </select>
+        </div>
+        <q-btn
+          color="secondary"
+          class="button"
+          icon="add"
+          label="Добавить событие"
+          @click="showCreateMeetingModal = true"
+        />
       </div>
     </div>
 
     <div class="stats-info">
       <div class="stats-card">
         <div class="stats-header">
-          <h5>Тут будет статистика (пока данные тестовые)</h5>
+          <h5>Статистика</h5>
         </div>
         <div class="stats-grid">
           <div class="stat-item">
-            <div class="stat-label">Всего событий</div>
-            <div class="stat-value">{{ mockStats.totalEvents }}</div>
+            <div class="stat-label">Транзакции</div>
+            <div class="stat-value">{{ stats.totalTransactions }}</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">События</div>
+            <div class="stat-value">{{ stats.totalMeetings }}</div>
           </div>
           <div class="stat-item income">
             <div class="stat-label">Общий доход</div>
-            <div class="stat-value">{{ formatAmount(mockStats.totalIncome) }}</div>
+            <div class="stat-value">{{ formatCurrency(stats.totalIncome.toString()) }}</div>
           </div>
           <div class="stat-item expense">
             <div class="stat-label">Общий расход</div>
-            <div class="stat-value">{{ formatAmount(mockStats.totalExpense) }}</div>
+            <div class="stat-value">{{ formatCurrency(stats.totalExpense.toString()) }}</div>
           </div>
           <div
             class="stat-item balance"
-            :class="{ positive: mockStats.balance >= 0, negative: mockStats.balance < 0 }"
+            :class="{ positive: stats.balance >= 0, negative: stats.balance < 0 }"
           >
             <div class="stat-label">Остаток средств</div>
-            <div class="stat-value">{{ formatAmount(mockStats.balance) }}</div>
+            <div class="stat-value">{{ formatCurrency(stats.balance.toString()) }}</div>
           </div>
         </div>
       </div>
     </div>
 
-    <ClientOnly>
-      <div class="calendar-scroll-wrapper">
-        <div class="calendar-container">
-          <VCalendar expanded borderless trim-weeks class="custom-calendar outlook-style">
-            <template #day-content="{ day }">
-              <div class="day-cell">
-                <div class="day-number">{{ day.day }}</div>
-                <div class="events-list">
-                  <div
-                    v-for="event in getEventsForDay(day)"
-                    :key="event.id"
-                    class="event-line"
-                    :class="getEventTypeClass(event.type)"
-                    @click.stop="handleEventClick(event)"
-                  >
-                    <span class="event-title">{{ getEstateName(event.estateId) }}</span>
-                    <span class="event-amount">{{ formatAmount(event.amount) }}</span>
-                  </div>
+    <div class="calendar-scroll-wrapper">
+      <div v-if="isMounted" class="calendar-container">
+        <VCalendar expanded borderless trim-weeks class="custom-calendar outlook-style">
+          <template #day-content="{ day }">
+            <div class="day-cell">
+              <div class="day-number">{{ day.day }}</div>
+              <div class="events-list">
+                <div
+                  v-for="item in getItemsForDay(day)"
+                  :key="item.id"
+                  class="event-line"
+                  :class="[getItemTypeClass(item), getPriorityClass(item)]"
+                  @click.stop="handleItemClick(item)"
+                >
+                  <span class="event-title">{{ item.title }}</span>
+                  <span v-if="item.amount" class="event-amount">
+                    {{ formatCurrency(item.amount.toString()) }}
+                  </span>
                 </div>
               </div>
-            </template>
-          </VCalendar>
-        </div>
+            </div>
+          </template>
+        </VCalendar>
       </div>
 
-      <template #fallback>
-        <div class="calendar-loading">
-          <span>Загрузка календаря...</span>
-        </div>
-      </template>
-    </ClientOnly>
+      <div v-else class="calendar-loading">
+        <span>Загрузка календаря...</span>
+      </div>
+    </div>
 
-    <q-dialog v-model="showEventModal">
-      <q-card v-if="selectedEvent" class="event-modal">
+    <q-dialog v-model="showItemModal">
+      <q-card v-if="selectedItem" class="event-modal">
         <q-card-section class="modal-header">
           <div class="modal-title">
             <div>
-              <h5>{{ getEstateName(selectedEvent.estateId) }}</h5>
-              <p class="operation-type">{{ selectedEvent.title }}</p>
+              <h5>{{ selectedItem.title }}</h5>
+              <p class="operation-type">{{ getItemTypeText(selectedItem) }}</p>
             </div>
+            <q-btn
+              v-if="selectedItem.source === 'meeting'"
+              icon="delete"
+              flat
+              round
+              color="negative"
+              @click="handleDeleteMeeting(selectedItem.id)"
+            />
           </div>
         </q-card-section>
 
         <q-card-section class="modal-details">
-          <div class="detail-row">
+          <div v-if="selectedItem.amount" class="detail-row">
             <span class="detail-label">Сумма:</span>
-            <span class="detail-value" :class="getEventTypeClass(selectedEvent.type)">
-              {{ formatAmount(selectedEvent.amount) }}
+            <span class="detail-value" :class="getItemTypeClass(selectedItem)">
+              {{ formatCurrency(selectedItem.amount.toString()) }}
             </span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Тип операции:</span>
+            <span class="detail-label">Тип:</span>
             <span class="detail-value">
-              {{ selectedEvent.type }}
+              {{ getItemTypeText(selectedItem) }}
             </span>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Вид операции:</span>
+          <div v-if="selectedItem.estateId" class="detail-row">
+            <span class="detail-label">Недвижимость:</span>
             <span class="detail-value">
-              {{ selectedEvent.title }}
-            </span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Периодичность:</span>
-            <span class="detail-value">
-              {{
-                selectedEvent.repeat === 'monthly'
-                  ? 'Ежемесячно'
-                  : selectedEvent.repeat === 'yearly'
-                    ? 'Ежегодно'
-                    : 'Разовая операция'
-              }}
+              {{ getEstateName(selectedItem.estateId) }}
             </span>
           </div>
           <div class="detail-row">
             <span class="detail-label">Дата:</span>
             <span class="detail-value">
-              {{ selectedEvent.date.toLocaleDateString('ru-RU') }}
+              {{ selectedItem.date.toLocaleDateString('ru-RU') }}
             </span>
           </div>
-          <div class="detail-row full-width">
+          <div v-if="selectedItem.description" class="detail-row full-width">
             <span class="detail-label">Описание:</span>
             <span class="detail-value description">
-              {{ selectedEvent.description }}
+              {{ selectedItem.description }}
+            </span>
+          </div>
+          <div v-if="selectedItem.source === 'meeting'" class="detail-row">
+            <span class="detail-label">Приоритет:</span>
+            <span class="detail-value">
+              {{
+                selectedItem.priority === 'high'
+                  ? 'Высокий'
+                  : selectedItem.priority === 'medium'
+                    ? 'Средний'
+                    : 'Низкий'
+              }}
             </span>
           </div>
         </q-card-section>
@@ -276,6 +294,8 @@ const getEventTypeClass = (type: string) => {
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <CreateMeetingModal v-model="showCreateMeetingModal" @create="handleCreateMeeting" />
   </div>
 </template>
 
@@ -584,6 +604,56 @@ const getEventTypeClass = (type: string) => {
 
 :deep(.on-right) {
   margin-left: 0 !important;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.event-icon {
+  margin-right: 4px;
+  font-size: 12px;
+}
+
+.calendar-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  background: var(--bg-color);
+  border-radius: 8px;
+  color: var(--label);
+}
+
+.loading-indicator {
+  font-size: 12px;
+  color: var(--label);
+  font-style: italic;
+}
+
+.modal-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.event-line.priority-high {
+  border-left-color: var(--expense);
+  background: var(--expense-bg);
+}
+
+.event-line.priority-medium {
+  border-left-color: var(--warning);
+  background: var(--bg-warning);
+}
+
+.event-line.priority-low {
+  border-left-color: var(--income-border);
+  background: var(--income-bg);
 }
 
 @media (max-width: 768px) {

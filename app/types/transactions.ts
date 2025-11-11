@@ -21,6 +21,22 @@ export interface EstateTransaction {
   interest_rate?: number;
 }
 
+export interface CalendarTransaction {
+  transaction_id: number;
+  estate_id: number;
+  estate_name: string;
+  estate_type_id: number;
+  estate_type_name: string;
+  transaction_type_id: number;
+  transaction_type_name: string;
+  transaction_type_direction: boolean;
+  transaction_type_regularity: boolean;
+  transaction_group_id: number;
+  sum: string;
+  date: string;
+  comment: string;
+}
+
 export interface EstateTransactionForTable {
   comment: string;
   date: string;
