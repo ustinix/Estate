@@ -3,6 +3,9 @@ import type { Estate } from '~/types/estate';
 
 const expanded = ref(false);
 const estateStore = useEstateStore();
+const authStore = useAuthStore();
+const { executeAsync } = useErrorHandler();
+
 const props = defineProps<{
   estate: Estate;
 }>();
@@ -12,6 +15,17 @@ const progressValue = computed(() => (props.estate.recoupment || 0) / 100);
 const handleClick = () => {
   estateStore.setSelectedEstateId(props.estate.id);
   navigateTo(`/estate/${props.estate.id}`);
+};
+const handleDelete = async () => {
+  await executeAsync(
+    async () => {
+      await estateStore.deleteUserEstate(authStore.user!.id, props.estate.id);
+    },
+    {
+      showNotification: true,
+      fallbackMessage: 'Не удалось удалить недвижимость',
+    },
+  );
 };
 </script>
 
@@ -25,6 +39,17 @@ const handleClick = () => {
             {{ estate.estate_type_name || 'Неизвестный тип' }}
           </div>
         </div>
+        <q-btn
+          class="delete-btn"
+          icon="close"
+          flat
+          round
+          dense
+          color="grey"
+          @click.stop="handleDelete"
+        >
+          <q-tooltip>Удалить недвижимость</q-tooltip>
+        </q-btn>
         <div class="text-h6 q-mt-sm q-mb-xs text-no-wrap ellipsis">{{ estate.name }}</div>
       </q-card-section>
 
@@ -72,6 +97,7 @@ const handleClick = () => {
   border-radius: 12px;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .my-card:hover {
@@ -85,16 +111,44 @@ const handleClick = () => {
   display: flex;
   flex-direction: column;
 }
+
 .card-header {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+
   .card-title {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    flex: 1;
   }
 }
+
+.delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+
+  &:hover {
+    color: #f44336 !important;
+    background-color: rgba(244, 67, 54, 0.1);
+  }
+}
+
 .card-actions {
   margin-top: auto;
   flex-shrink: 0;
+}
+
+.text-no-wrap.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
 }
 </style>

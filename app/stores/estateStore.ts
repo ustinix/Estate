@@ -118,17 +118,25 @@ export const useEstateStore = defineStore('estate', () => {
     }
   };
 
+  const deleteUserEstate = async (userId: number, estateId: number): Promise<void> => {
+    try {
+      isLoading.value = true;
+      error.value = null;
+
+      await $api.delete(`/users/${userId}/estates/${estateId}`);
+      await getUserEstates(userId);
+    } catch (err) {
+      error.value = String(err);
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   const setSelectedEstateId = (id: number) => {
     selectedEstateId.value = id;
     if (import.meta.client) {
       localStorage.setItem('selectedEstateId', id.toString());
-    }
-  };
-
-  const clearSelectedEstateId = () => {
-    selectedEstateId.value = null;
-    if (import.meta.client) {
-      localStorage.removeItem('selectedEstateId');
     }
   };
 
@@ -143,7 +151,7 @@ export const useEstateStore = defineStore('estate', () => {
     createUserEstate,
     updateUserEstate,
     setSelectedEstateId,
-    clearSelectedEstateId,
     getCurrentEstateId,
+    deleteUserEstate,
   };
 });
