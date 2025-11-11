@@ -42,15 +42,6 @@ onMounted(async () => {
     await loadData();
   }
 });
-
-watch(
-  () => authStore.user,
-  async newUser => {
-    if (newUser) {
-      await loadData();
-    }
-  },
-);
 </script>
 
 <template>
