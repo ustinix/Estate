@@ -55,7 +55,7 @@ onMounted(async () => {
         </div>
       </template>
 
-      <div v-if="!authStore.isAuthenticated" class="layout default-block-container">
+      <div v-if="!authStore.isAuthenticated">
         <div class="text-center q-pa-lg default-block">
           <q-icon name="real_estate_agent" size="50px" color="grey" />
           <div class="q-mt-md text-grey">События не найдены</div>
@@ -69,10 +69,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div
-        v-else-if="authStore.isAuthenticated && userEstates.length === 0 && !isLoading"
-        class="layout default-block-container"
-      >
+      <div v-else-if="authStore.isAuthenticated && userEstates.length === 0 && !isLoading">
         <div class="text-center q-pa-lg default-block">
           <NuxtLink to="/portfolio">
             <q-btn
@@ -84,7 +81,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-else-if="isLoading" class="layout default-block-container">
+      <div v-else-if="isLoading">
         <div class="text-center q-pa-lg default-block">
           <div class="q-mt-md text-grey">Загрузка данных...</div>
         </div>
@@ -96,3 +93,30 @@ onMounted(async () => {
     </ClientOnly>
   </section>
 </template>
+<style scoped>
+.calendar-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  width: 100%;
+}
+
+.default-block-container,
+.layout {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 60vh;
+}
+
+.default-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 400px;
+  width: 100%;
+}
+</style>
