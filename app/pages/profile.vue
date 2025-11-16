@@ -8,7 +8,7 @@ import type {
 } from '~/types/auth';
 import { visibilityStates, toggleVisibility } from '~/utils/toggleVisibility';
 import { formatPhone } from '~/utils/formatPhone';
-import { validateName, validatePhone } from '~/utils/validateRules';
+import { validateOptionalName, validateOptionalPhone } from '~/utils/validateRules';
 
 definePageMeta({
   middleware: 'auth',
@@ -199,7 +199,7 @@ const validateConfirmPassword = (val: string) => {
               v-model="editableProfileData.name"
               label="Имя"
               :readonly="authStore.isLoading"
-              :rules="[validateName]"
+              :rules="[validateOptionalName]"
             />
 
             <q-input
@@ -218,7 +218,7 @@ const validateConfirmPassword = (val: string) => {
               label="Телефон"
               mask="+# (###) ###-##-##"
               :readonly="authStore.isLoading"
-              :rules="[validatePhone]"
+              :rules="[validateOptionalPhone]"
             />
 
             <q-btn
