@@ -301,16 +301,29 @@ const getPriorityClass = (item: CalendarItem) => {
 .calendar-block {
   max-width: 100%;
   margin: 0 auto;
-  padding: 20px;
 }
 
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 20px;
+}
+
+.calendar-header h4 {
+  margin: 0;
+  color: var(--text-color-black);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .estate-selector {
@@ -319,54 +332,65 @@ const getPriorityClass = (item: CalendarItem) => {
   gap: 10px;
 }
 
+.estate-selector label {
+  font-weight: 500;
+  color: var(--text-color-black);
+  white-space: nowrap;
+}
+
 .estate-selector select {
-  padding: 8px 12px;
+  padding: 10px 15px;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 8px;
   background: var(--bg-color-light);
+  color: var(--text-color-black);
+  font-size: 14px;
+  min-width: 180px;
 }
 
 .stats-info {
-  margin-bottom: 25px;
+  margin-bottom: 30px;
 }
 
 .stats-card {
   background: var(--bg-color-light);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 12px var(--box-shadow);
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 4px 20px var(--box-shadow);
   border: 1px solid var(--border-color);
 }
 
 .stats-header {
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
   border-bottom: 2px solid var(--border-color);
 }
 
 .stats-header h5 {
   margin: 0;
   color: var(--text-color-black);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  gap: 20px;
 }
 
 .stat-item {
-  padding: 16px;
-  border-radius: 8px;
+  padding: 20px;
+  border-radius: 12px;
   background: var(--bg-color);
   text-align: center;
-  transition: transform 0.2s ease;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-color);
 }
 
 .stat-item:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--box-shadow);
 }
 
 .stat-item.income {
@@ -392,14 +416,14 @@ const getPriorityClass = (item: CalendarItem) => {
 .stat-label {
   font-size: 12px;
   color: var(--label);
-  font-weight: 500;
-  margin-bottom: 6px;
+  font-weight: 600;
+  margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .stat-value {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--text-color-black);
 }
@@ -420,13 +444,34 @@ const getPriorityClass = (item: CalendarItem) => {
   color: var(--expense);
 }
 
-.calendar-container {
+/* Стили для календаря с горизонтальным скроллом */
+.calendar-scroll-wrapper {
   overflow-x: auto;
   overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
   background: var(--bg-color-light);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 10px var(--box-shadow);
+  padding: 15px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.calendar-scroll-wrapper::after {
+  content: '← прокрутите для просмотра →';
+  position: absolute;
+  top: -30px;
+  right: 15px;
+  font-size: 12px;
+  color: var(--label);
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.calendar-container {
+  min-width: 1100px;
+  background: var(--bg-color-light);
 }
 
 .calendar-loading {
@@ -434,15 +479,54 @@ const getPriorityClass = (item: CalendarItem) => {
   justify-content: center;
   align-items: center;
   height: 400px;
-  background: var(--bg-color);
-  border-radius: 8px;
+  background: var(--bg-color-light);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
   color: var(--label);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.loading-indicator::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color);
+  border-top: 2px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Стили для дней календаря */
+:deep(.custom-calendar.outlook-style) {
+  width: 100%;
+  min-width: 1100px;
 }
 
 :deep(.outlook-style .vc-day) {
-  min-height: 120px;
+  min-height: 130px;
+  height: 130px !important;
   border: 1px solid var(--border-color);
   background: var(--bg-color-light);
+  padding: 4px !important;
+  margin: 0 !important;
+  width: calc(100% / 7) !important;
+  box-sizing: border-box;
 }
 
 :deep(.outlook-style .vc-day:not(.vc-disabled):hover) {
@@ -452,43 +536,102 @@ const getPriorityClass = (item: CalendarItem) => {
 :deep(.outlook-style .vc-day-content) {
   height: 100%;
   padding: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+:deep(.vc-day) {
+  flex: 1 0 calc(100% / 7);
+  max-width: calc(100% / 7);
+  min-width: calc(100% / 7);
+}
+
+:deep(.vc-weeks) {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+:deep(.vc-week) {
+  display: flex;
+  width: 100%;
+  margin: 0;
+}
+
+:deep(.vc-title) {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color-black);
+  text-align: center;
+}
+
+:deep(.vc-header) {
+  padding: 0 15px 10px 15px;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+:deep(.vc-weekdays) {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+:deep(.vc-weekday) {
+  flex: 1;
+  text-align: center;
+  padding: 12px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-color-black);
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .day-cell {
   height: 100%;
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .day-number {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: bold;
-  margin-bottom: 4px;
   color: var(--text-color-black);
+  margin-bottom: 2px;
+  text-align: right;
+  padding: 2px 4px;
+  background: var(--bg-color);
+  border-radius: 4px;
 }
 
 .events-list {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  overflow-y: auto;
+  max-height: 90px;
 }
 
 .event-line {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-size: 10px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 11px;
   cursor: pointer;
   transition: all 0.2s;
   border-left: 3px solid transparent;
+  min-height: 20px;
 }
 
 .event-line:hover {
   transform: translateX(2px);
-  box-shadow: 0 2px 4px var(--box-shadow);
+  box-shadow: 0 2px 6px var(--box-shadow);
 }
 
 .event-line.income {
@@ -499,145 +642,6 @@ const getPriorityClass = (item: CalendarItem) => {
 .event-line.expense {
   background: var(--expense-bg);
   border-left-color: var(--expense-border);
-}
-
-.event-title {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.event-amount {
-  font-weight: bold;
-  flex-shrink: 0;
-}
-
-.event-line.income .event-amount {
-  color: var(--income);
-}
-
-.event-line.expense .event-amount {
-  color: var(--expense);
-}
-
-.event-modal {
-  min-width: 400px;
-  max-width: 500px;
-}
-
-.modal-header {
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modal-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.operation-type {
-  font-size: 14px;
-  color: var(--label);
-  margin: 0;
-  font-style: italic;
-}
-
-.modal-details {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.detail-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.detail-row.full-width {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.detail-label {
-  font-weight: 600;
-  color: var(--label);
-  min-width: 100px;
-  flex-shrink: 0;
-}
-
-.detail-value {
-  flex: 1;
-}
-
-.detail-value.income {
-  color: var(--income);
-  font-weight: bold;
-}
-
-.detail-value.expense {
-  color: var(--expense);
-  font-weight: bold;
-}
-
-.detail-value.description {
-  line-height: 1.4;
-  color: var(--label);
-}
-:deep(.vc-day:first-of-type) {
-  margin-left: 0 !important;
-}
-
-:deep(.vc-day:last-of-type) {
-  margin-right: 0 !important;
-}
-
-:deep(.on-left) {
-  margin-right: 0 !important;
-}
-
-:deep(.on-right) {
-  margin-left: 0 !important;
-}
-
-.header-controls {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.event-icon {
-  margin-right: 4px;
-  font-size: 12px;
-}
-
-.calendar-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 400px;
-  background: var(--bg-color);
-  border-radius: 8px;
-  color: var(--label);
-}
-
-.loading-indicator {
-  font-size: 12px;
-  color: var(--label);
-  font-style: italic;
-}
-
-.modal-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  width: 100%;
 }
 
 .event-line.priority-high {
@@ -655,13 +659,139 @@ const getPriorityClass = (item: CalendarItem) => {
   background: var(--income-bg);
 }
 
+.event-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.event-amount {
+  font-weight: bold;
+  flex-shrink: 0;
+  font-size: 10px;
+}
+
+.event-line.income .event-amount {
+  color: var(--income);
+}
+
+.event-line.expense .event-amount {
+  color: var(--expense);
+}
+
+/* Стили для скроллбара */
+.calendar-scroll-wrapper::-webkit-scrollbar {
+  height: 10px;
+}
+
+.calendar-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 6px;
+  border: 2px solid var(--bg-color-light);
+}
+
+.calendar-scroll-wrapper::-webkit-scrollbar-track {
+  background: var(--bg-color);
+  border-radius: 6px;
+  margin: 2px;
+}
+
+/* Модальные окна */
+.event-modal {
+  min-width: 450px;
+  max-width: 500px;
+  border-radius: 16px;
+}
+
+.modal-header {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.modal-title h5 {
+  margin: 0;
+  color: var(--text-color-black);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.modal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 20px 0;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.detail-row.full-width {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: var(--label);
+  min-width: 120px;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.detail-value {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-color-black);
+}
+
+.detail-value.income {
+  color: var(--income);
+  font-weight: bold;
+}
+
+.detail-value.expense {
+  color: var(--expense);
+  font-weight: bold;
+}
+
+.detail-value.description {
+  line-height: 1.5;
+  color: var(--label);
+}
+
+/* Мобильные стили */
 @media (max-width: 768px) {
   .calendar-header {
     flex-direction: column;
     align-items: stretch;
-    h4 {
-      font-size: 18px;
-    }
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .calendar-header h4 {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .header-controls {
+    gap: 15px;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .estate-selector {
@@ -669,29 +799,113 @@ const getPriorityClass = (item: CalendarItem) => {
   }
 
   .estate-selector select {
-    width: 120px;
-    padding: 8px 0px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--bg-color-light);
+    min-width: 140px;
+    padding: 8px 12px;
+  }
+
+  .stats-card {
+    padding: 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .stat-item {
+    padding: 15px 10px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .calendar-scroll-wrapper {
+    padding: 10px;
+    margin: 0 -10px;
+    border-radius: 12px;
+  }
+
+  .calendar-scroll-wrapper::after {
+    top: -25px;
+    right: 10px;
+    font-size: 11px;
+  }
+
+  .calendar-container {
+    min-width: 900px;
+  }
+
+  :deep(.custom-calendar.outlook-style) {
+    min-width: 900px;
+  }
+
+  :deep(.outlook-style .vc-day) {
+    min-height: 110px;
+    height: 110px !important;
+  }
+
+  :deep(.vc-title) {
+    font-size: 16px !important;
+  }
+
+  :deep(.vc-weekday) {
+    font-size: 11px !important;
+    padding: 8px 2px !important;
+  }
+
+  .day-number {
+    font-size: 11px;
+  }
+
+  .event-line {
+    padding: 3px 5px;
+    font-size: 10px;
+  }
+
+  .event-title {
+    font-size: 10px;
+  }
+
+  .event-modal {
+    min-width: 85vw;
+    margin: 20px;
+  }
+
+  .header-controls .q-btn {
+    min-height: 44px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-container {
+    min-width: 800px;
+  }
+
+  :deep(.custom-calendar.outlook-style) {
+    min-width: 800px;
+  }
+
+  :deep(.outlook-style .vc-day) {
+    min-height: 100px;
+    height: 100px !important;
   }
 
   .stats-grid {
     grid-template-columns: 1fr;
   }
 
-  .event-modal {
-    min-width: 90vw;
-    margin: 20px;
-  }
-
-  :deep(.outlook-style .vc-day) {
-    min-height: 100px;
+  .events-list {
+    max-height: 75px;
   }
 
   .event-line {
-    font-size: 9px;
-    padding: 2px 4px;
+    min-height: 18px;
   }
 }
 </style>

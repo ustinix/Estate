@@ -88,27 +88,34 @@ onMounted(async () => {
       </div>
 
       <div v-else-if="authStore.isAuthenticated && userEstates.length > 0">
-        <CalendarBlock :user-estates="userEstates" :transactions="transactionsData" />
+        <div class="calendar-wrapper">
+          <CalendarBlock :user-estates="userEstates" :transactions="transactionsData" />
+        </div>
       </div>
     </ClientOnly>
   </section>
 </template>
 <style scoped>
 .calendar-section {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 60vh;
   width: 100%;
+  min-height: 60vh;
+  background: var(--bg-color);
 }
 
-.default-block-container,
-.layout {
+.calendar-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.default-block-container {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
   min-height: 60vh;
+  padding: 40px 20px;
 }
 
 .default-block {
@@ -118,5 +125,37 @@ onMounted(async () => {
   justify-content: center;
   max-width: 400px;
   width: 100%;
+  padding: 60px 40px;
+  background: var(--bg-color-light);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px var(--box-shadow);
+  border: 1px solid var(--border-color);
+}
+@media (max-width: 768px) {
+  .calendar-wrapper {
+    padding: 20px 15px;
+  }
+
+  .default-block-container {
+    padding: 20px 15px;
+  }
+
+  .default-block {
+    padding: 40px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-wrapper {
+    padding: 15px 10px;
+  }
+
+  .default-block-container {
+    padding: 15px 10px;
+  }
+
+  .default-block {
+    padding: 30px 20px;
+  }
 }
 </style>
