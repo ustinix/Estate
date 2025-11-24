@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { createYAxisFormatter, createTooltipFormatter } from '~/utils/formatCurrency';
+const { createYAxisFormatter, createTooltipFormatter } = useFormatters();
 
 interface Props {
   chartData: {

@@ -4,7 +4,8 @@ import type { CalendarItem, CreateMeetingData } from '~/types/calendar-item';
 import { useMeetingsStore } from '~/stores/meetingsStore';
 import type { CalendarTransaction } from '~/types/transactions';
 import CreateMeetingModal from '~/components/CreateMeetingModal.vue';
-import { formatCurrency } from '~/utils/formatCurrency';
+
+const { formatCurrencyForChart } = useFormatters();
 
 interface Props {
   userEstates: Estate[];
@@ -177,18 +178,20 @@ const getPriorityClass = (item: CalendarItem) => {
           </div>
           <div class="stat-item income">
             <div class="stat-label">Общий доход</div>
-            <div class="stat-value">{{ formatCurrency(stats.totalIncome.toString()) }}</div>
+            <div class="stat-value">{{ formatCurrencyForChart(stats.totalIncome.toString()) }}</div>
           </div>
           <div class="stat-item expense">
             <div class="stat-label">Общий расход</div>
-            <div class="stat-value">{{ formatCurrency(stats.totalExpense.toString()) }}</div>
+            <div class="stat-value">
+              {{ formatCurrencyForChart(stats.totalExpense.toString()) }}
+            </div>
           </div>
           <div
             class="stat-item balance"
             :class="{ positive: stats.balance >= 0, negative: stats.balance < 0 }"
           >
             <div class="stat-label">Остаток средств</div>
-            <div class="stat-value">{{ formatCurrency(stats.balance.toString()) }}</div>
+            <div class="stat-value">{{ formatCurrencyForChart(stats.balance.toString()) }}</div>
           </div>
         </div>
       </div>
@@ -210,7 +213,7 @@ const getPriorityClass = (item: CalendarItem) => {
                 >
                   <span class="event-title">{{ item.title }}</span>
                   <span v-if="item.amount" class="event-amount">
-                    {{ formatCurrency(item.amount.toString()) }}
+                    {{ formatCurrencyForChart(item.amount.toString()) }}
                   </span>
                 </div>
               </div>
@@ -246,7 +249,7 @@ const getPriorityClass = (item: CalendarItem) => {
           <div v-if="selectedItem.amount" class="detail-row">
             <span class="detail-label">Сумма:</span>
             <span class="detail-value" :class="getItemTypeClass(selectedItem)">
-              {{ formatCurrency(selectedItem.amount.toString()) }}
+              {{ formatCurrencyForChart(selectedItem.amount.toString()) }}
             </span>
           </div>
           <div class="detail-row">

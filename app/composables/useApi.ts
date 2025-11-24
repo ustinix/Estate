@@ -21,12 +21,13 @@ export function useApi() {
     }
 
     try {
-      const response = (await $fetch(`${baseURL}${url}`, {
-        ...options,
+      const response = await $fetch(`${baseURL}${url}`, {
+        method: options.method || 'GET',
+        body: options.body,
         headers,
-      })) as T;
+      });
 
-      return response;
+      return response as T;
     } catch (error: any) {
       console.error(`API Error [${options.method || 'GET'} ${url}]:`, error);
 

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { useTransactionsStore } from '~/stores/transactions';
 import type { EstateTransactionsFilters } from '~/types/transactions';
-import { formatDate } from '~/utils/formatDate';
-import { formatCurrency } from '~/utils/formatCurrency';
 import { useErrorHandler } from '~/composables/useErrorHandler';
-import type { EstateTransaction } from '~/types/transactions';
+
+const { formatCurrencyForChart, formatDate } = useFormatters();
 
 interface Props {
   userId: number;
@@ -186,7 +185,7 @@ const getSortIcon = (field: string) => {
             <td>{{ formatDate(transaction.date) }}</td>
             <td>{{ transaction.transaction_type_name }}</td>
             <td :class="transaction.transaction_type_direction ? 'text-green' : 'text-red'">
-              {{ formatCurrency(transaction.sum) }}
+              {{ formatCurrencyForChart(transaction.sum) }}
             </td>
             <td>{{ transaction.comment || '-' }}</td>
             <td class="actions-cell">

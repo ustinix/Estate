@@ -5,8 +5,9 @@ import EstateDetailCard from '~/components/EstateDetailCard.vue';
 import TransactionForm from '~/components/TransactionForm.vue';
 import EstateTransactionsTable from '~/components/EstateTransactionsTable.vue';
 import type { ChartData } from '~/types/transactions';
-import { formatChartData } from '~/utils/formatCurrency';
 import { useErrorHandler } from '~/composables/useErrorHandler';
+
+const { formatChartData } = useFormatters();
 
 const $q = useQuasar();
 const authStore = useAuthStore();

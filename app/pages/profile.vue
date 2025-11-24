@@ -7,8 +7,9 @@ import type {
   NotificationSettingsRequest,
 } from '~/types/auth';
 import { visibilityStates, toggleVisibility } from '~/utils/toggleVisibility';
-import { formatPhone } from '~/utils/formatPhone';
 import { validateOptionalName, validateOptionalPhone } from '~/utils/validateRules';
+
+const { formatPhone } = useFormatters();
 
 definePageMeta({
   middleware: 'auth',
