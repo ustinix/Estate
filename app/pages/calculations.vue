@@ -156,6 +156,7 @@ const setActiveCalculator = (calcId: string) => {
                 class="drafts-sidebar q-mt-lg"
               >
                 <q-card-section>
+                  <q-badge class="badge-soon" label="Скоро" />
                   <div class="text-h6 q-mb-md">Сохраненные расчеты</div>
 
                   <q-list bordered class="rounded-borders">

@@ -58,7 +58,7 @@ const saveDraft = () => {
 };
 </script>
 <template>
-  <q-card>
+  <q-card class="calculator-card">
     <q-card-section>
       <div class="text-h5 q-mb-md">Калькулятор рассрочки</div>
 
@@ -147,3 +147,9 @@ const saveDraft = () => {
     </q-card-section>
   </q-card>
 </template>
+<style lang="scss" scoped>
+.calculator-card {
+  max-width: 600px;
+  margin: 0 auto;
+}
+</style>
