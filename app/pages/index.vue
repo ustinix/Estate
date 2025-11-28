@@ -56,11 +56,27 @@ const authStore = useAuthStore();
   </div>
 </template>
 <style lang="scss" scoped>
+@keyframes changeColor {
+  0% {
+    border-color: transparent;
+    opacity: 0;
+  }
+  100% {
+    border-color: var(--border-color);
+    opacity: 1;
+  }
+}
+
 .hero {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--income) 100%);
-  color: white;
-  padding: 120px 0 80px;
+  background: var(--bg-color-light);
+  animation: changeColor 1.5s ease-in-out forwards;
+  color: var(--text-color);
+  padding: 3rem 2rem;
+  border-radius: 16px;
   text-align: center;
+  margin: 2rem 0;
+  border: 2px solid transparent;
+  box-shadow: var(--card-shadow);
 
   .container {
     max-width: 800px;
