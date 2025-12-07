@@ -147,7 +147,6 @@ const handleModalClose = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 60vh;
   width: 100%;
 }
 

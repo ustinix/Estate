@@ -56,7 +56,7 @@ onMounted(async () => {
       </template>
 
       <div v-if="!authStore.isAuthenticated">
-        <div class="text-center q-pa-lg default-block">
+        <div class="layout text-center q-pa-lg default-block">
           <q-icon name="real_estate_agent" size="50px" color="grey" />
           <div class="q-mt-md text-grey">События не найдены</div>
           <NuxtLink to="/register">
@@ -70,7 +70,7 @@ onMounted(async () => {
       </div>
 
       <div v-else-if="authStore.isAuthenticated && userEstates.length === 0 && !isLoading">
-        <div class="text-center q-pa-lg default-block">
+        <div class="layout text-center q-pa-lg default-block">
           <NuxtLink to="/portfolio">
             <q-btn
               color="secondary"
@@ -82,7 +82,7 @@ onMounted(async () => {
       </div>
 
       <div v-else-if="isLoading">
-        <div class="text-center q-pa-lg default-block">
+        <div class="layout text-center q-pa-lg default-block">
           <div class="q-mt-md text-grey">Загрузка данных...</div>
         </div>
       </div>
@@ -98,8 +98,10 @@ onMounted(async () => {
 <style scoped>
 .calendar-section {
   width: 100%;
-  min-height: 60vh;
   background: var(--bg-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .calendar-wrapper {
@@ -114,8 +116,6 @@ onMounted(async () => {
   justify-content: center;
   align-items: center;
   width: 100%;
-  min-height: 60vh;
-  padding: 40px 20px;
 }
 
 .default-block {
@@ -126,12 +126,13 @@ onMounted(async () => {
   max-width: 400px;
   width: 100%;
   padding: 60px 40px;
-  background: var(--bg-color-light);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px var(--box-shadow);
-  border: 1px solid var(--border-color);
+  text-align: center;
 }
 @media (max-width: 768px) {
+  .calendar-section {
+    min-height: 80vh;
+  }
+
   .calendar-wrapper {
     padding: 20px 15px;
   }
@@ -146,6 +147,10 @@ onMounted(async () => {
 }
 
 @media (max-width: 480px) {
+  .calendar-section {
+    min-height: 70vh;
+  }
+
   .calendar-wrapper {
     padding: 15px 10px;
   }
@@ -156,6 +161,10 @@ onMounted(async () => {
 
   .default-block {
     padding: 30px 20px;
+  }
+
+  .q-pa-lg {
+    padding: 32px 20px;
   }
 }
 </style>
