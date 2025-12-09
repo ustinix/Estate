@@ -1,84 +1,11 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/authStore';
-import InstalmentCalc from '~/components/calculators/InstalmentCalc.vue';
-import MortgageCalc from '~/components/calculators/MortgageCalc.vue';
+import { calculators } from '~/constants/calculators';
+import { drafts } from '~/constants/mockDrafts';
 
 const authStore = useAuthStore();
 
 type CalculatorComponent = ReturnType<typeof defineAsyncComponent>;
-
-const calculators = ref([
-  {
-    id: 'mortgage',
-    title: 'Ипотечный калькулятор',
-    icon: 'real_estate_agent',
-    description: 'Рассчитайте ежемесячный платеж и переплату по ипотеке',
-    component: 'MortgageCalc',
-    color: 'primary',
-  },
-  {
-    id: 'installment',
-    title: 'Рассрочка',
-    icon: 'credit_score',
-    description: 'Расчет платежей по рассрочке на недвижимость',
-    component: 'InstalmentCalc',
-    color: 'secondary',
-  },
-  {
-    id: 'rental',
-    title: 'Доходность аренды',
-    icon: 'trending_up',
-    description: 'Окупаемость и рентабельность арендной недвижимости',
-    component: 'RentalYieldCalc',
-    color: 'positive',
-    comingSoon: true,
-  },
-  {
-    id: 'refinancing',
-    title: 'Рефинансирование',
-    icon: 'autorenew',
-    description: 'Сравнение текущей и новой ипотечной программы',
-    component: 'RefinancingCalc',
-    color: 'orange',
-    comingSoon: true,
-  },
-  {
-    id: 'tax',
-    title: 'Налоговый вычет',
-    icon: 'savings',
-    description: 'Расчет налогового вычета при покупке недвижимости',
-    component: 'TaxCalc',
-    color: 'purple',
-    comingSoon: true,
-  },
-  {
-    id: 'repair',
-    title: 'Затраты на ремонт',
-    icon: 'handyman',
-    description: 'Планирование бюджета на ремонт недвижимости',
-    component: 'RepairCalc',
-    color: 'teal',
-    comingSoon: true,
-  },
-]);
-
-// Черновики (пока моковые данные)
-const drafts = ref([
-  {
-    id: 1,
-    title: 'Ипотека на квартиру в Москве',
-    type: 'mortgage',
-    date: '2024-01-15',
-    data: { price: 15000000, initialPayment: 3000000 },
-  },
-  {
-    id: 2,
-    title: 'Аренда студии в центре',
-    type: 'rental',
-    date: '2024-01-10',
-    data: { propertyPrice: 8000000, rentalIncome: 60000 },
-  },
-]);
 
 const activeCalculator = ref('mortgage');
 
