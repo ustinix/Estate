@@ -1,4 +1,5 @@
 {
+  "name": "estate-k1ex",
   "rewrites": [
     {
       "source": "/api/:path*",
