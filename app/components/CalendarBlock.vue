@@ -241,7 +241,9 @@ const getPriorityClass = (item: CalendarItem) => {
               round
               color="negative"
               @click="handleDeleteMeeting(selectedItem.id)"
-            />
+            >
+              <q-tooltip> Удалить </q-tooltip>
+            </q-btn>
           </div>
         </q-card-section>
 
@@ -291,7 +293,7 @@ const getPriorityClass = (item: CalendarItem) => {
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Закрыть" color="primary" v-close-popup />
+          <q-btn flat label="Закрыть" color="indigo-10" v-close-popup class="button" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -342,7 +344,7 @@ const getPriorityClass = (item: CalendarItem) => {
 }
 
 .estate-selector select {
-  padding: 10px 15px;
+  padding: 10px 0px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background: var(--bg-color-light);
@@ -447,7 +449,6 @@ const getPriorityClass = (item: CalendarItem) => {
   color: var(--expense);
 }
 
-/* Стили для календаря с горизонтальным скроллом */
 .calendar-scroll-wrapper {
   overflow-x: auto;
   overflow-y: hidden;
@@ -515,7 +516,6 @@ const getPriorityClass = (item: CalendarItem) => {
   }
 }
 
-/* Стили для дней календаря */
 :deep(.custom-calendar.outlook-style) {
   width: 100%;
   min-width: 1100px;
@@ -686,7 +686,6 @@ const getPriorityClass = (item: CalendarItem) => {
   color: var(--expense);
 }
 
-/* Стили для скроллбара */
 .calendar-scroll-wrapper::-webkit-scrollbar {
   height: 10px;
 }
@@ -703,8 +702,8 @@ const getPriorityClass = (item: CalendarItem) => {
   margin: 2px;
 }
 
-/* Модальные окна */
 .event-modal {
+  padding: 10px 15px;
   min-width: 450px;
   max-width: 500px;
   border-radius: 16px;
@@ -777,7 +776,6 @@ const getPriorityClass = (item: CalendarItem) => {
   color: var(--label);
 }
 
-/* Мобильные стили */
 @media (max-width: 768px) {
   .calendar-header {
     flex-direction: column;

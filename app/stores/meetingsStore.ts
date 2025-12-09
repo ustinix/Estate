@@ -38,7 +38,7 @@ export const useMeetingsStore = defineStore('meetings', () => {
     if (import.meta.client) {
       const meetingsToStore: StoredMeeting[] = meetings.value.map(meeting => ({
         ...meeting,
-        date: meeting.date.toISOString(), // Сохраняем как строку
+        date: meeting.date.toISOString(),
       }));
       localStorage.setItem('user-meetings', JSON.stringify(meetingsToStore));
     }
