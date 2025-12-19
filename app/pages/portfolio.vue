@@ -11,30 +11,26 @@ import { useErrorHandler } from '~/composables/useErrorHandler';
 const dictionariesStore = useDictionariesStore();
 const authStore = useAuthStore();
 const estateStore = useEstateStore();
-const { executeAsync, clearError, isLoading: isActionLoading } = useErrorHandler();
+const { showNotification } = useErrorHandler();
 
 const estateTypes = computed(() => dictionariesStore.estateTypes);
 const { estates, isLoading: isEstatesLoading } = storeToRefs(estateStore);
 
 const showAddModal = ref(false);
 const selectedType = ref('все');
+const isCreating = ref(false);
 
-const isLoading = computed(() => isEstatesLoading.value || isActionLoading.value);
+const isLoading = computed(() => isEstatesLoading.value || isCreating.value);
 
 const loadEstates = async () => {
   const currentUserId = authStore.user?.id;
   if (!currentUserId) return;
 
-  clearError();
-
-  await executeAsync(
-    async () => {
-      await estateStore.getUserEstates(currentUserId);
-    },
-    {
-      fallbackMessage: 'Не удалось загрузить недвижимость',
-    },
-  );
+  try {
+    await estateStore.getUserEstates(currentUserId);
+  } catch (error) {
+    console.error('Ошибка загрузки недвижимости:', error);
+  }
 };
 
 if (authStore.user) {
@@ -71,21 +67,20 @@ const filteredEstates = computed(() => {
 const createEstate = async (estateData: { estate_type_id: number; name: string }) => {
   const currentUserId = authStore.user?.id;
   if (!currentUserId) {
-    showError('Пользователь не авторизован');
+    showNotification('Пользователь не авторизован', 'error');
     return;
   }
 
-  clearError();
-
-  await executeAsync(
-    async () => {
-      await estateStore.createUserEstate(currentUserId, estateData);
-      showAddModal.value = false;
-    },
-    {
-      fallbackMessage: 'Не удалось создать недвижимость',
-    },
-  );
+  isCreating.value = true;
+  try {
+    await estateStore.createUserEstate(currentUserId, estateData);
+    showAddModal.value = false;
+    showNotification('Недвижимость успешно создана', 'success');
+  } catch (error) {
+    console.error('Ошибка создания недвижимости:', error);
+  } finally {
+    isCreating.value = false;
+  }
 };
 
 const handleModalClose = () => {
@@ -137,6 +132,7 @@ const handleModalClose = () => {
         :estate-types="estateTypes"
         @create="createEstate"
         @update:model-value="handleModalClose"
+        :is-loading="isCreating"
       />
     </ClientOnly>
   </section>

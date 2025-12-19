@@ -10,30 +10,34 @@ const authStore = useAuthStore();
 const estateStore = useEstateStore();
 const transactionsStore = useTransactionsStore();
 
-const { executeAsync, isLoading } = useErrorHandler();
+const { handleGenericError } = useErrorHandler();
 
 const isMounted = ref(false);
 const userEstates = ref<Estate[]>([]);
 const transactionsData = ref<CalendarTransaction[]>([]);
+const isCalendarLoading = ref(false);
+
+const isLoading = computed(
+  () => isCalendarLoading.value || estateStore.isLoading || transactionsStore.isLoading,
+);
 
 const loadData = async (): Promise<void> => {
-  await executeAsync(
-    async () => {
-      if (!authStore.user?.id) return;
+  if (!authStore.user?.id) return;
 
-      await Promise.all([
-        estateStore.getUserEstates(authStore.user.id),
-        transactionsStore.getUserTransactions(authStore.user.id),
-      ]);
+  isCalendarLoading.value = true;
+  try {
+    await Promise.all([
+      estateStore.getUserEstates(authStore.user.id),
+      transactionsStore.getUserTransactions(authStore.user.id),
+    ]);
 
-      userEstates.value = estateStore.estates || [];
-      transactionsData.value = transactionsStore.userTransactions || [];
-    },
-    {
-      showNotification: true,
-      fallbackMessage: 'Не удалось загрузить данные',
-    },
-  );
+    userEstates.value = estateStore.estates || [];
+    transactionsData.value = transactionsStore.userTransactions || [];
+  } catch (error) {
+    handleGenericError(error, 'Не удалось загрузить данные');
+  } finally {
+    isCalendarLoading.value = false;
+  }
 };
 
 onMounted(async () => {

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useQuasar } from 'quasar';
 import { useDictionariesStore } from '~/stores/dictionariesStore';
 import EstateDetailCard from '~/components/EstateDetailCard.vue';
 import TransactionForm from '~/components/TransactionForm.vue';
@@ -9,12 +8,11 @@ import { useErrorHandler } from '~/composables/useErrorHandler';
 
 const { formatChartData } = useFormatters();
 
-const $q = useQuasar();
 const authStore = useAuthStore();
 const estateStore = useEstateStore();
 const transactionsStore = useTransactionsStore();
 const dictionariesStore = useDictionariesStore();
-const { executeAsync, clearError, isLoading: isActionLoading } = useErrorHandler();
+const { showNotification, handleGenericError } = useErrorHandler();
 
 const route = useRoute();
 const estateId = computed(() => {
@@ -35,9 +33,7 @@ const { estate, isLoading: estateLoading } = storeToRefs(estateStore);
 const { isLoading: transactionsLoading } = storeToRefs(transactionsStore);
 const estateTypeOptions = computed(() => dictionariesStore.estateTypeOptions);
 
-const isLoading = computed(
-  () => estateLoading.value || transactionsLoading.value || isActionLoading.value,
-);
+const isLoading = computed(() => estateLoading.value || transactionsLoading.value);
 const chartData = ref<ChartData>({
   categories: [],
   series: [],
@@ -72,21 +68,16 @@ const loadChartData = async () => {
 const loadInitialData = async () => {
   if (!authStore.user?.id || !estateId.value) return;
 
-  clearError();
-
-  await executeAsync(
-    async () => {
-      estateStore.setSelectedEstateId(estateId.value!);
-      await Promise.all([
-        estateStore.getUserEstate(authStore.user!.id, estateId.value!),
-        transactionsStore.getUserEstateTransactions(authStore.user!.id, estateId.value!),
-        loadChartData(),
-      ]);
-    },
-    {
-      fallbackMessage: 'Не удалось загрузить данные недвижимости',
-    },
-  );
+  try {
+    estateStore.setSelectedEstateId(estateId.value!);
+    await Promise.all([
+      estateStore.getUserEstate(authStore.user!.id, estateId.value!),
+      transactionsStore.getUserEstateTransactions(authStore.user!.id, estateId.value!),
+      loadChartData(),
+    ]);
+  } catch (error) {
+    handleGenericError(error, 'Не удалось загрузить данные недвижимости');
+  }
 };
 
 onMounted(() => {
@@ -140,25 +131,13 @@ const saveEditing = async () => {
 
   if (!currentEstate || !currentUserId) return;
 
-  clearError();
-
-  await executeAsync(
-    async () => {
-      await estateStore.updateUserEstate(currentUserId, currentEstate.id, editForm.value);
-
-      isEditing.value = false;
-
-      $q.notify({
-        color: 'green-4',
-        textColor: 'white',
-        icon: 'cloud_done',
-        message: 'Данные обновлены!',
-      });
-    },
-    {
-      fallbackMessage: 'Не удалось обновить данные недвижимости',
-    },
-  );
+  try {
+    await estateStore.updateUserEstate(currentUserId, currentEstate.id, editForm.value);
+    isEditing.value = false;
+    showNotification('Данные обновлены!', 'success');
+  } catch (error) {
+    handleGenericError(error, 'Не удалось обновить данные недвижимости');
+  }
 };
 
 const hasRecoupment = computed(() => !!(estate.value?.recoupment && estate.value.recoupment > 0));

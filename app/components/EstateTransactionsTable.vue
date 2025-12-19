@@ -12,7 +12,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const store = useTransactionsStore();
-const { executeAsync, clearError } = useErrorHandler();
+const { handleGenericError, showNotification } = useErrorHandler();
 
 const editDialog = ref(false);
 const editingTransactionId = ref<number | null>(null);
@@ -42,53 +42,42 @@ const handleSaveTransaction = async () => {
   const transactionId = editingTransactionId.value;
   if (!transactionId) return;
 
-  await executeAsync(
-    async () => {
-      const updateData = {
-        sum: Number(editForm.value.sum),
-        date: editForm.value.date,
-        comment: editForm.value.comment,
-      };
+  try {
+    const updateData = {
+      sum: Number(editForm.value.sum),
+      date: editForm.value.date,
+      comment: editForm.value.comment,
+    };
 
-      await store.updateEstateTransactions(props.userId, props.estateId, transactionId, updateData);
+    await store.updateEstateTransactions(props.userId, props.estateId, transactionId, updateData);
 
-      editDialog.value = false;
-      await loadTransactions(filters.value.page);
-    },
-    {
-      showNotification: true,
-      fallbackMessage: 'Не удалось обновить транзакцию',
-    },
-  );
+    editDialog.value = false;
+    showNotification('Транзакция успешно обновлена', 'success');
+    await loadTransactions(filters.value.page);
+  } catch (error) {
+    handleGenericError(error, 'Не удалось обновить транзакцию');
+  }
 };
 
 const loadTransactions = async (page: number = 1) => {
-  clearError();
-
-  await executeAsync(
-    async () => {
-      await store.getUserEstateTransactions(props.userId, props.estateId, {
-        ...filters.value,
-        page,
-      });
-    },
-    {
-      fallbackMessage: 'Не удалось загрузить транзакции',
-    },
-  );
+  try {
+    await store.getUserEstateTransactions(props.userId, props.estateId, {
+      ...filters.value,
+      page,
+    });
+  } catch (error) {
+    console.error('Ошибка загрузки транзакций:', error);
+  }
 };
 
 const handleDeleteTransaction = async (transactionId: number) => {
-  await executeAsync(
-    async () => {
-      await store.deleteEstateTransactions(transactionId, props.userId, props.estateId);
-      loadTransactions(filters.value.page);
-    },
-    {
-      showNotification: true,
-      fallbackMessage: 'Не удалось удалить транзакцию',
-    },
-  );
+  try {
+    await store.deleteEstateTransactions(transactionId, props.userId, props.estateId);
+    showNotification('Транзакция успешно удалена', 'success');
+    loadTransactions(filters.value.page);
+  } catch (error) {
+    handleGenericError(error, 'Не удалось удалить транзакцию');
+  }
 };
 
 const handlePageChange = (page: number) => {

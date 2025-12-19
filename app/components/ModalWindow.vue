@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useDictionariesStore } from '~/stores/dictionariesStore';
-import { useErrorHandler } from '~/composables/useErrorHandler';
 
 interface Props {
   modelValue: boolean;
+  isLoading?: boolean;
 }
 
 interface Emits {
@@ -15,7 +15,6 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const dictionariesStore = useDictionariesStore();
-const { executeAsync, clearError, isLoading } = useErrorHandler();
 
 const form = ref({
   estate_type_id: null as number | null,
@@ -37,31 +36,21 @@ const handleSubmit = async () => {
     return;
   }
 
-  clearError();
-
-  const success = await executeAsync(
-    async () => {
-      emit('create', {
-        estate_type_id: estateTypeId,
-        name: name,
-      });
-      return true;
-    },
-    {
-      fallbackMessage: 'Не удалось создать недвижимость',
-    },
-  );
-
-  if (success) {
+  try {
+    emit('create', {
+      estate_type_id: estateTypeId,
+      name: name,
+    });
     resetForm();
     closeModal();
+  } catch (error) {
+    console.error('Ошибка создания недвижимости:', error);
   }
 };
 
 const closeModal = () => {
   showModal.value = false;
   resetForm();
-  clearError();
 };
 
 const resetForm = () => {
@@ -74,7 +63,6 @@ const resetForm = () => {
 watch(showModal, newVal => {
   if (!newVal) {
     resetForm();
-    clearError();
   }
 });
 </script>

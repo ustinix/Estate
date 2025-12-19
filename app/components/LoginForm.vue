@@ -8,11 +8,9 @@ import { useAuthStore } from '~/stores/authStore';
 import { getUserNameFromEmail } from '~/utils/getUserName';
 import { useErrorHandler } from '~/composables/useErrorHandler';
 
-const $q = useQuasar();
 const authStore = useAuthStore();
-const { login } = authStore;
-
-const { executeAsync, clearError, error: errorState, isLoading } = useErrorHandler();
+const { showNotification, handleGenericError } = useErrorHandler();
+const { isLoading } = storeToRefs(authStore);
 
 const formData = ref<LoginRequest>({
   email: '',
@@ -20,25 +18,19 @@ const formData = ref<LoginRequest>({
 });
 
 async function onSubmit() {
-  clearError();
+  try {
+    const tokenData = await authStore.login(formData.value);
+    if (tokenData?.user) {
+      const userName = tokenData.user.name
+        ? tokenData.user.name
+        : getUserNameFromEmail(formData.value.email);
 
-  const response = await executeAsync(async () => {
-    return await login(formData.value);
-  });
-
-  if (response) {
-    const userName = response?.user?.name
-      ? response.user.name
-      : getUserNameFromEmail(formData.value.email);
-
-    $q.notify({
-      color: 'green-4',
-      textColor: 'white',
-      icon: 'cloud_done',
-      message: `Добро пожаловать, ${userName}!`,
-    });
-    await nextTick();
-    await navigateTo('/profile');
+      showNotification(`Добро пожаловать, ${userName}!`, 'success');
+      await nextTick();
+      await navigateTo('/profile');
+    }
+  } catch (error) {
+    handleGenericError(error, 'Не удалось войти в систему');
   }
 }
 
@@ -53,10 +45,6 @@ function onReset() {
 </script>
 <template>
   <section class="register-section q-pa-md">
-    <div v-if="errorState" class="error-message q-mb-md">
-      <q-icon name="error" color="red" />
-      {{ errorState.message }}
-    </div>
     <q-form @submit="onSubmit" @reset="onReset" class="q-gutter-md">
       <q-input
         filled

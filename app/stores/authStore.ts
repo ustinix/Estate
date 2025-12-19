@@ -7,7 +7,6 @@ import type {
   NotificationSettingsRequest,
 } from '~/types/auth';
 import { AUTH_CONSTANTS } from '~/constants/auth';
-import { handleApiError } from '~/utils/apiError';
 import { useApi } from '~/composables/useApi';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -178,7 +177,7 @@ export const useAuthStore = defineStore('auth', () => {
       return response;
     } catch (error) {
       clearAuth();
-      throw handleApiError(error);
+      throw error;
     } finally {
       isLoading.value = false;
     }
@@ -198,7 +197,7 @@ export const useAuthStore = defineStore('auth', () => {
       return loginResponse;
     } catch (error) {
       clearAuth();
-      throw handleApiError(error);
+      throw error;
     } finally {
       isLoading.value = false;
     }
@@ -240,7 +239,7 @@ export const useAuthStore = defineStore('auth', () => {
       await getCurrentUser();
     } catch (error) {
       console.error(error);
-      throw new Error('Не удалось обновить профиль. Сервер недоступен.');
+      throw error;
     }
   };
 
@@ -256,7 +255,7 @@ export const useAuthStore = defineStore('auth', () => {
       await $api.put(`/users/${userId}/change-password`, passwordData);
     } catch (error) {
       console.error(error);
-      throw handleApiError(error);
+      throw error;
     }
   };
 

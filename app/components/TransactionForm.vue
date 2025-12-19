@@ -12,8 +12,8 @@ const props = defineProps<{
 const transactionStore = useTransactionsStore();
 const dictionaryStore = useDictionariesStore();
 const { transactionTypes, transactionFrequencies } = storeToRefs(dictionaryStore);
-const $q = useQuasar();
-const { executeAsync, clearError, isLoading } = useErrorHandler();
+const { showNotification, handleGenericError } = useErrorHandler();
+const { isLoading: isCreating } = storeToRefs(transactionStore);
 
 const isMounted = ref(false);
 onMounted(() => {
@@ -124,84 +124,66 @@ const onSubmit = async () => {
   const estateId = props.estateId;
 
   if (!estateId || !userId) {
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'error',
-      message: 'Не выбрана недвижимость',
-    });
+    showNotification('Не выбрана недвижимость', 'error');
     return;
   }
 
-  clearError();
+  try {
+    const selectedCategoryData = transactionTypes.value.find(
+      type => type.id === selectedCategory.value,
+    );
+    const categoryName = selectedCategoryData?.name || '';
 
-  await executeAsync(
-    async () => {
-      const selectedCategoryData = transactionTypes.value.find(
-        type => type.id === selectedCategory.value,
-      );
-      const categoryName = selectedCategoryData?.name || '';
+    const transactionData: EstateTransaction = {
+      estate_id: estateId,
+      type_id: selectedCategory.value!,
+      name: categoryName,
+      cost: 0,
+      direction: operationType.value,
+      regularity: regularity.value,
+      date_start: '',
+      comment: '',
+      payday_on_workday: false,
+    };
 
-      const transactionData: EstateTransaction = {
-        estate_id: estateId,
-        type_id: selectedCategory.value!,
-        name: categoryName,
-        cost: 0,
-        direction: operationType.value,
-        regularity: regularity.value,
-        date_start: '',
-        comment: '',
-        payday_on_workday: false,
-      };
+    if (!regularity.value) {
+      transactionData.cost = Number(oneTimeForm.value.amount) || 0;
+      transactionData.comment = oneTimeForm.value.description || '';
+      transactionData.date_start = String(oneTimeForm.value.date);
+    } else if (operationType.value) {
+      const form = regularIncomeForm.value;
+      transactionData.cost = Number(form.amount) || 0;
+      transactionData.comment = form.description || '';
+      transactionData.date_start = String(form.date_start);
+      transactionData.payday = Number(form.payment_day) || undefined;
+      transactionData.frequency_id = form.frequency_id;
 
-      if (!regularity.value) {
-        transactionData.cost = Number(oneTimeForm.value.amount) || 0;
-        transactionData.comment = oneTimeForm.value.description || '';
-        transactionData.date_start = String(oneTimeForm.value.date);
-      } else if (operationType.value) {
-        const form = regularIncomeForm.value;
-        transactionData.cost = Number(form.amount) || 0;
-        transactionData.comment = form.description || '';
-        transactionData.date_start = String(form.date_start);
-        transactionData.payday = Number(form.payment_day) || undefined;
-        transactionData.frequency_id = form.frequency_id;
+      if (isRentCategory.value) {
+        transactionData.loan_term = Number(form.loan_term) || undefined;
+      }
+    } else {
+      const form = regularExpenseForm.value;
+      transactionData.cost = Number(form.amount) || 0;
+      transactionData.comment = form.description || '';
+      transactionData.date_start = String(form.date_start);
+      transactionData.payday = Number(form.payment_day) || undefined;
+      transactionData.frequency_id = form.frequency_id;
+      if (isRentCategory.value || isCreditOrInstallment.value) {
+        transactionData.loan_term = Number(form.loan_term) || undefined;
 
-        if (isRentCategory.value) {
-          transactionData.loan_term = Number(form.loan_term) || undefined;
-        }
-      } else {
-        const form = regularExpenseForm.value;
-        transactionData.cost = Number(form.amount) || 0;
-        transactionData.comment = form.description || '';
-        transactionData.date_start = String(form.date_start);
-        transactionData.payday = Number(form.payment_day) || undefined;
-        transactionData.frequency_id = form.frequency_id;
-        if (isRentCategory.value || isCreditOrInstallment.value) {
-          transactionData.loan_term = Number(form.loan_term) || undefined;
-
-          if (isCreditCategory.value && !isInstallmentCategory.value && !isRentCategory.value) {
-            transactionData.interest_rate = Number(form.interest_rate) || undefined;
-          }
+        if (isCreditCategory.value && !isInstallmentCategory.value && !isRentCategory.value) {
+          transactionData.interest_rate = Number(form.interest_rate) || undefined;
         }
       }
+    }
 
-      await transactionStore.addEstateTransactions(userId, transactionData);
+    await transactionStore.addEstateTransactions(userId, transactionData);
 
-      $q.notify({
-        color: 'green-4',
-        textColor: 'white',
-        icon: 'cloud_done',
-        message: 'Транзакция успешно добавлена!',
-        timeout: 3000,
-        position: 'center',
-      });
-
-      return true;
-    },
-    {
-      fallbackMessage: 'Не удалось добавить транзакцию',
-    },
-  );
+    showNotification('Транзакция успешно добавлена!', 'success');
+    resetForms();
+  } catch (error) {
+    handleGenericError(error, 'Не удалось добавить транзакцию');
+  }
 };
 
 const resetForms = () => {
@@ -233,7 +215,6 @@ const resetForms = () => {
 watch([operationType, regularity], () => {
   selectedCategory.value = null;
   resetForms();
-  clearError();
 });
 </script>
 <template>
@@ -478,7 +459,7 @@ watch([operationType, regularity], () => {
                 color="secondary"
                 class="submit-btn"
                 :disable="!isFormValid"
-                :loading="isLoading"
+                :loading="isCreating"
                 dense
               />
             </div>

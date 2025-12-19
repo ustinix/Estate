@@ -6,6 +6,8 @@ export interface User {
   email: string;
   phone?: string;
   telegram?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface TokenResponse {

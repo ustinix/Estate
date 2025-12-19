@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useQuasar } from 'quasar';
 import NavMenu from './NavMenu.vue';
 import BurgerMenu from './BurgerMenu.vue';
 import { navLinks } from '~/constants/navLinks';
@@ -9,25 +8,18 @@ import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { useErrorHandler } from '~/composables/useErrorHandler';
 
-const $q = useQuasar();
-
 const authStore = useAuthStore();
 const { user, isAuthenticated, isLoading: authLoading } = storeToRefs(authStore);
-const { executeAsync, isLoading: isLoggingOut } = useErrorHandler();
+const { showNotification } = useErrorHandler();
 
 const handleLogout = async () => {
-  await executeAsync(async () => {
+  try {
     await authStore.logout();
     await authStore.initAuth();
-
-    $q.notify({
-      color: 'green-4',
-      textColor: 'white',
-      icon: 'cloud_done',
-      message: 'Выход выполнен успешно',
-    });
-    return true;
-  });
+    showNotification('Выход выполнен успешно', 'success');
+  } catch (error) {
+    showNotification('Не удалось выполнить выход', 'error');
+  }
 };
 
 const userName = computed(() => {
@@ -40,7 +32,7 @@ const userName = computed(() => {
   return 'Пользователь';
 });
 
-const isLoading = computed(() => authLoading.value || isLoggingOut.value);
+const isLoading = computed(() => authLoading.value);
 </script>
 
 <template>
@@ -78,13 +70,7 @@ const isLoading = computed(() => authLoading.value || isLoggingOut.value);
               <q-icon name="person" class="nav-icon" />
               <span class="nav-text">{{ userName }}</span>
             </NuxtLink>
-            <q-btn
-              class="header-btn button"
-              color="negative"
-              label="Выйти"
-              @click="handleLogout"
-              :loading="isLoggingOut"
-            />
+            <q-btn class="header-btn button" color="negative" label="Выйти" @click="handleLogout" />
           </div>
         </template>
       </div>

@@ -4,7 +4,8 @@ import type { Estate } from '~/types/estate';
 const expanded = ref(false);
 const estateStore = useEstateStore();
 const authStore = useAuthStore();
-const { executeAsync } = useErrorHandler();
+const { showNotification } = useErrorHandler();
+const { isLoading: isDeleting } = storeToRefs(estateStore);
 
 const props = defineProps<{
   estate: Estate;
@@ -17,15 +18,12 @@ const handleClick = () => {
   navigateTo(`/estate/${props.estate.id}`);
 };
 const handleDelete = async () => {
-  await executeAsync(
-    async () => {
-      await estateStore.deleteUserEstate(authStore.user!.id, props.estate.id);
-    },
-    {
-      showNotification: true,
-      fallbackMessage: 'Не удалось удалить недвижимость',
-    },
-  );
+  try {
+    await estateStore.deleteUserEstate(authStore.user!.id, props.estate.id);
+    showNotification('Недвижимость успешно удалена', 'success');
+  } catch (error) {
+    console.error('Ошибка удаления недвижимости:', error);
+  }
 };
 </script>
 
@@ -47,6 +45,7 @@ const handleDelete = async () => {
           dense
           color="grey"
           @click.stop="handleDelete"
+          :loading="isDeleting"
         >
           <q-tooltip>Удалить недвижимость</q-tooltip>
         </q-btn>

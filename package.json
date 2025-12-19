@@ -21,6 +21,7 @@
     "@vueuse/head": "^2.0.0",
     "@vueuse/nuxt": "^13.9.0",
     "apexcharts": "^5.3.5",
+    "axios": "^1.13.2",
     "nuxt": "4.1.2",
     "nuxt-quasar-ui": "^2.1.13",
     "pinia": "^3.0.3",

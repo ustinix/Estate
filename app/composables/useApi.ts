@@ -1,52 +1,35 @@
-import { useAuthStore } from '~/stores/authStore';
+import type { AxiosInstance, AxiosRequestConfig } from 'axios';
+
+declare module '#app' {
+  interface NuxtApp {
+    $axios: AxiosInstance;
+  }
+}
 
 export function useApi() {
-  const config = useRuntimeConfig();
-  const authStore = useAuthStore();
+  const { $axios } = useNuxtApp();
 
-  const baseURL = '/api';
-
-  async function request<T>(url: string, options: any = {}): Promise<T> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-
-    if (config.public.apiSecret) {
-      headers['X-API-Key'] = config.public.apiSecret;
-    }
-
-    if (authStore.isAuthenticated && authStore.accessToken) {
-      headers['Authorization'] = `Bearer ${authStore.accessToken}`;
-    }
-
-    try {
-      const response = await $fetch(`${baseURL}${url}`, {
-        method: options.method || 'GET',
-        body: options.body,
-        headers,
-      });
-
-      return response as T;
-    } catch (error: any) {
-      console.error(`API Error [${options.method || 'GET'} ${url}]:`, error);
-
-      if (error.status === 401) {
-        authStore.logout();
-        await navigateTo('/login');
-        throw new Error('Пользователь не авторизован.');
-      }
-      throw error;
-    }
-  }
+  const request = async <T>(config: AxiosRequestConfig): Promise<T> => {
+    const response = await $axios(config);
+    return response as T; // response уже данные, но TypeScript не знает
+  };
 
   return {
-    get: <T>(url: string, options?: any) => request<T>(url, { ...options, method: 'GET' }),
-    post: <T>(url: string, data?: any, options?: any) =>
-      request<T>(url, { ...options, method: 'POST', body: data }),
-    put: <T>(url: string, data?: any, options?: any) =>
-      request<T>(url, { ...options, method: 'PUT', body: data }),
-    delete: <T>(url: string, options?: any) => request<T>(url, { ...options, method: 'DELETE' }),
+    get: <T>(url: string, config?: AxiosRequestConfig) =>
+      request<T>({ ...config, method: 'GET', url }),
+
+    post: <T>(url: string, data?: any, config?: AxiosRequestConfig) =>
+      request<T>({ ...config, method: 'POST', url, data }),
+
+    put: <T>(url: string, data?: any, config?: AxiosRequestConfig) =>
+      request<T>({ ...config, method: 'PUT', url, data }),
+
+    patch: <T>(url: string, data?: any, config?: AxiosRequestConfig) =>
+      request<T>({ ...config, method: 'PATCH', url, data }),
+
+    delete: <T>(url: string, config?: AxiosRequestConfig) =>
+      request<T>({ ...config, method: 'DELETE', url }),
+
     request,
   };
 }

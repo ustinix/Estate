@@ -66,23 +66,19 @@ onUnmounted(() => {
   document.removeEventListener('keydown', closeOnEscape);
 });
 
-const { executeAsync, isLoading: isLoggingOut } = useErrorHandler();
+const { showNotification } = useErrorHandler();
 
 const handleLogout = async () => {
   closeDrawer();
-  await executeAsync(async () => {
+  try {
     await authStore.logout();
     await authStore.initAuth();
-
-    $q.notify({
-      color: 'green-4',
-      textColor: 'white',
-      icon: 'cloud_done',
-      message: 'Выход выполнен успешно',
-    });
-    return true;
-  });
+    showNotification('Выход выполнен успешно', 'success');
+  } catch (error) {
+    showNotification('Не удалось выполнить выход', 'error');
+  }
 };
+
 const handleProfileClick = () => {
   closeDrawer();
 };
@@ -150,13 +146,7 @@ const handleProfileClick = () => {
             <q-icon name="person" class="nav-icon" />
             <span class="nav-text">{{ userName }}</span>
           </NuxtLink>
-          <q-btn
-            class="header-btn button"
-            color="negative"
-            label="Выйти"
-            @click="handleLogout"
-            :loading="isLoggingOut"
-          />
+          <q-btn class="header-btn button" color="negative" label="Выйти" @click="handleLogout" />
         </div>
       </template>
     </div>
