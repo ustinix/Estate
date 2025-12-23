@@ -1,15 +1,17 @@
 import axios from 'axios';
 
-export default defineNuxtPlugin(nuxtApp => {
+export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
+  const baseURL = '/api'; // Всегда используем прокси в development
 
   const axiosInstance = axios.create({
-    baseURL: config.public.apiBaseUrl,
+    baseURL: baseURL,
     timeout: 10000,
     headers: {
       'Content-Type': 'application/json',
     },
+    withCredentials: false,
   });
 
   axiosInstance.interceptors.request.use(

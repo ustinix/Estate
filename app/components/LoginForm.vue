@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useQuasar } from 'quasar';
 import { ref } from 'vue';
 import { validateEmail, validatePassword } from '~/utils/validateRules';
 import { visibilityStates, toggleVisibility } from '~/utils/toggleVisibility';

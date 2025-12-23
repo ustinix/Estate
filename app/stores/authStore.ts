@@ -7,14 +7,11 @@ import type {
   NotificationSettingsRequest,
 } from '~/types/auth';
 import { AUTH_CONSTANTS } from '~/constants/auth';
-import { useApi } from '~/composables/useApi';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
   const isLoading = ref(false);
   const isInitialized = ref(false);
-
-  const $api = useApi();
 
   //В production должно быть secure true (когда будет https)
   const accessTokenCookie = useCookie('access-token', {
@@ -130,6 +127,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
+      const { useApi } = await import('~/composables/useApi');
+      const $api = useApi();
       const response = await $api.post<TokenResponse>('/users/refresh-token', {
         refresh_token: refreshTokenCookie.value,
       });
@@ -171,6 +170,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
     isLoading.value = true;
     try {
+      const { useApi } = await import('~/composables/useApi');
+      const $api = useApi();
       const response = await $api.post<TokenResponse>('/users/login', credentials);
       await getCurrentUser();
       setAuthData(response);
@@ -186,6 +187,8 @@ export const useAuthStore = defineStore('auth', () => {
   const register = async (userData: { email: string; password: string }) => {
     isLoading.value = true;
     try {
+      const { useApi } = await import('~/composables/useApi');
+      const $api = useApi();
       await $api.post('/users/registration', userData);
 
       const loginResponse = await $api.post<TokenResponse>('/users/login', {
@@ -212,6 +215,8 @@ export const useAuthStore = defineStore('auth', () => {
     if (!user.value?.id) return;
 
     try {
+      const { useApi } = await import('~/composables/useApi');
+      const $api = useApi();
       const updatedUser = await $api.get<User>(`/users/${user.value.id}`);
       user.value = {
         ...user.value,
@@ -235,6 +240,8 @@ export const useAuthStore = defineStore('auth', () => {
     if (!isValid || !user.value) throw new Error('Not authenticated');
 
     try {
+      const { useApi } = await import('~/composables/useApi');
+      const $api = useApi();
       await $api.put<User>(`/users/${userId}/profile`, profileData);
       await getCurrentUser();
     } catch (error) {
@@ -251,6 +258,8 @@ export const useAuthStore = defineStore('auth', () => {
     if (!isValid || !user.value) throw new Error('Not authenticated');
 
     try {
+      const { useApi } = await import('~/composables/useApi');
+      const $api = useApi();
       // ПРЕДПОЛОЖИТЕЛЬНЫЙ эндпоинт для смены пароля
       await $api.put(`/users/${userId}/change-password`, passwordData);
     } catch (error) {

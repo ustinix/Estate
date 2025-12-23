@@ -4,6 +4,13 @@ export default defineNuxtConfig({
   devServer: {
     port: 3000,
   },
+  plugins: [
+    '~/plugins/axios.client.ts',
+    '~/plugins/dictionaries.client.ts',
+    '~/plugins/auto-auth.client.ts',
+    '~/plugins/v-calendar.client.ts',
+    '~/plugins/yandex-metrika.client.ts',
+  ],
 
   nitro: {
     devProxy: {
