@@ -127,9 +127,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
-      const { useApi } = await import('~/composables/useApi');
-      const $api = useApi();
-      const response = await $api.post<TokenResponse>('/users/refresh-token', {
+      const { $axios } = useNuxtApp();
+      const response = await $axios.post<TokenResponse>('/users/refresh-token', {
         refresh_token: refreshTokenCookie.value,
       });
       setAuthData(response);
@@ -170,9 +169,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
     isLoading.value = true;
     try {
-      const { useApi } = await import('~/composables/useApi');
-      const $api = useApi();
-      const response = await $api.post<TokenResponse>('/users/login', credentials);
+      const { $axios } = useNuxtApp();
+      const response = await $axios.post<TokenResponse>('/users/login', credentials);
       await getCurrentUser();
       setAuthData(response);
       return response;
@@ -187,11 +185,10 @@ export const useAuthStore = defineStore('auth', () => {
   const register = async (userData: { email: string; password: string }) => {
     isLoading.value = true;
     try {
-      const { useApi } = await import('~/composables/useApi');
-      const $api = useApi();
-      await $api.post('/users/registration', userData);
+      const { $axios } = useNuxtApp();
+      await $axios.post('/users/registration', userData);
 
-      const loginResponse = await $api.post<TokenResponse>('/users/login', {
+      const loginResponse = await $axios.post<TokenResponse>('/users/login', {
         email: userData.email,
         password: userData.password,
       });
@@ -215,9 +212,8 @@ export const useAuthStore = defineStore('auth', () => {
     if (!user.value?.id) return;
 
     try {
-      const { useApi } = await import('~/composables/useApi');
-      const $api = useApi();
-      const updatedUser = await $api.get<User>(`/users/${user.value.id}`);
+      const { $axios } = useNuxtApp();
+      const updatedUser = await $axios.get<User>(`/users/${user.value.id}`);
       user.value = {
         ...user.value,
         ...updatedUser,
@@ -229,6 +225,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
+      throw error;
     }
   };
 
@@ -240,9 +237,8 @@ export const useAuthStore = defineStore('auth', () => {
     if (!isValid || !user.value) throw new Error('Not authenticated');
 
     try {
-      const { useApi } = await import('~/composables/useApi');
-      const $api = useApi();
-      await $api.put<User>(`/users/${userId}/profile`, profileData);
+      const { $axios } = useNuxtApp();
+      await $axios.put<User>(`/users/${userId}/profile`, profileData);
       await getCurrentUser();
     } catch (error) {
       console.error(error);
@@ -258,10 +254,9 @@ export const useAuthStore = defineStore('auth', () => {
     if (!isValid || !user.value) throw new Error('Not authenticated');
 
     try {
-      const { useApi } = await import('~/composables/useApi');
-      const $api = useApi();
+      const { $axios } = useNuxtApp();
       // ПРЕДПОЛОЖИТЕЛЬНЫЙ эндпоинт для смены пароля
-      await $api.put(`/users/${userId}/change-password`, passwordData);
+      await $axios.put(`/users/${userId}/change-password`, passwordData);
     } catch (error) {
       console.error(error);
       throw error;

@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-import { useApi } from '~/composables/useApi';
 import type { Estate, EstateResponse } from '~/types/estate';
 
 export const useEstateStore = defineStore('estate', () => {
@@ -17,7 +16,7 @@ export const useEstateStore = defineStore('estate', () => {
     }
   }
 
-  const $api = useApi();
+  const { $axios } = useNuxtApp();
 
   const getCurrentEstateId = (): number | null => {
     if (import.meta.client) {
@@ -49,7 +48,7 @@ export const useEstateStore = defineStore('estate', () => {
     try {
       isLoading.value = true;
       error.value = null;
-      estates.value = await $api.get<Estate[]>(`/users/${userId}/estates`);
+      estates.value = await $axios.get<Estate[]>(`/users/${userId}/estates`);
     } catch (err) {
       error.value = String(err);
       throw err;
@@ -62,7 +61,7 @@ export const useEstateStore = defineStore('estate', () => {
     try {
       isLoading.value = true;
       error.value = null;
-      estate.value = await $api.get<Estate>(`/users/${userId}/estates/${estateId}`);
+      estate.value = await $axios.get<Estate>(`/users/${userId}/estates/${estateId}`);
     } catch (err) {
       error.value = String(err);
       throw err;
@@ -80,7 +79,7 @@ export const useEstateStore = defineStore('estate', () => {
       error.value = null;
       newEstate.value = null;
 
-      const response: EstateResponse = await $api.post(`/users/${userId}/estates`, estateData);
+      const response: EstateResponse = await $axios.post(`/users/${userId}/estates`, estateData);
       estates.value.push(response);
       newEstate.value = response;
       return response;
@@ -101,7 +100,7 @@ export const useEstateStore = defineStore('estate', () => {
       isLoading.value = true;
       error.value = null;
 
-      const response: Estate = await $api.put(`/users/${userId}/estates/${estateId}`, estateData);
+      const response: Estate = await $axios.put(`/users/${userId}/estates/${estateId}`, estateData);
       const index = estates.value.findIndex(e => e.id === estateId);
       if (index !== -1) {
         estates.value[index] = { ...estates.value[index], ...response };
@@ -123,7 +122,7 @@ export const useEstateStore = defineStore('estate', () => {
       isLoading.value = true;
       error.value = null;
 
-      await $api.delete(`/users/${userId}/estates/${estateId}`);
+      await $axios.delete(`/users/${userId}/estates/${estateId}`);
       await getUserEstates(userId);
     } catch (err) {
       error.value = String(err);

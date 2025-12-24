@@ -11,7 +11,7 @@ import { useErrorHandler } from '~/composables/useErrorHandler';
 const dictionariesStore = useDictionariesStore();
 const authStore = useAuthStore();
 const estateStore = useEstateStore();
-const { showNotification } = useErrorHandler();
+const { handleGenericError, showNotification } = useErrorHandler();
 
 const estateTypes = computed(() => dictionariesStore.estateTypes);
 const { estates, isLoading: isEstatesLoading } = storeToRefs(estateStore);
@@ -30,6 +30,7 @@ const loadEstates = async () => {
     await estateStore.getUserEstates(currentUserId);
   } catch (error) {
     console.error('Ошибка загрузки недвижимости:', error);
+    handleGenericError(error, 'Ошибка загрузки недвижимости');
   }
 };
 
@@ -78,6 +79,7 @@ const createEstate = async (estateData: { estate_type_id: number; name: string }
     showNotification('Недвижимость успешно создана', 'success');
   } catch (error) {
     console.error('Ошибка создания недвижимости:', error);
+    handleGenericError(error, 'Ошибка создания недвижимости');
   } finally {
     isCreating.value = false;
   }

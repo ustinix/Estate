@@ -60,6 +60,7 @@ const loadChartData = async () => {
     chartData.value = formatChartData(data);
   } catch (error) {
     console.error('Ошибка загрузки аналитики:', error);
+    handleGenericError(error, 'Ошибка загрузки аналитики');
   } finally {
     isChartLoading.value = false;
   }

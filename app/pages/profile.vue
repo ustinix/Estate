@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useQuasar } from 'quasar';
 import { useAuthStore } from '~/stores/authStore';
 import type {
   UpdateProfileRequest,
@@ -8,15 +7,16 @@ import type {
 } from '~/types/auth';
 import { visibilityStates, toggleVisibility } from '~/utils/toggleVisibility';
 import { validateOptionalName, validateOptionalPhone } from '~/utils/validateRules';
+import { useErrorHandler } from '#imports';
 
 const { formatPhone } = useFormatters();
+const { handleGenericError, showNotification } = useErrorHandler();
 
 definePageMeta({
   middleware: 'auth',
   requiresAuth: true,
 });
 
-const $q = useQuasar();
 const authStore = useAuthStore();
 const activeTab = ref('profile');
 const isNotificationsLoading = ref(true);
@@ -53,7 +53,7 @@ const loadNotificationSettings = async () => {
     const settings = await authStore.getNotificationSettings();
     notificationsData.value = { ...settings };
   } catch (error: unknown) {
-    console.error('Error loading notifications:', error);
+    handleGenericError(error, 'Ошибка загрузки настроек');
   } finally {
     isNotificationsLoading.value = false;
   }
@@ -63,12 +63,7 @@ loadNotificationSettings();
 
 async function updateProfileData() {
   if (!userId.value) {
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'error',
-      message: 'Ошибка: пользователь не найден',
-    });
+    showNotification('Ошибка: пользователь не найден', 'error');
     return;
   }
 
@@ -78,98 +73,42 @@ async function updateProfileData() {
       phone: formatPhone(editableProfileData.value.phone),
     };
     await authStore.updateProfile(userId.value, formattedData);
-
-    $q.notify({
-      color: 'green-4',
-      textColor: 'white',
-      icon: 'cloud_done',
-      message: 'Профиль успешно обновлен!',
-    });
+    showNotification('Профиль успешно обновлен!', 'success');
   } catch (error: unknown) {
-    console.error('Profile update error:', error);
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'error',
-      message: 'Ошибка обновления профиля',
-    });
+    handleGenericError(error, 'Ошибка обновления профиля');
   }
 }
 
 async function changeUserPassword() {
   if (passwordData.value.newPassword.length < 3) {
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'warning',
-      message: 'Пароль должен содержать минимум 3 символа',
-    });
+    showNotification('Пароль должен содержать минимум 3 символа', 'warning');
     return;
   }
   if (!userId.value) {
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'warning',
-      message: 'Пользователь не авторизован',
-    });
-    return;
-  }
-
-  if (passwordData.value.newPassword.length < 3) {
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'warning',
-      message: 'Пароль должен содержать минимум 3 символа',
-    });
+    showNotification('Пользователь не авторизован', 'warning');
     return;
   }
 
   try {
     await authStore.changePassword(passwordData.value, userId.value);
 
-    $q.notify({
-      color: 'green-4',
-      textColor: 'white',
-      icon: 'cloud_done',
-      message: 'Пароль успешно изменен!',
-    });
+    showNotification('Пароль успешно изменен!', 'success');
 
     passwordData.value = {
       currentPassword: '',
       newPassword: '',
     };
   } catch (error: unknown) {
-    console.error('Password change error:', error);
-    const message = error instanceof Error ? error.message : 'Ошибка смены пароля';
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'error',
-      message: message,
-    });
+    handleGenericError(error, 'Ошибка смены пароля');
   }
 }
 
 async function changeNotificationSettings() {
   try {
     await authStore.updateNotificationSettings(notificationsData.value);
-
-    $q.notify({
-      color: 'green-4',
-      textColor: 'white',
-      icon: 'cloud_done',
-      message: 'Настройки уведомлений обновлены!',
-    });
+    showNotification('Настройки уведомлений обновлены!', 'success');
   } catch (error: unknown) {
-    console.error('Notifications update error:', error);
-    $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'error',
-      message: 'Ошибка обновления настроек',
-    });
+    handleGenericError(error, 'Ошибка обновления настроек');
   }
 }
 const validateConfirmPassword = (val: string) => {

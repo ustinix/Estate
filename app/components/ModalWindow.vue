@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useDictionariesStore } from '~/stores/dictionariesStore';
+import { useErrorHandler } from '#imports';
 
 interface Props {
   modelValue: boolean;
@@ -15,6 +16,7 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const dictionariesStore = useDictionariesStore();
+const { handleGenericError, showNotification } = useErrorHandler();
 
 const form = ref({
   estate_type_id: null as number | null,
@@ -33,6 +35,7 @@ const handleSubmit = async () => {
   const name = form.value.name;
 
   if (!estateTypeId || !name) {
+    showNotification('Заполните все обязательные поля', 'warning');
     return;
   }
 
@@ -44,6 +47,7 @@ const handleSubmit = async () => {
     resetForm();
     closeModal();
   } catch (error) {
+    handleGenericError(error, 'Ошибка создания недвижимости');
     console.error('Ошибка создания недвижимости:', error);
   }
 };

@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-import { useApi } from '~/composables/useApi';
 import type {
   EstateType,
   TransactionType,
@@ -16,13 +15,13 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
   const repaymentPlans = ref<TransactionType[]>([]);
   const isLoaded = ref(false);
 
-  const $api = useApi();
+  const { $axios } = useNuxtApp();
 
   const getEstateTypes = async () => {
     try {
       isLoading.value = true;
       error.value = null;
-      estateTypes.value = await $api.get<EstateType[]>('/estate-types');
+      estateTypes.value = await $axios.get<EstateType[]>('/estate-types');
     } catch (err) {
       error.value = String(err);
       throw err;
@@ -35,7 +34,7 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
     try {
       isLoading.value = true;
       error.value = null;
-      transactionTypes.value = await $api.get<TransactionType[]>('/transaction-types');
+      transactionTypes.value = await $axios.get<TransactionType[]>('/transaction-types');
     } catch (err) {
       error.value = String(err);
       throw err;
@@ -48,7 +47,7 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
     try {
       isLoading.value = true;
       error.value = null;
-      transactionFrequencies.value = await $api.get<TransactionFrequencies[]>(
+      transactionFrequencies.value = await $axios.get<TransactionFrequencies[]>(
         '/transaction-frequencies',
       );
     } catch (err) {
@@ -63,7 +62,7 @@ export const useDictionariesStore = defineStore('dictionaries', () => {
     try {
       isLoading.value = true;
       error.value = null;
-      repaymentPlans.value = await $api.get<RepaymentPlans[]>('/transaction-repayment-plans');
+      repaymentPlans.value = await $axios.get<RepaymentPlans[]>('/transaction-repayment-plans');
     } catch (err) {
       error.value = String(err);
       throw err;

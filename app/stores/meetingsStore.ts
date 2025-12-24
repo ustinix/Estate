@@ -29,6 +29,7 @@ export const useMeetingsStore = defineStore('meetings', () => {
         } catch (error) {
           console.error('Failed to load meetings from localStorage:', error);
           meetings.value = [];
+          throw error;
         }
       }
     }

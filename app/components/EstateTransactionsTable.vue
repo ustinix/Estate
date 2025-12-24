@@ -66,7 +66,7 @@ const loadTransactions = async (page: number = 1) => {
       page,
     });
   } catch (error) {
-    console.error('Ошибка загрузки транзакций:', error);
+    handleGenericError(error, 'Ошибка загрузки транзакций');
   }
 };
 

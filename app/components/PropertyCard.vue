@@ -4,7 +4,7 @@ import type { Estate } from '~/types/estate';
 const expanded = ref(false);
 const estateStore = useEstateStore();
 const authStore = useAuthStore();
-const { showNotification } = useErrorHandler();
+const { handleGenericError, showNotification } = useErrorHandler();
 const { isLoading: isDeleting } = storeToRefs(estateStore);
 
 const props = defineProps<{
@@ -23,6 +23,7 @@ const handleDelete = async () => {
     showNotification('Недвижимость успешно удалена', 'success');
   } catch (error) {
     console.error('Ошибка удаления недвижимости:', error);
+    handleGenericError(error, 'Ошибка удаления недвижимости');
   }
 };
 </script>

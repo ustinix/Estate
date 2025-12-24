@@ -12,5 +12,6 @@ export default defineNuxtPlugin(async () => {
     console.log('Dictionaries loaded successfully');
   } catch (error) {
     console.error('Failed to load dictionaries:', error);
+    throw error;
   }
 });

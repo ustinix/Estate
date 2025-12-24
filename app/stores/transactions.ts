@@ -26,11 +26,11 @@ export const useTransactionsStore = defineStore('transactions', () => {
     limit: 10,
   };
 
-  const $api = useApi();
+  const { $axios } = useNuxtApp();
 
   const getUserTransactions = async (userId: number): Promise<CalendarTransaction[]> => {
     try {
-      const response = await $api.get<{
+      const response = await $axios.get<{
         data: CalendarTransaction[];
         total_items: number;
         page: number;
@@ -72,7 +72,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         ...filters,
       };
 
-      const response = await $api.post<EstateTransactionResponse>(
+      const response = await $axios.post<EstateTransactionResponse>(
         `/users/${userId}/estates/${estateId}/transactions/filter`,
         requestBody,
       );
@@ -102,7 +102,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     try {
       isLoading.value = true;
       error.value = null;
-      await $api.post(`/transactions`, transactionData);
+      await $axios.post(`/transactions`, transactionData);
       await getUserEstateTransactions(userId, transactionData.estate_id);
     } catch (err) {
       error.value = String(err);
@@ -120,7 +120,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     try {
       isLoading.value = true;
       error.value = null;
-      await $api.delete(`/transactions/${transactionId}`);
+      await $axios.delete(`/transactions/${transactionId}`);
       await getUserEstateTransactions(userId, estateId);
     } catch (err) {
       error.value = String(err);
@@ -139,7 +139,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     try {
       isLoading.value = true;
       error.value = null;
-      await $api.put(`/transactions/${transactionId}`, updateData);
+      await $axios.put(`/transactions/${transactionId}`, updateData);
       await getUserEstateTransactions(userId, estateId);
     } catch (err) {
       error.value = String(err);
@@ -159,7 +159,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
       isLoading.value = true;
       error.value = null;
 
-      const response = await $api.post<ChartData>(
+      const response = await $axios.post<ChartData>(
         `/users/${userId}/estates/${estateId}/values/filter`,
         {
           date_start: startDate,
