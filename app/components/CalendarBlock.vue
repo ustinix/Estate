@@ -136,6 +136,15 @@ const getPriorityClass = (item: CalendarItem) => {
   }
   return '';
 };
+const estateOptions = computed(() => {
+  return [
+    { label: 'Все объекты', value: 'all' },
+    ...props.userEstates.map(estate => ({
+      label: estate.name,
+      value: estate.id.toString(),
+    })),
+  ];
+});
 </script>
 
 <template>
@@ -145,13 +154,20 @@ const getPriorityClass = (item: CalendarItem) => {
       <div class="header-controls">
         <div class="estate-selector">
           <label for="estate-select">Недвижимость:</label>
-          <select id="estate-select" v-model="selectedEstateId">
-            <option value="all">Все объекты</option>
-            <option v-for="estate in userEstates" :key="estate.id" :value="estate.id">
-              {{ estate.name }}
-            </option>
-          </select>
+          <q-select
+            v-model="selectedEstateId"
+            :options="estateOptions"
+            label="Недвижимость"
+            outlined
+            dense
+            emit-value
+            map-options
+            style="min-width: 200px"
+            class="q-select-estate"
+            id="estate-select"
+          />
         </div>
+
         <q-btn
           color="secondary"
           class="button"
@@ -198,6 +214,9 @@ const getPriorityClass = (item: CalendarItem) => {
     </div>
 
     <div class="calendar-scroll-wrapper">
+      <div class="scroll-hint">
+        <span>← прокрутите для просмотра →</span>
+      </div>
       <div v-if="isMounted" class="calendar-container">
         <VCalendar expanded borderless trim-weeks class="custom-calendar outlook-style">
           <template #day-content="{ day }">
@@ -304,89 +323,103 @@ const getPriorityClass = (item: CalendarItem) => {
 
 <style scoped>
 .calendar-block {
+  width: 100%;
   max-width: 100%;
   margin: 0 auto;
+  padding: 1.5rem;
+  overflow-x: hidden;
 }
 
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 1.5rem;
+  width: 100%;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 1rem;
 }
 
 .calendar-header h4 {
   margin: 0;
   color: var(--text-color-black);
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 600;
+  line-height: 1.2;
+  flex: 1;
+  min-width: 200px;
 }
 
 .header-controls {
+  padding: 0 1rem;
   display: flex;
-  align-items: center;
-  gap: 20px;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .estate-selector {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.5rem;
+  min-width: 300px;
 }
 
 .estate-selector label {
   font-weight: 500;
   color: var(--text-color-black);
   white-space: nowrap;
+  font-size: 0.87rem;
+  flex-shrink: 0;
 }
 
-.estate-selector select {
-  padding: 10px 0px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background: var(--bg-color-light);
-  color: var(--text-color-black);
-  font-size: 14px;
-  min-width: 180px;
+.q-select-estate {
+  min-width: 100px;
+}
+
+.create-event-btn {
+  flex-shrink: 0;
 }
 
 .stats-info {
-  margin-bottom: 30px;
+  margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 .stats-card {
   background: var(--bg-color-light);
   border-radius: 16px;
-  padding: 25px;
+  padding: 1.5rem;
   box-shadow: 0 4px 20px var(--box-shadow);
   border: 1px solid var(--border-color);
+  width: 100%;
+  overflow: hidden;
 }
 
 .stats-header {
-  margin-bottom: 20px;
-  padding-bottom: 15px;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
   border-bottom: 2px solid var(--border-color);
 }
 
 .stats-header h5 {
   margin: 0;
   color: var(--text-color-black);
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  gap: 1rem;
 }
 
 .stat-item {
-  padding: 20px;
-  border-radius: 12px;
+  padding: 1.25rem;
+  border-radius: 16px;
   background: var(--bg-color);
   text-align: center;
   transition: all 0.3s ease;
@@ -419,16 +452,16 @@ const getPriorityClass = (item: CalendarItem) => {
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--label);
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .stat-value {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-color-black);
 }
@@ -457,20 +490,24 @@ const getPriorityClass = (item: CalendarItem) => {
   border: 1px solid var(--border-color);
   border-radius: 16px;
   background: var(--bg-color-light);
-  padding: 15px;
-  margin-bottom: 20px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
   position: relative;
 }
 
-.calendar-scroll-wrapper::after {
-  content: '← прокрутите для просмотра →';
+.scroll-hint {
   position: absolute;
-  top: -30px;
-  right: 15px;
-  font-size: 12px;
+  top: -1.75rem;
+  right: 1rem;
+  font-size: 0.75rem;
   color: var(--label);
   opacity: 0.8;
   font-weight: 500;
+  display: none;
+}
+
+.calendar-scroll-wrapper:hover .scroll-hint {
+  display: block;
 }
 
 .calendar-container {
@@ -484,10 +521,10 @@ const getPriorityClass = (item: CalendarItem) => {
   align-items: center;
   height: 400px;
   background: var(--bg-color-light);
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid var(--border-color);
   color: var(--label);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 500;
 }
 
@@ -529,7 +566,6 @@ const getPriorityClass = (item: CalendarItem) => {
   padding: 4px !important;
   margin: 0 !important;
   width: calc(100% / 7) !important;
-  box-sizing: border-box;
 }
 
 :deep(.outlook-style .vc-day:not(.vc-disabled):hover) {
@@ -775,66 +811,86 @@ const getPriorityClass = (item: CalendarItem) => {
   line-height: 1.5;
   color: var(--label);
 }
+@media (max-width: 1200px) {
+  .calendar-block {
+    padding: 1.25rem;
+  }
 
-@media (max-width: 768px) {
+  .calendar-container {
+    min-width: 1000px;
+  }
+
+  :deep(.custom-calendar.outlook-style) {
+    min-width: 1000px;
+  }
+}
+
+@media (max-width: 992px) {
   .calendar-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 15px;
-    margin-bottom: 20px;
   }
 
   .calendar-header h4 {
-    font-size: 20px;
     text-align: center;
+    margin-bottom: 0.5rem;
   }
 
   .header-controls {
-    gap: 15px;
-    flex-direction: column;
-    align-items: stretch;
+    justify-content: center;
   }
 
   .estate-selector {
-    justify-content: space-between;
-  }
-
-  .estate-selector select {
-    min-width: 140px;
-    padding: 8px 12px;
-  }
-
-  .stats-card {
-    padding: 20px;
+    min-width: 200px;
   }
 
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-block {
+    padding: 1rem;
+  }
+
+  .calendar-header h4 {
+    font-size: 1.25rem;
+  }
+
+  .header-controls {
+    flex-direction: column;
+  }
+
+  .estate-selector {
+    flex-direction: column;
+    min-width: 100%;
+  }
+
+  .q-select-estate {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .create-event-btn {
+    width: 100%;
+  }
+
+  .stats-card {
+    padding: 1.25rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
 
   .stat-item {
-    padding: 15px 10px;
-  }
-
-  .stat-label {
-    font-size: 11px;
+    padding: 1rem;
   }
 
   .stat-value {
-    font-size: 16px;
-  }
-
-  .calendar-scroll-wrapper {
-    padding: 10px;
-    margin: 0 -10px;
-    border-radius: 12px;
-  }
-
-  .calendar-scroll-wrapper::after {
-    top: -25px;
-    right: 10px;
-    font-size: 11px;
+    font-size: 1.125rem;
   }
 
   .calendar-container {
@@ -849,41 +905,17 @@ const getPriorityClass = (item: CalendarItem) => {
     min-height: 110px;
     height: 110px !important;
   }
-
-  :deep(.vc-title) {
-    font-size: 16px !important;
-  }
-
-  :deep(.vc-weekday) {
-    font-size: 11px !important;
-    padding: 8px 2px !important;
-  }
-
-  .day-number {
-    font-size: 11px;
-  }
-
-  .event-line {
-    padding: 3px 5px;
-    font-size: 10px;
-  }
-
-  .event-title {
-    font-size: 10px;
-  }
-
-  .event-modal {
-    min-width: 85vw;
-    margin: 20px;
-  }
-
-  .header-controls .q-btn {
-    min-height: 44px;
-    font-size: 14px;
-  }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
+  .calendar-block {
+    padding: 0.75rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
   .calendar-container {
     min-width: 800px;
   }
@@ -897,16 +929,38 @@ const getPriorityClass = (item: CalendarItem) => {
     height: 100px !important;
   }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
+  .event-modal {
+    min-width: 90vw !important;
+    max-width: 90vw !important;
+    margin: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-container {
+    min-width: 700px;
   }
 
-  .events-list {
-    max-height: 75px;
+  :deep(.custom-calendar.outlook-style) {
+    min-width: 700px;
+  }
+
+  :deep(.outlook-style .vc-day) {
+    min-height: 90px;
+    height: 90px !important;
+  }
+
+  .day-number {
+    font-size: 11px;
   }
 
   .event-line {
-    min-height: 18px;
+    padding: 3px 5px;
+    font-size: 10px;
+  }
+
+  .event-title {
+    font-size: 10px;
   }
 }
 </style>

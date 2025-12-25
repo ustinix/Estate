@@ -98,16 +98,16 @@ watch(showModal, newVal => {
             :rules="[val => !!val || 'Введите название']"
           />
 
-          <div class="row q-gutter-md">
+          <div class="row">
             <q-input
               v-model="form.date"
               label="Дата *"
               type="date"
-              class="col"
+              class="col q-pr-sm"
               :rules="[val => !!val || 'Выберите дату']"
             />
 
-            <q-input v-model="form.time" label="Время" type="time" class="col" />
+            <q-input v-model="form.time" label="Время" type="time" class="col q-pl-sm" />
           </div>
 
           <q-select

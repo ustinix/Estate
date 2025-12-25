@@ -102,17 +102,18 @@ onMounted(async () => {
 <style scoped>
 .calendar-section {
   width: 100%;
-  background: var(--bg-color);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  min-height: 100vh;
 }
 
 .calendar-wrapper {
   width: 100%;
-  max-width: 1400px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 40px 0;
+  overflow-x: hidden;
 }
 
 .default-block-container {
@@ -120,6 +121,7 @@ onMounted(async () => {
   justify-content: center;
   align-items: center;
   width: 100%;
+  min-height: 80vh;
 }
 
 .default-block {
@@ -134,11 +136,12 @@ onMounted(async () => {
 }
 @media (max-width: 768px) {
   .calendar-section {
-    min-height: 80vh;
+    min-height: auto;
   }
 
   .calendar-wrapper {
-    padding: 20px 15px;
+    padding: 0;
+    width: 100vw;
   }
 
   .default-block-container {
@@ -151,12 +154,8 @@ onMounted(async () => {
 }
 
 @media (max-width: 480px) {
-  .calendar-section {
-    min-height: 70vh;
-  }
-
   .calendar-wrapper {
-    padding: 15px 10px;
+    padding: 0;
   }
 
   .default-block-container {
