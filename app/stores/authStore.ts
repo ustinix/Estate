@@ -141,11 +141,6 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const isValidToken = async (): Promise<boolean> => {
-    if (!import.meta.client) {
-      console.log('SSR: Skipping token validation on server');
-      return false;
-    }
-
     if (!accessTokenCookie.value || !user.value) {
       return false;
     }

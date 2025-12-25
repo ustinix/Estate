@@ -1,33 +1,62 @@
 import axios from 'axios';
 
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin(async () => {
   const config = useRuntimeConfig();
-  const authStore = useAuthStore();
-  const baseURL = '/api'; // Всегда используем прокси в development
+  const baseURL = '/api';
 
   const axiosInstance = axios.create({
     baseURL: baseURL,
-    timeout: 10000,
+    timeout: 30000,
     headers: {
       'Content-Type': 'application/json',
     },
     withCredentials: false,
   });
 
+  let authStore: ReturnType<typeof useAuthStore> | null = null;
+
+  if (import.meta.client) {
+    authStore = useAuthStore();
+
+    if (!authStore.isInitialized) {
+      await authStore.initAuth();
+      authStore.isInitialized = true;
+    }
+  }
+
   axiosInstance.interceptors.request.use(
-    requestConfig => {
+    async requestConfig => {
       if (config.public.apiSecret) {
         requestConfig.headers['X-API-Key'] = config.public.apiSecret;
       }
 
-      if (authStore.accessToken) {
-        requestConfig.headers.Authorization = `Bearer ${authStore.accessToken}`;
+      if (import.meta.server) {
+        return requestConfig;
+      }
+
+      if (authStore) {
+        if (authStore.needsRefresh && !requestConfig.url?.includes('/users/refresh-token')) {
+          console.log('Token needs refresh, refreshing...');
+          try {
+            const success = await authStore.refreshTokens();
+            if (!success) {
+              console.warn('Token refresh failed, clearing auth');
+              await authStore.logout();
+            }
+          } catch (error) {
+            console.error('Error during token refresh:', error);
+          }
+        }
+
+        if (authStore.accessToken) {
+          requestConfig.headers.Authorization = `Bearer ${authStore.accessToken}`;
+        }
       }
 
       return requestConfig;
     },
     error => {
-      console.error('Ошибка запроса:', error);
+      console.error('Request error:', error);
       return Promise.reject(error);
     },
   );
@@ -50,25 +79,27 @@ export default defineNuxtPlugin(() => {
       console.error(`[Axios Error] ${status || 'NETWORK'} ${url}: ${message}`);
 
       if (import.meta.server) {
-        console.warn('В SSR режиме пропускаем обработку 401 ошибок');
         return Promise.reject(error);
       }
 
-      if (status === 401 && !originalRequest._retry) {
+      if (status === 401 && !originalRequest._retry && authStore) {
         originalRequest._retry = true;
 
+        console.log('Received 401, attempting token refresh...');
+
         try {
-          const refreshTokenCookie = useCookie('refresh-token');
-          if (!refreshTokenCookie.value) {
-            throw new Error('No refresh token');
-          }
           const refreshSuccess = await authStore.refreshTokens();
+
           if (refreshSuccess && authStore.accessToken) {
+            console.log('Token refreshed successfully, retrying request');
             originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`;
             return axiosInstance(originalRequest);
+          } else {
+            console.warn('Token refresh failed, logging out');
+            await authStore.logout();
           }
         } catch (refreshError) {
-          console.error('Не удалось обновить токен:', refreshError);
+          console.error('Token refresh error:', refreshError);
           await authStore.logout();
         }
       }
