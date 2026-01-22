@@ -181,7 +181,12 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true;
     try {
       const { $axios } = useNuxtApp();
-      await $axios.post('/users/registration', userData);
+      await $axios.post('/users/registration', userData).catch(error => {
+        if (error.response?.status === 409) {
+          throw new Error('Пользователь с таким email уже существует');
+        }
+        throw error;
+      });
 
       const loginResponse = await $axios.post<TokenResponse>('/users/login', {
         email: userData.email,
